@@ -80,24 +80,19 @@ final class LogicInserter {
 
         var strip = findSlots(in: win, kind: plugin.slotKind, windowMinX: winFrame.minX)
 
-        // Instruments only ever go into the track's instrument slot, never an audio insert.
-        if plugin.slotKind == .instrument, strip.empty == nil {
-            let audio = findSlots(in: win, kind: .audioFX, windowMinX: winFrame.minX)
-            if let current = instrumentSlot(in: win, above: audio) {
-                strip.filled = [current]          // offered as "replace", never done silently
-            } else if audio.empty != nil || !audio.filled.isEmpty {
-                return .failed("The selected track is an audio track, it has no instrument slot. " +
+        // Slots are typed by Logic's own labels, so an instrument can only meet the instrument
+        // slot and an effect only audio effect slots. A track without that kind of slot says so.
+        if strip.empty == nil, strip.filled.isEmpty {
+            switch plugin.slotKind {
+            case .instrument:
+                return .failed("The selected track has no instrument slot (it is an audio track). " +
                                "Select a software instrument track to add \(plugin.name).")
+            case .midiFX:
+                return .failed("MIDI effects go on software instrument tracks. Select one to add \(plugin.name).")
+            case .audioFX:
+                break
             }
         }
-        if plugin.slotKind == .midiFX, strip.empty == nil, strip.filled.isEmpty {
-            let audio = findSlots(in: win, kind: .audioFX, windowMinX: winFrame.minX)
-            if audio.empty != nil || !audio.filled.isEmpty {
-                return .failed("MIDI effects go on software instrument tracks. " +
-                               "Select one to add \(plugin.name).")
-            }
-        }
-
         log("  slots: empty=\(strip.empty != nil) filled=\(strip.filled.count)")
         let target: AXNode
         if let index = slotIndex {
@@ -125,6 +120,7 @@ final class LogicInserter {
         if await chooseByBrowsing(plugin, menu: menu, app: app) {
             return .inserted
         }
+        log("  menu titles: " + menuItems(menu).map(\.title).joined(separator: " | "))
         Keyboard.press(53, pid: logic.processIdentifier) // Esc closes the menu
         return .failed("I couldn't find \"\(plugin.name)\" in Logic's plug-in menu. " +
                        "Make sure Logic has scanned it (Plug-in Manager).")
@@ -253,49 +249,37 @@ final class LogicInserter {
         var topY: CGFloat?
     }
 
-    /// The filled instrument slot of the selected strip: the slot-sized control directly above
-    /// the first audio insert in the same column, or anything there that says "instrument".
-    private func instrumentSlot(in win: AXNode, above audio: Strip) -> AXNode? {
-        guard let x = audio.columnX, let top = audio.topY else { return nil }
-        let slotRoles: Set<String> = ["AXButton", "AXMenuButton", "AXPopUpButton", "AXCheckBox", "AXGroup"]
-        let candidates = win.findAll(skipRoles: [AXRole.menuBar]) { node in
-            guard slotRoles.contains(node.role) else { return false }
-            let f = node.frame
-            return abs(f.minX - x) < 12 && f.maxY <= top + 2 && top - f.maxY < 60 && f.height > 8 && f.height < 40
+
+    /// Logic labels every slot with its kind in the help text, e.g. "Audio Effect slot. Insert an
+    /// audio effect…". Only slots of the plugin's own kind are ever touched.
+    private func slotKind(of node: AXNode) -> SlotKind? {
+        let help = node.help.lowercased()
+        let text = node.allText.lowercased()
+        if help.contains("audio effect slot") || text.contains("click to insert audio effect") { return .audioFX }
+        if help.contains("midi effect slot") || text.contains("empty - midi plug-in") { return .midiFX }
+        if help.contains("instrument slot") || text.contains("click to insert software instrument") {
+            return .instrument
         }
-        if let named = candidates.first(where: { $0.allText.localizedCaseInsensitiveContains("instrument") }) {
-            return named
-        }
-        return candidates.max { $0.frame.maxY < $1.frame.maxY }
+        return nil
     }
 
-    private func emptyMarkers(_ kind: SlotKind) -> [String] {
-        switch kind {
-        case .audioFX: return ["Click to insert Audio effect plug-in", "Empty - Audio Plug-in"]
-        case .instrument: return ["Click to insert Software Instrument plug-in"]
-        case .midiFX: return ["Empty - MIDI Plug-in"]
-        }
+    /// An empty slot shows no plugin name; a filled one carries the plugin's name as its title.
+    private func isEmptySlot(_ node: AXNode) -> Bool {
+        let name = node.title.trimmingCharacters(in: .whitespaces)
+        if node.allText.localizedCaseInsensitiveContains("Click to insert") { return true }
+        if node.desc.localizedCaseInsensitiveContains("Empty") { return true }
+        return name.isEmpty
     }
 
-    private func filledMarker(_ kind: SlotKind) -> String {
-        kind == .midiFX ? "MIDI plug-in" : "audio plug-in"
-    }
-
-    /// Finds the selected track's strip: the leftmost column of slots inside the Inspector.
+    /// Finds the selected track's strip: the leftmost column of slots of this kind in the Inspector.
     private func findSlots(in win: AXNode, kind: SlotKind, windowMinX: CGFloat) -> Strip {
-        let empties = emptyMarkers(kind)
-        let filledWord = filledMarker(kind)
         var emptyNodes: [(AXNode, CGRect)] = []
         var filledNodes: [(AXNode, CGRect)] = []
         _ = win.findAll(skipRoles: [AXRole.menuBar]) { node in
-            let text = node.allText
-            if empties.contains(where: { text.localizedCaseInsensitiveContains($0) }) {
-                emptyNodes.append((node, node.frame))
-            } else if kind != .instrument,
-                      text.localizedCaseInsensitiveContains(filledWord),
-                      !text.localizedCaseInsensitiveContains("Empty") {
-                filledNodes.append((node, node.frame))
-            }
+            guard node.role == "AXButton" || node.role == "AXMenuButton" || node.role == "AXPopUpButton",
+                  slotKind(of: node) == kind else { return false }
+            if isEmptySlot(node) { emptyNodes.append((node, node.frame)) }
+            else { filledNodes.append((node, node.frame)) }
             return false
         }
         let inInspector: ((AXNode, CGRect)) -> Bool = { $0.1.minX - windowMinX < self.inspectorMaxX }

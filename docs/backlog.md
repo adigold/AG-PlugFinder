@@ -8,17 +8,17 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 ## Inbox
 
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
-- [ ] **BL-16** `P1 · High` **Instruments go to the instrument slot, effects to the inserts:** a software instrument must land in the track's instrument slot, an audio effect in the first empty audio insert. Adi, 2026-10-30.
+- [~] **BL-16** `P1 · High` **Instruments go to the instrument slot, effects to the inserts:** a software instrument must land in the track's instrument slot, an audio effect in the first empty audio insert. Adi, 2026-10-30.
 - [ ] **BL-15** `P1 · Medium` **Screenshots of Logic's own plugins:** capture them inside Logic (scratch track in an empty project, open each plugin window, capture, remove), since they cannot run outside Logic. Needs Insert in Logic working first (BL-12). Adi, 2026-10-30.
 ## Now
 
-- [~] **BL-12** `P1 · High` **Fix Insert in Logic and redesign the info panel:** the Insert in Logic button does nothing for Adi; keep it always visible at the top of the panel and give the panel a nicer design. Adi, 2026-10-30.
 - [~] **BL-14** `P1 · Medium` **Arrow keys in the main window:** arrows browse and select, Return inserts, like the popup. Adi, 2026-10-30.
-- [~] **BL-01** `P1 · High` **AU Plugin Picker app for Logic Pro:** native SwiftUI background app; global hotkey and menu-bar item open a popup listing every installed Audio Unit with a cached screenshot of its UI, name, manufacturer, category and scanned info (incl. best feature); search as you type, sort by name/category/manufacturer/recent/favorites, arrows and Esc; Enter places the plugin in the first empty insert slot in Logic Pro. Asked by Adi, 2026-10-30.
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
 
+- [x] **BL-12** `P1 · High` **Fix Insert in Logic and redesign the info panel:** the Insert in Logic button does nothing for Adi; keep it always visible at the top of the panel and give the panel a nicer design. Adi, 2026-10-30. · done 2026-10-30
+- [x] **BL-01** `P1 · High` **AU Plugin Picker app for Logic Pro:** native SwiftUI background app; global hotkey and menu-bar item open a popup listing every installed Audio Unit with a cached screenshot of its UI, name, manufacturer, category and scanned info (incl. best feature); search as you type, sort by name/category/manufacturer/recent/favorites, arrows and Esc; Enter places the plugin in the first empty insert slot in Logic Pro. Asked by Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-18** `P1 · Medium` **Never re-capture screenshots we already have:** the camera button captures only plugins with no picture; retaking one is a right-click on that plugin. Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-13** `P1 · Medium` **Keep the window on top, mini mode:** a pin that keeps the main window above Logic, and a compact mini mode that floats on top. Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-11** `P1 · High` **First-run onboarding for permissions:** on first install, a friendly step-by-step window gets every permission (Accessibility for Logic, open at login, optional API key) approved before the app starts working. Adi, 2026-10-30. · done 2026-10-30
