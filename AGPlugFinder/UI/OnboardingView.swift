@@ -65,9 +65,7 @@ struct OnboardingView: View {
             footer
         }
         .frame(width: 640, height: 500)
-        .background(
-            LinearGradient(colors: [Theme.accent.opacity(0.10), Color.clear],
-                           startPoint: .top, endPoint: .center))
+
         .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
             trusted = AXAccess.isTrusted
         }
@@ -77,8 +75,7 @@ struct OnboardingView: View {
 
     private var welcome: some View {
         VStack(spacing: 18) {
-            Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 96, height: 96)
-                .shadow(color: .black.opacity(0.2), radius: 10, y: 4)
+            Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 88, height: 88)
             Text("Welcome to AG PlugFinder").font(.system(size: 26, weight: .bold))
             Text("Find any plugin by sight and drop it on your Logic track in a second.")
                 .font(.system(size: 14)).foregroundStyle(.secondary).multilineTextAlignment(.center)
@@ -270,10 +267,9 @@ struct OnboardingView: View {
 
     private func stepIcon(_ name: String) -> some View {
         Image(systemName: name)
-            .font(.system(size: 30, weight: .semibold))
-            .foregroundStyle(Theme.accent)
-            .frame(width: 68, height: 68)
-            .background(Circle().fill(Theme.accent.opacity(0.15)))
+            .font(.system(size: 34, weight: .light))
+            .foregroundStyle(.secondary)
+            .frame(height: 48)
     }
 
     private func bullet(_ icon: String, _ text: String) -> some View {
@@ -285,8 +281,8 @@ struct OnboardingView: View {
 
     private func numbered(_ n: Int, _ text: String) -> some View {
         HStack(spacing: 10) {
-            Text("\(n)").font(.system(size: 11, weight: .bold))
-                .frame(width: 20, height: 20).background(Circle().fill(Theme.accent.opacity(0.25)))
+            Text("\(n).").font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
+                .frame(width: 18, alignment: .trailing)
             Text(text).font(.system(size: 12))
         }
     }

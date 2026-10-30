@@ -29,6 +29,12 @@ enum SelfTest {
                 guard let window = NSApp.windows.first(where: { !($0 is PickerPanel) && $0.isVisible && $0.frame.width > 500 })
                 else { print("WINDOW none"); fflush(stdout); return }
                 await capture(window, to: out)
+                if args.contains("--mini") {
+                    NotificationCenter.default.post(name: .toggleMiniMode, object: nil)
+                    try? await Task.sleep(for: .milliseconds(1200))
+                    await capture(window, to: out.deletingPathExtension().appendingPathExtension("mini.png"))
+                    print("MINI \(Int(window.frame.width))x\(Int(window.frame.height))")
+                }
                 print("WINDOW state \(Updater.shared.state)"); fflush(stdout)
             }
         }

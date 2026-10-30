@@ -7,6 +7,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
+- [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 - [ ] **BL-16** `P1 · High` **Instruments go to the instrument slot, effects to the inserts:** a software instrument must land in the track's instrument slot, an audio effect in the first empty audio insert. Adi, 2026-10-30.
 - [ ] **BL-15** `P1 · Medium` **Screenshots of Logic's own plugins:** capture them inside Logic (scratch track in an empty project, open each plugin window, capture, remove), since they cannot run outside Logic. Needs Insert in Logic working first (BL-12). Adi, 2026-10-30.
 ## Now

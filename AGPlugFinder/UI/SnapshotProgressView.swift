@@ -96,8 +96,8 @@ struct SnapshotProgressView: View {
     private var currentCard: some View {
         let shownID = queue.currentID ?? queue.items.last(where: { $0.status == .done || $0.status == .generic })?.id
         return VStack(alignment: .leading, spacing: 6) {
-            Text(queue.isRunning ? "NOW" : "LAST CAPTURED")
-                .font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
+            Text(queue.isRunning ? "Now" : "Last captured")
+                .font(.system(size: 12)).foregroundStyle(.secondary)
             ZStack {
                 RoundedRectangle(cornerRadius: 8).fill(Color.black.opacity(0.78))
                 if let id = shownID, let p = store.plugin(id), store.image(for: id) != nil {

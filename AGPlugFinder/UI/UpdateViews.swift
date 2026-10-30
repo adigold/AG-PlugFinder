@@ -157,7 +157,7 @@ struct VersionsPanel: View {
 
             if let r = updater.available, !r.notes.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("WHAT'S NEW").font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
+                    Text("What's new").font(.system(size: 12)).foregroundStyle(.secondary)
                     ForEach(r.notes, id: \.self) { Text($0).font(.system(size: 12)) }
                 }
             }

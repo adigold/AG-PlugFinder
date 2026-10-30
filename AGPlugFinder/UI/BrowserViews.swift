@@ -3,8 +3,26 @@ import SwiftUI
 
 enum Theme {
     static let accent = Color(red: 0.98, green: 0.62, blue: 0.22)
-    static let tileBG = Color.primary.opacity(0.05)
-    static let tileSelected = Color(red: 0.98, green: 0.62, blue: 0.22).opacity(0.22)
+    static let tileBG = Color.primary.opacity(0.04)
+    static let tileSelected = Color.primary.opacity(0.07)
+    /// Ground of the cards for Logic's own plugins: one neutral dark, never a hue per category.
+    static let cardGround = Color(white: 0.13)
+}
+
+/// The product's mark: three insert slots, the last one filled, as in Logic's channel strip.
+struct BrandMark: View {
+    var size: CGFloat = 16
+    var body: some View {
+        VStack(spacing: size * 0.12) {
+            ForEach(0..<3) { i in
+                RoundedRectangle(cornerRadius: size * 0.08)
+                    .fill(i == 2 ? Theme.accent : Color.primary.opacity(0.28))
+                    .frame(width: size, height: size * 0.22)
+            }
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
 }
 
 /// Search field + the View button (layout, size, what to show, sort, favorites only).
@@ -103,7 +121,7 @@ struct ViewOptions: View {
 
     private func section<C: View>(_ title: String, @ViewBuilder _ content: () -> C) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title.uppercased()).font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
+            Text(title).font(.system(size: 12)).foregroundStyle(.secondary)
             HStack(spacing: 4) { content() }
         }
     }
@@ -182,12 +200,11 @@ struct LogicCard: View {
         GeometryReader { geo in
             let side = min(geo.size.width, geo.size.height)
             ZStack {
-                LinearGradient(colors: [tint.opacity(0.55), tint.opacity(0.18)],
-                               startPoint: .topLeading, endPoint: .bottomTrailing)
-                VStack(spacing: side * 0.06) {
+                Theme.cardGround
+                VStack(spacing: side * 0.07) {
                     Image(systemName: symbol)
-                        .font(.system(size: side * 0.32, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.92))
+                        .font(.system(size: side * 0.26, weight: .regular))
+                        .foregroundStyle(.white.opacity(0.78))
                     Text(plugin.name)
                         .font(.system(size: max(9, side * 0.1), weight: .semibold))
                         .foregroundStyle(.white.opacity(0.85))
@@ -227,11 +244,6 @@ struct LogicCard: View {
         }
     }
 
-    private var tint: Color {
-        let palette: [Color] = [.orange, .pink, .purple, .blue, .teal, .green, .indigo, .red, .mint, .cyan]
-        let h = plugin.category.unicodeScalars.reduce(0) { ($0 &* 31 &+ Int($1.value)) & 0xFFFF }
-        return palette[h % palette.count]
-    }
 }
 
 struct PluginTile: View {
@@ -305,8 +317,9 @@ struct PluginRow: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(8)
-        .background(RoundedRectangle(cornerRadius: 10).fill(isSelected ? Theme.tileSelected : Color.clear))
+        .padding(compact ? 6 : 8)
+        .frame(height: compact ? 52 : nil)
+        .background(RoundedRectangle(cornerRadius: 8).fill(isSelected ? Theme.tileSelected : Color.clear))
         .overlay(RoundedRectangle(cornerRadius: 10)
             .strokeBorder(isSelected ? Theme.accent : Color.clear, lineWidth: 2))
         .contentShape(Rectangle())
@@ -346,7 +359,7 @@ struct PluginGrid: View {
                             }
                         }
                     }
-                    .padding(12)
+                    .padding(compact ? 8 : 12)
                 }
                 .onChange(of: model.selection) { _, new in
                     if results.indices.contains(new) {
@@ -399,7 +412,6 @@ struct PluginDetailView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     PluginThumbnail(plugin: plugin)
                         .frame(height: 180)
-                        .shadow(color: .black.opacity(0.25), radius: 10, y: 4)
                     titleBlock
                     if let d = plugin.details { info(d) } else { noInfo }
                     detailsCard
@@ -427,13 +439,9 @@ struct PluginDetailView: View {
                         Spacer(minLength: 0)
                         Text("↩").font(.system(size: 13, weight: .bold)).opacity(0.6)
                     }
-                    .padding(.horizontal, 14).frame(height: 38)
+                    .padding(.horizontal, 14).frame(height: 36)
                     .foregroundStyle(Color.black)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(LinearGradient(colors: [Theme.accent, Theme.accent.opacity(0.8)],
-                                                 startPoint: .top, endPoint: .bottom)))
-                    .shadow(color: Theme.accent.opacity(0.35), radius: 6, y: 2)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Theme.accent))
                 }
                 .buttonStyle(.plain)
                 .disabled(model.isBusy)
@@ -443,8 +451,8 @@ struct PluginDetailView: View {
                     Image(systemName: store.favorites.contains(plugin.id) ? "star.fill" : "star")
                         .font(.system(size: 15))
                         .foregroundStyle(store.favorites.contains(plugin.id) ? Theme.accent : .secondary)
-                        .frame(width: 38, height: 38)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.primary.opacity(0.07)))
+                        .frame(width: 36, height: 36)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.06)))
                 }
                 .buttonStyle(.plain)
                 .help("Favorite (⌘D)")
@@ -464,7 +472,7 @@ struct PluginDetailView: View {
                         .buttonStyle(.plain).foregroundStyle(.secondary)
                 }
                 .padding(10)
-                .background(RoundedRectangle(cornerRadius: 10).fill(Color.orange.opacity(0.12)))
+                .background(RoundedRectangle(cornerRadius: 8).fill(Color.orange.opacity(0.10)))
             }
         }
         .padding(12)
@@ -474,14 +482,11 @@ struct PluginDetailView: View {
 
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(plugin.name).font(.system(size: 22, weight: .bold)).lineLimit(2)
-            HStack(spacing: 6) {
-                pill(plugin.manufacturer, systemImage: "building.2")
-                pill(plugin.displayCategory, systemImage: "tag")
-                pill(plugin.typeGroup, systemImage: plugin.slotKind == .instrument ? "pianokeys" : "waveform")
-            }
+            Text(plugin.name).font(.system(size: 20, weight: .semibold)).lineLimit(2)
+            Text("\(plugin.manufacturer) · \(plugin.displayCategory) · \(plugin.typeGroup)")
+                .font(.system(size: 13)).foregroundStyle(.secondary)
             if let kind = plugin.details?.kind, !kind.isEmpty {
-                Text(kind).font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.accent)
+                Text(kind).font(.system(size: 14, weight: .medium))
             }
         }
     }
@@ -489,18 +494,14 @@ struct PluginDetailView: View {
     private func info(_ d: PluginDetails) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             if !d.bestFeature.isEmpty {
-                VStack(alignment: .leading, spacing: 6) {
-                    Label("Best feature", systemImage: "sparkles")
-                        .font(.system(size: 11, weight: .bold)).foregroundStyle(Theme.accent)
-                    Text(d.bestFeature).font(.system(size: 13, weight: .medium))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Best feature").font(.system(size: 12)).foregroundStyle(.secondary)
+                    Text(d.bestFeature).font(.system(size: 14, weight: .medium))
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: 12)
-                    .fill(LinearGradient(colors: [Theme.accent.opacity(0.18), Theme.accent.opacity(0.06)],
-                                         startPoint: .topLeading, endPoint: .bottomTrailing)))
-                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.accent.opacity(0.3)))
+                .background(RoundedRectangle(cornerRadius: 8).fill(Theme.accent.opacity(0.12)))
             }
             Text(d.summary).font(.system(size: 13)).foregroundStyle(.primary.opacity(0.85))
                 .lineSpacing(2).fixedSize(horizontal: false, vertical: true)
@@ -508,8 +509,8 @@ struct PluginDetailView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(d.highlights, id: \.self) { h in
                         HStack(alignment: .top, spacing: 8) {
-                            Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.accent)
-                                .font(.system(size: 12))
+                            Image(systemName: "checkmark").foregroundStyle(.secondary)
+                                .font(.system(size: 11, weight: .semibold))
                             Text(h).font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)
                         }
                     }
@@ -540,7 +541,7 @@ struct PluginDetailView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.primary.opacity(0.04)))
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.04)))
     }
 
     private func pill(_ text: String, systemImage: String) -> some View {

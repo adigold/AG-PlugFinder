@@ -20,12 +20,14 @@ struct LibraryView: View {
         Group {
             if mini { miniBody } else { fullBody }
         }
+        .frame(minWidth: mini ? 340 : 820, minHeight: mini ? 150 : 520)
         .background(WindowAccessor { w in
             guard window !== w else { return }
             window = w
             applyPin()
         })
         .onAppear(perform: installKeys)
+        .onReceive(NotificationCenter.default.publisher(for: .toggleMiniMode)) { _ in toggleMini() }
         .onDisappear(perform: removeKeys)
         .toolbar(removing: .title)
         .toolbar { toolbarContent }
@@ -43,36 +45,23 @@ struct LibraryView: View {
 
     // MARK: Mini mode
 
+    /// Mini mode: one search line and two result rows. Arrows move, Return inserts.
     private var miniBody: some View {
         VStack(spacing: 0) {
             SearchBar(model: model, focusOnAppear: true, compact: true)
-                .padding(10)
-            Divider()
+                .padding(.horizontal, 10).padding(.vertical, 8)
             PluginGrid(model: model, compact: true) { insert() }
-            Divider()
-            HStack(spacing: 8) {
-                if let p = model.selected {
-                    Text(p.name).font(.system(size: 12, weight: .semibold)).lineLimit(1)
-                }
-                Spacer()
-                Button(action: insert) {
-                    Label(model.isBusy ? "Adding…" : "Insert", systemImage: "plus.rectangle.on.rectangle")
-                        .font(.system(size: 12, weight: .semibold))
-                        .padding(.horizontal, 12).frame(height: 28)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Theme.accent))
-                        .foregroundStyle(Color.black)
-                }
-                .buttonStyle(.plain)
-                .disabled(model.selected == nil || model.isBusy)
-            }
-            .padding(10)
+                .frame(height: Self.miniRowsHeight)
             if let message = model.message {
-                Text(message).font(.system(size: 11)).foregroundStyle(.orange)
-                    .padding(.horizontal, 10).padding(.bottom, 8)
+                Text(message).font(.system(size: 11)).foregroundStyle(.orange).lineLimit(2)
+                    .padding(.horizontal, 12).padding(.bottom, 8)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
     }
+
+    /// Two compact rows (54 each) plus the list's padding.
+    static let miniRowsHeight: CGFloat = 2 * 54 + 22
 
     // MARK: Full window
 
@@ -111,11 +100,15 @@ struct LibraryView: View {
 
     @ToolbarContentBuilder private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .principal) {
-            HStack(spacing: 7) {
-                Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 20, height: 20)
-                Text("AG PlugFinder").font(.system(size: 14, weight: .semibold))
+            HStack(spacing: 8) {
+                BrandMark(size: 15)
+                Text("AG PlugFinder").font(.system(size: 13, weight: .semibold))
+                Text("\(store.plugins.filter(store.isVisible).count) plugins")
+                    .font(.system(size: 13)).foregroundStyle(.secondary).monospacedDigit()
             }
+            .padding(.horizontal, 4)
         }
+        .withoutGlassBackground()
         ToolbarItemGroup(placement: .automatic) {
             if !mini {
                 Button { store.rescan(); snapshots.start() } label: {
@@ -160,7 +153,7 @@ struct LibraryView: View {
         } else {
             fullFrame = window.frame
             mini = true
-            let size = NSSize(width: 380, height: 480)
+            let size = NSSize(width: 420, height: Self.miniRowsHeight + 54 + 28)
             let origin = NSPoint(x: window.frame.maxX - size.width, y: window.frame.maxY - size.height)
             window.setFrame(NSRect(origin: origin, size: size), display: true, animate: true)
         }
@@ -203,7 +196,9 @@ struct LibraryView: View {
 
     @ViewBuilder private var statusBar: some View {
         HStack(spacing: 18) {
-            Text("\(model.results.count) of \(store.plugins.count) plugins shown").foregroundStyle(.secondary)
+            if !model.query.isEmpty || ViewSettings.shared.favoritesOnly {
+                Text("\(model.results.count) found").foregroundStyle(.secondary)
+            }
             if snapshots.isRunning {
                 HStack(spacing: 6) {
                     ProgressView(value: Double(snapshots.done), total: Double(max(1, snapshots.total)))
@@ -242,4 +237,20 @@ struct WindowAccessor: NSViewRepresentable {
     func updateNSView(_ v: NSView, context: Context) {
         DispatchQueue.main.async { if let w = v.window { onWindow(w) } }
     }
+}
+
+extension ToolbarContent {
+    /// macOS 26 puts a glass bubble behind toolbar items; the title sits on the bar itself.
+    @ToolbarContentBuilder
+    func withoutGlassBackground() -> some ToolbarContent {
+        if #available(macOS 26.0, *) {
+            self.sharedBackgroundVisibility(.hidden)
+        } else {
+            self
+        }
+    }
+}
+
+extension Notification.Name {
+    static let toggleMiniMode = Notification.Name("AGPFToggleMiniMode")
 }

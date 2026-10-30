@@ -21,7 +21,6 @@ struct AGPlugFinderApp: App {
     var body: some Scene {
         Window("AG PlugFinder", id: "library") {
             LibraryView()
-                .frame(minWidth: 820, minHeight: 520)
         }
         .defaultSize(width: 1040, height: 680)
 
@@ -59,6 +58,11 @@ struct MenuBarContent: View {
         Button("Plugin Library…") {
             NSApp.activate()
             openWindow(id: "library")
+        }
+        Button("Mini Window") {
+            NSApp.activate()
+            openWindow(id: "library")
+            NotificationCenter.default.post(name: .toggleMiniMode, object: nil)
         }
         Button(updater.state == .upToDate ? "You're updated (v\(updater.currentVersion))" : "Check for Update…") {
             Task { await updater.check(userInitiated: true) }
