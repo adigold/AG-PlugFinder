@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0475C34975ACC0546A86129F /* PluginInfoFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46463EBC97E295A49C3EB7CA /* PluginInfoFetcher.swift */; };
+		04CC40311F1F7988F588D60A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 597B1DCFC14B2876ADEF60AA /* OnboardingView.swift */; };
 		17273346968303AADBE29BB4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD381CA2BB6F2AE268D763CD /* Assets.xcassets */; };
 		22C05D51D8B31A9562FB3476 /* SelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19606CDC7F0663446B24FE2 /* SelfTest.swift */; };
 		2626830B5D9848089F58FEAF /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3126DBE9AE17BDEEEA02A558 /* Keychain.swift */; };
@@ -19,6 +20,7 @@
 		55042213A5FBB48BD7609817 /* LogicInserter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE2A7565B4582595AC03716 /* LogicInserter.swift */; };
 		614EE6DB31B4D355967EE472 /* LogicCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79020B749BE713B285FFCF69 /* LogicCatalog.swift */; };
 		6A189FEC2349289FD418F81D /* AppEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543D77325B5A182229531F62 /* AppEntry.swift */; };
+		7C7F0A0658B68ED1C4AD62B6 /* SnapshotProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3489490CA53609C463DF80B1 /* SnapshotProgressView.swift */; };
 		7CA982ACA4D63FEE79A2B743 /* Plugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B431D534CB99B5A459D3517F /* Plugin.swift */; };
 		8E8D3A87A231BD3E8D683B69 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AED26F1AE92B46F89A94CE6 /* LibraryView.swift */; };
 		9970AF4632E51CEE778BA8EE /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FC6C5138045E623B2A0134 /* Migration.swift */; };
@@ -42,12 +44,14 @@
 		23FC6C5138045E623B2A0134 /* Migration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Migration.swift; sourceTree = "<group>"; };
 		2AFB8804982519104A3E9C10 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		3126DBE9AE17BDEEEA02A558 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
+		3489490CA53609C463DF80B1 /* SnapshotProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotProgressView.swift; sourceTree = "<group>"; };
 		36742C3F75E620A4C9713D2D /* AGPlugFinder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AGPlugFinder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		46463EBC97E295A49C3EB7CA /* PluginInfoFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginInfoFetcher.swift; sourceTree = "<group>"; };
 		522F310F8121F51CEEC4502A /* SnapshotQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotQueue.swift; sourceTree = "<group>"; };
 		5404214EB311D626E97267AD /* PickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerView.swift; sourceTree = "<group>"; };
 		543D77325B5A182229531F62 /* AppEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEntry.swift; sourceTree = "<group>"; };
 		56B0F37A30464EBB4764438A /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
+		597B1DCFC14B2876ADEF60AA /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		5FD7E657F3026F318121A9D6 /* PluginStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginStore.swift; sourceTree = "<group>"; };
 		79020B749BE713B285FFCF69 /* LogicCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicCatalog.swift; sourceTree = "<group>"; };
 		81B74FA4A5CFB65E2CFEDE04 /* AGPlugFinder.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AGPlugFinder.entitlements; sourceTree = "<group>"; };
@@ -120,11 +124,13 @@
 			children = (
 				CC0BC245023DFE7ED68CE6AA /* BrowserViews.swift */,
 				1AED26F1AE92B46F89A94CE6 /* LibraryView.swift */,
+				597B1DCFC14B2876ADEF60AA /* OnboardingView.swift */,
 				88B603335B7ED50468B310DE /* PickerModel.swift */,
 				972CDC623675D6EAE7C6B741 /* PickerPanel.swift */,
 				5404214EB311D626E97267AD /* PickerView.swift */,
 				DDD1C34D4EFF0692962BAAE7 /* PluginListEditor.swift */,
 				2AFB8804982519104A3E9C10 /* SettingsView.swift */,
+				3489490CA53609C463DF80B1 /* SnapshotProgressView.swift */,
 				F023E1377B6D025990A4AD1D /* UpdateViews.swift */,
 				B8EBF150252A9B6AF992139C /* ViewSettings.swift */,
 			);
@@ -244,6 +250,7 @@
 				614EE6DB31B4D355967EE472 /* LogicCatalog.swift in Sources */,
 				55042213A5FBB48BD7609817 /* LogicInserter.swift in Sources */,
 				9970AF4632E51CEE778BA8EE /* Migration.swift in Sources */,
+				04CC40311F1F7988F588D60A /* OnboardingView.swift in Sources */,
 				E854273C1E3933DE20D03BA7 /* PickerModel.swift in Sources */,
 				D11B1A084B198C0461413B26 /* PickerPanel.swift in Sources */,
 				F03AC7DB259F432CAD156DC2 /* PickerView.swift in Sources */,
@@ -254,6 +261,7 @@
 				2E95C518E15D9AE1CE0BD68C /* PluginStore.swift in Sources */,
 				22C05D51D8B31A9562FB3476 /* SelfTest.swift in Sources */,
 				B1E65F4E61D464E5340D09D2 /* SettingsView.swift in Sources */,
+				7C7F0A0658B68ED1C4AD62B6 /* SnapshotProgressView.swift in Sources */,
 				EDB9BE6E1825D71E46A3A49F /* SnapshotQueue.swift in Sources */,
 				F187F1FBF38723B078A30291 /* SnapshotRenderer.swift in Sources */,
 				450CA6479EE050AEE218A77A /* UpdateViews.swift in Sources */,
@@ -301,7 +309,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2000;
+				CURRENT_PROJECT_VERSION = 3000;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 4HJV6RPCLU;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -322,7 +330,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -406,7 +414,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2000;
+				CURRENT_PROJECT_VERSION = 3000;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4HJV6RPCLU;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -421,7 +429,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

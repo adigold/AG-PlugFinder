@@ -7,28 +7,66 @@ import Observation
 final class SnapshotQueue {
     static let shared = SnapshotQueue()
 
+    /// One plugin in the current run, for the progress window.
+    struct Item: Identifiable, Equatable {
+        enum Status: Equatable { case waiting, working, done, generic, noUI, failed(String), skipped }
+        let id: String
+        let name: String
+        let maker: String
+        var status: Status = .waiting
+        var seconds: Double?
+    }
+
     private(set) var isRunning = false
-    private(set) var done = 0
-    private(set) var total = 0
-    private(set) var currentName = ""
+    private(set) var items: [Item] = []
+    private(set) var startedAt: Date?
+    private(set) var finishedAt: Date?
+    private(set) var currentID: String?
     private var cancelled = false
 
+    var total: Int { items.count }
+    var done: Int { items.filter { ![.waiting, .working].contains($0.status) }.count }
+    var currentName: String { items.first { $0.id == currentID }?.name ?? "" }
+    var succeeded: Int { items.filter { $0.status == .done }.count }
+    var failed: Int { items.filter { if case .failed = $0.status { return true }; return false }.count }
+    var withoutWindow: Int { items.filter { $0.status == .noUI }.count }
+    var cancelledRun: Bool { cancelled }
+
+    /// Average seconds per plugin so far times what is left.
+    var secondsLeft: Double? {
+        let timed = items.compactMap(\.seconds)
+        guard !timed.isEmpty, isRunning else { return nil }
+        let left = items.filter { $0.status == .waiting || $0.status == .working }.count
+        return timed.reduce(0, +) / Double(timed.count) * Double(left)
+    }
+
     /// Captures every plugin that has no screenshot yet (or all of them when `force` is true).
-    func start(force: Bool = false) {
+    func start(force: Bool = false, only ids: Set<String>? = nil) {
         guard !isRunning else { return }
         let store = PluginStore.shared
         let todo = store.plugins
-            .filter { !$0.isLogic && (force || $0.snapshotState == .pending) }
-            .sorted { $0.name < $1.name }
+            .filter { p in
+                guard !p.isLogic else { return false }
+                if let ids { return ids.contains(p.id) }
+                return force || p.snapshotState == .pending
+            }
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         guard !todo.isEmpty else { return }
         isRunning = true
         cancelled = false
-        done = 0
-        total = todo.count
+        startedAt = Date()
+        finishedAt = nil
+        items = todo.map { Item(id: $0.id, name: $0.name, maker: $0.manufacturer) }
+        SnapshotProgressWindow.shared.show()
         Task {
-            for plugin in todo {
-                if cancelled { break }
-                currentName = plugin.name
+            for (i, plugin) in todo.enumerated() {
+                if cancelled {
+                    for j in i..<items.count { items[j].status = .skipped }
+                    break
+                }
+                currentID = plugin.id
+                items[i].status = .working
+                let began = Date()
                 let result = await Self.capture(plugin, to: store.snapshotURL(for: plugin.id))
                 store.update(plugin.id) {
                     $0.snapshotState = result.state
@@ -36,14 +74,27 @@ final class SnapshotQueue {
                     if let p = result.params { $0.parameterCount = p }
                 }
                 if result.state == .done { store.snapshotChanged() }
-                done += 1
+                items[i].seconds = Date().timeIntervalSince(began)
+                switch result.state {
+                case .done: items[i].status = result.generic ? .generic : .done
+                case .noUI: items[i].status = .noUI
+                default: items[i].status = .failed(result.error ?? "Unknown problem")
+                }
             }
             isRunning = false
-            currentName = ""
+            currentID = nil
+            finishedAt = Date()
         }
     }
 
     func cancel() { cancelled = true }
+
+    /// Tries the failed ones of the last run again.
+    func retryFailed() {
+        let ids = Set(items.filter { if case .failed = $0.status { return true }; return false }.map(\.id))
+        guard !ids.isEmpty else { return }
+        start(only: ids)
+    }
 
     /// Re-captures one plugin.
     func recapture(_ id: String) {
@@ -55,6 +106,7 @@ final class SnapshotQueue {
         var state: SnapshotState
         var params: Int?
         var error: String?
+        var generic = false
     }
 
     nonisolated static func capture(_ plugin: Plugin, to url: URL) async -> Result {
@@ -96,7 +148,8 @@ final class SnapshotQueue {
                 }
                 let params = json["params"] as? Int
                 switch json["status"] as? String {
-                case "ok", "generic": cont.resume(returning: Result(state: .done, params: params))
+                case "ok": cont.resume(returning: Result(state: .done, params: params))
+                case "generic": cont.resume(returning: Result(state: .done, params: params, generic: true))
                 case "noUI": cont.resume(returning: Result(state: .noUI, params: params))
                 default: cont.resume(returning: Result(state: .failed, params: params,
                                                        error: json["error"] as? String))

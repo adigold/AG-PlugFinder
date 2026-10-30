@@ -34,6 +34,11 @@ struct AGPlugFinderApp: App {
         Settings {
             SettingsView()
         }
+        .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Update…") { Task { await Updater.shared.check(userInitiated: true) } }
+            }
+        }
     }
 }
 
@@ -55,6 +60,9 @@ struct MenuBarContent: View {
             NSApp.activate()
             openWindow(id: "library")
         }
+        Button(updater.state == .upToDate ? "You're updated (v\(updater.currentVersion))" : "Check for Update…") {
+            Task { await updater.check(userInitiated: true) }
+        }
         Divider()
         Button("Settings…") {
             NSApp.activate()
@@ -68,13 +76,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         HotKey.shared.register { PickerPanelController.shared.toggle() }
         Task { @MainActor in Updater.shared.start() }
-        LaunchAtLogin.applyDefaultOnFirstRun()
 
         Task { @MainActor in
             let store = PluginStore.shared
             store.rescan()
-            // Only new or updated plugins get a screenshot; the rest load from the cache.
-            if store.plugins.contains(where: { $0.snapshotState == .pending }) {
+            if !OnboardingWindow.isDone {
+                // First run: permissions first; the tour starts the scan itself.
+                OnboardingWindow.shared.show()
+            } else if store.plugins.contains(where: { $0.snapshotState == .pending }) {
+                // Only new or updated plugins get a screenshot; the rest load from the cache.
                 SnapshotQueue.shared.start()
             }
             #if DEBUG

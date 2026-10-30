@@ -1,6 +1,7 @@
 #if DEBUG
 import AppKit
 import ScreenCaptureKit
+import SwiftUI
 
 /// Debug-only: `--selftest <folder> [query]` opens the picker and saves pictures of it,
 /// so the layout can be checked without a person at the keyboard.
@@ -18,6 +19,28 @@ enum SelfTest {
                     try? await Task.sleep(for: .milliseconds(500))
                     if case .failed(let m) = Updater.shared.state { print("UPDATE failed \(m)"); fflush(stdout); return }
                 }
+            }
+        }
+        if let k = args.firstIndex(of: "--selftest-window"), k + 1 < args.count {
+            let out = URL(fileURLWithPath: args[k + 1])
+            Task {
+                await Updater.shared.check(userInitiated: true)
+                try? await Task.sleep(for: .milliseconds(1500))
+                guard let window = NSApp.windows.first(where: { !($0 is PickerPanel) && $0.isVisible && $0.frame.width > 500 })
+                else { print("WINDOW none"); fflush(stdout); return }
+                await capture(window, to: out)
+                print("WINDOW state \(Updater.shared.state)"); fflush(stdout)
+            }
+        }
+        if let k = args.firstIndex(of: "--selftest-onboarding"), k + 1 < args.count {
+            let out = URL(fileURLWithPath: args[k + 1])
+            Task {
+                OnboardingWindow.shared.show()
+                try? await Task.sleep(for: .milliseconds(1200))
+                if let w = NSApp.windows.first(where: { $0.isVisible && $0.contentView is NSHostingView<OnboardingView> }) {
+                    await capture(w, to: out); print("ONBOARD ok")
+                } else { print("ONBOARD none") }
+                fflush(stdout)
             }
         }
         if args.contains("--dump-logic") {
@@ -70,8 +93,12 @@ enum SelfTest {
     }
 
     private static func capture(to url: URL) async {
-        guard let window = NSApp.windows.first(where: { $0 is PickerPanel && $0.isVisible }),
-              let content = try? await SCShareableContent.currentProcess,
+        guard let window = NSApp.windows.first(where: { $0 is PickerPanel && $0.isVisible }) else { return }
+        await capture(window, to: url)
+    }
+
+    private static func capture(_ window: NSWindow, to url: URL) async {
+        guard let content = try? await SCShareableContent.currentProcess,
               let sc = content.windows.first(where: { $0.windowID == CGWindowID(window.windowNumber) })
         else { print("SELFTEST no window"); return }
         let config = SCStreamConfiguration()

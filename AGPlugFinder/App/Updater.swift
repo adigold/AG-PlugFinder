@@ -101,7 +101,14 @@ final class Updater {
             var request = URLRequest(url: feedURL, cachePolicy: .reloadIgnoringLocalCacheData)
             request.timeoutInterval = 20
             let (data, response) = try await URLSession.shared.data(for: request)
-            guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            if status == 404 {
+                // Nothing published yet: there is no newer version, so this copy is current.
+                lastChecked = Date()
+                state = .upToDate
+                return
+            }
+            guard status == 200 else {
                 throw UpdateError.message("The update server did not answer.")
             }
             let release = try JSONDecoder().decode(Release.self, from: data)

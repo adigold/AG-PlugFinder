@@ -17,7 +17,7 @@ struct PickerView: View {
                     Divider()
                     Group {
                         if let p = model.selected {
-                            PluginDetailView(plugin: p) { controller.insert() }
+                            PluginDetailView(plugin: p, model: model) { controller.insert() }
                         } else {
                             Color.clear
                         }
@@ -26,7 +26,7 @@ struct PickerView: View {
                     .frame(maxHeight: .infinity)
                 }
             }
-            if let message = model.message {
+            if !ViewSettings.shared.showInfoPane, let message = model.message {
                 Divider()
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Theme.accent)

@@ -11,6 +11,7 @@ enum Theme {
 struct SearchBar: View {
     @Bindable var model: PickerModel
     var focusOnAppear = true
+    var compact = false
     @FocusState private var focused: Bool
     @State private var showOptions = false
     var view = ViewSettings.shared
@@ -21,7 +22,7 @@ struct SearchBar: View {
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
                 TextField("Search plugins, makers or categories", text: $model.query)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 17))
+                    .font(.system(size: compact ? 14 : 17))
                     .focused($focused)
                 if !model.query.isEmpty {
                     Button { model.query = "" } label: {
@@ -32,6 +33,7 @@ struct SearchBar: View {
             .padding(.horizontal, 12).padding(.vertical, 9)
             .background(RoundedRectangle(cornerRadius: 10).fill(Color.primary.opacity(0.07)))
 
+            if !compact {
             Button { view.favoritesOnly.toggle() } label: {
                 Image(systemName: view.favoritesOnly ? "star.fill" : "star")
                     .foregroundStyle(view.favoritesOnly ? Theme.accent : .secondary)
@@ -54,6 +56,7 @@ struct SearchBar: View {
             .buttonStyle(.plain)
             .popover(isPresented: $showOptions, arrowEdge: .bottom) {
                 ViewOptions(model: model)
+            }
             }
         }
         .onAppear { if focusOnAppear { focused = true } }
@@ -273,13 +276,15 @@ struct PluginTile: View {
 struct PluginRow: View {
     let plugin: Plugin
     let isSelected: Bool
+    var compact = false
     var store = PluginStore.shared
     var view = ViewSettings.shared
 
     var body: some View {
         HStack(spacing: 12) {
             PluginThumbnail(plugin: plugin)
-                .frame(width: view.size.tileWidth * 0.6, height: view.size.tileWidth * 0.36)
+                .frame(width: compact ? 64 : view.size.tileWidth * 0.6,
+                       height: compact ? 38 : view.size.tileWidth * 0.36)
             VStack(alignment: .leading, spacing: 3) {
                 if view.showName {
                     HStack(spacing: 5) {
@@ -294,7 +299,7 @@ struct PluginRow: View {
                          : "\(plugin.manufacturer) · \(plugin.displayCategory) · \(plugin.formatName)")
                         .font(.system(size: 11)).foregroundStyle(.secondary)
                 }
-                if let best = plugin.details?.bestFeature, !best.isEmpty {
+                if !compact, let best = plugin.details?.bestFeature, !best.isEmpty {
                     Text(best).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
                 }
             }
@@ -312,6 +317,7 @@ struct PluginRow: View {
 /// columns there are, so the arrow keys move the right way.
 struct PluginGrid: View {
     @Bindable var model: PickerModel
+    var compact = false
     var onActivate: () -> Void
     var view = ViewSettings.shared
 
@@ -319,12 +325,13 @@ struct PluginGrid: View {
         let results = model.results
         GeometryReader { geo in
             let spacing: CGFloat = 10
-            let columns = view.layout == .list ? 1
+            let asList = compact || view.layout == .list
+            let columns = asList ? 1
                 : max(1, Int((geo.size.width - 24 + spacing) / (view.size.tileWidth + spacing)))
             ScrollViewReader { proxy in
                 ScrollView {
                     Group {
-                        if view.layout == .grid {
+                        if !asList {
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: spacing),
                                                      count: columns), spacing: spacing) {
                                 items(results) { plugin, selected in
@@ -334,7 +341,7 @@ struct PluginGrid: View {
                         } else {
                             LazyVStack(spacing: 2) {
                                 items(results) { plugin, selected in
-                                    PluginRow(plugin: plugin, isSelected: selected)
+                                    PluginRow(plugin: plugin, isSelected: selected, compact: compact)
                                 }
                             }
                         }
@@ -375,75 +382,178 @@ struct PluginGrid: View {
     }
 }
 
-/// The right-hand pane: big screenshot and everything we know about the plugin.
+/// The right-hand pane. The Insert button is pinned at the top and never scrolls away; below it
+/// the screenshot, what the plugin is, its best feature and the details.
 struct PluginDetailView: View {
     let plugin: Plugin
+    @Bindable var model: PickerModel
     var onInsert: () -> Void
     var store = PluginStore.shared
     var fetcher = PluginInfoFetcher.shared
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                PluginThumbnail(plugin: plugin).frame(height: 170)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(plugin.name).font(.system(size: 20, weight: .bold))
-                    Text("\(plugin.manufacturer) · \(plugin.displayCategory)")
-                        .font(.system(size: 13)).foregroundStyle(.secondary)
+        VStack(spacing: 0) {
+            insertBar
+            Divider()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    PluginThumbnail(plugin: plugin)
+                        .frame(height: 180)
+                        .shadow(color: .black.opacity(0.25), radius: 10, y: 4)
+                    titleBlock
+                    if let d = plugin.details { info(d) } else { noInfo }
+                    detailsCard
                 }
-                if let d = plugin.details {
-                    if !d.kind.isEmpty {
-                        Text(d.kind).font(.system(size: 12, weight: .medium)).foregroundStyle(Theme.accent)
-                    }
-                    if !d.bestFeature.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Label("Best feature", systemImage: "sparkles")
-                                .font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.accent)
-                            Text(d.bestFeature).font(.system(size: 13))
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    // MARK: Pinned top bar
+
+    private var insertBar: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 8) {
+                Button(action: onInsert) {
+                    HStack(spacing: 8) {
+                        if model.isBusy {
+                            ProgressView().controlSize(.small).tint(.black)
+                        } else {
+                            Image(systemName: "plus.rectangle.on.rectangle")
                         }
-                        .padding(10)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(Theme.accent.opacity(0.12)))
+                        Text(model.isBusy ? "Adding to Logic…" : "Insert in Logic")
+                            .font(.system(size: 14, weight: .semibold))
+                        Spacer(minLength: 0)
+                        Text("↩").font(.system(size: 13, weight: .bold)).opacity(0.6)
                     }
-                    Text(d.summary).font(.system(size: 13)).fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 14).frame(height: 38)
+                    .foregroundStyle(Color.black)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(LinearGradient(colors: [Theme.accent, Theme.accent.opacity(0.8)],
+                                                 startPoint: .top, endPoint: .bottom)))
+                    .shadow(color: Theme.accent.opacity(0.35), radius: 6, y: 2)
+                }
+                .buttonStyle(.plain)
+                .disabled(model.isBusy)
+                .help("Place \(plugin.name) in the first empty insert of the selected track")
+
+                Button { store.toggleFavorite(plugin.id) } label: {
+                    Image(systemName: store.favorites.contains(plugin.id) ? "star.fill" : "star")
+                        .font(.system(size: 15))
+                        .foregroundStyle(store.favorites.contains(plugin.id) ? Theme.accent : .secondary)
+                        .frame(width: 38, height: 38)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.primary.opacity(0.07)))
+                }
+                .buttonStyle(.plain)
+                .help("Favorite (⌘D)")
+            }
+            if let message = model.message {
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(message).font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)
+                        if model.showAccessibilityButton {
+                            Button("Allow Access in System Settings") { AXAccess.openSettings() }
+                                .controlSize(.small)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                    Button { model.message = nil } label: { Image(systemName: "xmark").font(.system(size: 10)) }
+                        .buttonStyle(.plain).foregroundStyle(.secondary)
+                }
+                .padding(10)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.orange.opacity(0.12)))
+            }
+        }
+        .padding(12)
+    }
+
+    // MARK: Content
+
+    private var titleBlock: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(plugin.name).font(.system(size: 22, weight: .bold)).lineLimit(2)
+            HStack(spacing: 6) {
+                pill(plugin.manufacturer, systemImage: "building.2")
+                pill(plugin.displayCategory, systemImage: "tag")
+                pill(plugin.typeGroup, systemImage: plugin.slotKind == .instrument ? "pianokeys" : "waveform")
+            }
+            if let kind = plugin.details?.kind, !kind.isEmpty {
+                Text(kind).font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.accent)
+            }
+        }
+    }
+
+    private func info(_ d: PluginDetails) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if !d.bestFeature.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("Best feature", systemImage: "sparkles")
+                        .font(.system(size: 11, weight: .bold)).foregroundStyle(Theme.accent)
+                    Text(d.bestFeature).font(.system(size: 13, weight: .medium))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: 12)
+                    .fill(LinearGradient(colors: [Theme.accent.opacity(0.18), Theme.accent.opacity(0.06)],
+                                         startPoint: .topLeading, endPoint: .bottomTrailing)))
+                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.accent.opacity(0.3)))
+            }
+            Text(d.summary).font(.system(size: 13)).foregroundStyle(.primary.opacity(0.85))
+                .lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+            if !d.highlights.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
                     ForEach(d.highlights, id: \.self) { h in
-                        Label(h, systemImage: "checkmark").font(.system(size: 12))
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.accent)
+                                .font(.system(size: 12))
+                            Text(h).font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)
+                        }
                     }
-                } else if fetcher.failures[plugin.id] != nil {
-                    Text("Info lookup failed: \(fetcher.failures[plugin.id] ?? "")")
-                        .font(.system(size: 12)).foregroundStyle(.red)
-                } else {
-                    Text("No info yet. Use Look Up Info in the library window.")
-                        .font(.system(size: 12)).foregroundStyle(.secondary)
-                }
-                Divider()
-                VStack(alignment: .leading, spacing: 3) {
-                    meta("Type", plugin.typeGroup)
-                    meta("Format", plugin.isLogic ? "Built into Logic Pro" : plugin.formatName)
-                    meta("Version", plugin.isLogic ? "Logic Pro \(plugin.version)" : plugin.version)
-                    if let n = plugin.parameterCount { meta("Parameters", "\(n)") }
-                    if !plugin.tags.isEmpty { meta("Tags", plugin.tags.joined(separator: ", ")) }
-                    if plugin.snapshotState == .failed, let e = plugin.snapshotError { meta("Screenshot", e) }
-                }
-                HStack {
-                    Button(action: onInsert) { Label("Insert in Logic", systemImage: "return") }
-                        .keyboardShortcut(.defaultAction)
-                    Button {
-                        store.toggleFavorite(plugin.id)
-                    } label: {
-                        Image(systemName: store.favorites.contains(plugin.id) ? "star.fill" : "star")
-                    }
-                    .help("Favorite (⌘D)")
                 }
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    @ViewBuilder private var noInfo: some View {
+        if let err = fetcher.failures[plugin.id] {
+            Text("Info lookup failed: \(err)").font(.system(size: 12)).foregroundStyle(.red)
+        } else {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles").foregroundStyle(.secondary)
+                Text("No info yet. Use Look Up Info in the toolbar.")
+                    .font(.system(size: 12)).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var detailsCard: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            meta("Format", plugin.isLogic ? "Built into Logic Pro" : plugin.formatName)
+            meta("Version", plugin.isLogic ? "Logic Pro \(plugin.version)" : plugin.version)
+            if let n = plugin.parameterCount { meta("Parameters", "\(n)") }
+            if !plugin.tags.isEmpty { meta("Tags", plugin.tags.joined(separator: ", ")) }
+            if plugin.snapshotState == .failed, let e = plugin.snapshotError { meta("Screenshot", e) }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.primary.opacity(0.04)))
+    }
+
+    private func pill(_ text: String, systemImage: String) -> some View {
+        Label(text, systemImage: systemImage)
+            .font(.system(size: 11, weight: .medium))
+            .lineLimit(1)
+            .padding(.horizontal, 8).padding(.vertical, 4)
+            .background(Capsule().fill(Color.primary.opacity(0.07)))
     }
 
     private func meta(_ k: String, _ v: String) -> some View {
         HStack(alignment: .top) {
-            Text(k).foregroundStyle(.secondary).frame(width: 78, alignment: .leading)
+            Text(k).foregroundStyle(.secondary).frame(width: 80, alignment: .leading)
             Text(v).textSelection(.enabled)
         }.font(.system(size: 11))
     }
