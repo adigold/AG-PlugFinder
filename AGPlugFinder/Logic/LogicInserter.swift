@@ -533,6 +533,7 @@ final class LogicInserter {
         let groups = win.findAll(skipRoles: [AXRole.menuBar]) { n in
             n.role == "AXGroup" && !n.desc.isEmpty && n.frame.minX - minX < 60 && n.frame.minX - minX > 10
                 && n.children.contains(where: { $0.desc == "list" })
+                && n.children.contains(where: { $0.desc == "bypass" })
         }
         return groups.sorted { $0.frame.minY < $1.frame.minY }.map { $0.desc }
     }
@@ -649,6 +650,16 @@ enum LogicProbe {
             }
             if args.contains("--probe-instrument-menu") {
                 print("PROBE \(await inserter.probeInstrumentMenu())")
+            }
+            // --capture-logic <name>…: screenshots of Logic's own plugins (all when no names).
+            if let i = args.firstIndex(of: "--capture-logic") {
+                if !LogicCapture.hasScreenAccess { LogicCapture.requestScreenAccess() }
+                let names = Set(args[(i + 1)...].filter { !$0.hasPrefix("--") })
+                let list = PluginStore.shared.plugins.filter {
+                    $0.isLogic && $0.isLegacy != true && (names.isEmpty || names.contains($0.name))
+                }
+                let r = await LogicCapture.run(list) { _, name in inserter.log("CAPTURE start \(name)") }
+                inserter.log("CAPTURE done \(r.done), failed: \(r.failed.joined(separator: ", "))")
             }
             // --test-insert <name> [--replace]: insert exactly like Return, then read the strip back.
             if let i = args.firstIndex(of: "--test-insert"), i + 1 < args.count {

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0475C34975ACC0546A86129F /* PluginInfoFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46463EBC97E295A49C3EB7CA /* PluginInfoFetcher.swift */; };
 		04CC40311F1F7988F588D60A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 597B1DCFC14B2876ADEF60AA /* OnboardingView.swift */; };
+		13A90B02B0FBED49ED49B448 /* LogicCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D8B9B25BDB22A89D24468 /* LogicCapture.swift */; };
 		17273346968303AADBE29BB4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD381CA2BB6F2AE268D763CD /* Assets.xcassets */; };
 		22C05D51D8B31A9562FB3476 /* SelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19606CDC7F0663446B24FE2 /* SelfTest.swift */; };
 		2626830B5D9848089F58FEAF /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3126DBE9AE17BDEEEA02A558 /* Keychain.swift */; };
@@ -58,6 +59,7 @@
 		79020B749BE713B285FFCF69 /* LogicCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicCatalog.swift; sourceTree = "<group>"; };
 		81B74FA4A5CFB65E2CFEDE04 /* AGPlugFinder.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AGPlugFinder.entitlements; sourceTree = "<group>"; };
 		88B603335B7ED50468B310DE /* PickerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerModel.swift; sourceTree = "<group>"; };
+		925D8B9B25BDB22A89D24468 /* LogicCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicCapture.swift; sourceTree = "<group>"; };
 		972CDC623675D6EAE7C6B741 /* PickerPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerPanel.swift; sourceTree = "<group>"; };
 		B19606CDC7F0663446B24FE2 /* SelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfTest.swift; sourceTree = "<group>"; };
 		B30B196AF35A2DA1C5B50F07 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -160,6 +162,7 @@
 			isa = PBXGroup;
 			children = (
 				BFBFF2C38A98C6768DF05100 /* AX.swift */,
+				925D8B9B25BDB22A89D24468 /* LogicCapture.swift */,
 				1AE2A7565B4582595AC03716 /* LogicInserter.swift */,
 			);
 			path = Logic;
@@ -251,6 +254,7 @@
 				29635C0C264E29F51E293901 /* HotKey.swift in Sources */,
 				2626830B5D9848089F58FEAF /* Keychain.swift in Sources */,
 				8E8D3A87A231BD3E8D683B69 /* LibraryView.swift in Sources */,
+				13A90B02B0FBED49ED49B448 /* LogicCapture.swift in Sources */,
 				614EE6DB31B4D355967EE472 /* LogicCatalog.swift in Sources */,
 				55042213A5FBB48BD7609817 /* LogicInserter.swift in Sources */,
 				9970AF4632E51CEE778BA8EE /* Migration.swift in Sources */,
