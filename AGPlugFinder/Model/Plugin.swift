@@ -39,6 +39,8 @@ struct Plugin: Identifiable, Codable, Hashable {
     var source: PluginSource?
     var logicSlot: String?
     var isLegacy: Bool?
+    /// Where the plugin lives on disk (Audio Units), for the cleanup report (BL-32).
+    var path: String?
 
     var kind: PluginSource { source ?? (isV3 ? .audioUnitV3 : .audioUnit) }
     var isLogic: Bool { kind == .logic }
@@ -104,7 +106,7 @@ func fourCC(_ v: UInt32) -> String {
 }
 
 enum PluginSort: String, CaseIterable, Identifiable {
-    case name, manufacturer, category, recent
+    case name, manufacturer, category, recent, mostUsed
     var id: String { rawValue }
     var title: String {
         switch self {
@@ -112,6 +114,7 @@ enum PluginSort: String, CaseIterable, Identifiable {
         case .manufacturer: return "Manufacturer"
         case .category: return "Category"
         case .recent: return "Recently used"
+        case .mostUsed: return "Most used"
         }
     }
 }

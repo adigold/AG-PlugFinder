@@ -7,6 +7,91 @@ import SwiftUI
 /// so the layout can be checked without a person at the keyboard.
 @MainActor
 enum SelfTest {
+    /// Exercises BL-25…BL-34 and photographs the new panels. Everything it creates is removed.
+    static func features(_ dir: URL) async {
+        let store = PluginStore.shared, lib = UserLibrary.shared
+        func say(_ s: String) { print("FEAT " + s); fflush(stdout) }
+        say("plugins \(store.plugins.count), visible \(store.plugins.filter(store.isVisible).count)")
+
+        // BL-27 search by description
+        if let p = store.plugins.first(where: { store.isVisible($0) && ($0.details?.bestFeature.count ?? 0) > 20 }),
+           let word = p.details!.bestFeature.lowercased().split(separator: " ").map(String.init)
+               .first(where: { $0.count > 6 && !PluginStore.nameHay(p).contains($0) && $0.allSatisfy(\.isLetter) }) {
+            let r = store.filtered(query: word, sort: .name)
+            say("search '\(word)' -> \(r.count) results, finds \(p.name): \(r.contains { $0.id == p.id })")
+        } else { say("search: no plugin with a description to test") }
+
+        // BL-28 more like this
+        for name in ["ChromaVerb", "Compressor", "Alchemy"] {
+            if let p = store.plugins.first(where: { $0.name == name }) {
+                say("similar to \(name): \(PluginExtras.similar(to: p).map(\.name))")
+            }
+        }
+
+        // BL-33 track suggestions
+        say("selected Logic track: \(LogicInserter.shared.selectedTrackName() ?? "none")")
+        for t in ["Lead Vocal", "Kick", "Bass", "Guitar", "Master"] {
+            let names = TrackSuggestions.plugins(for: t).prefix(5).compactMap { store.plugin($0)?.name }
+            say("suggest \(t): \(names)")
+        }
+
+        // BL-29 collections, BL-25 chains, BL-26 pins, BL-30 notes, BL-31 usage
+        let ids = Array(store.plugins.filter(store.isVisible).prefix(3).map(\.id))
+        let col = UserLibrary.Collection(name: "Test collection", pluginIDs: ids)
+        lib.collections.append(col)
+        let model = PickerModel()
+        model.collectionID = col.id
+        say("collection filter -> \(model.results.count) (expected \(ids.count))")
+        let chain = lib.newChain(named: "Test chain", with: ids)
+        let freeKey = (1...9).first { lib.pinTarget($0) == nil } ?? 9
+        let oldPin = lib.pinTarget(freeKey)
+        lib.pin(freeKey, to: .chain(chain.id))
+        say("chain pin key \(freeKey) -> \(lib.key(for: .chain(chain.id)).map(String.init) ?? "none")")
+        lib.notes[ids[0]] = "Test note"
+        say("note -> \(lib.notes[ids[0]] ?? "none")")
+        let before = lib.useCount[ids[2]]
+        lib.useCount[ids[2]] = 999
+        say("most used first -> \(store.filtered(query: "", sort: .mostUsed).first?.id == ids[2])")
+        say("sync file: \(UserLibrary.cloudFile?.path ?? "iCloud Drive off")")
+
+        // Photos of the new panels (app windows only).
+        if let p = store.plugins.first(where: { $0.name == "ChromaVerb" }) ?? store.plugins.first {
+            await shoot(PluginExtras(plugin: p, model: model).padding(18).frame(width: 340).background(Theme.ground),
+                        size: NSSize(width: 340, height: 760), to: dir.appendingPathComponent("extras.png"))
+        }
+        await shoot(ChainsPanel {}, size: NSSize(width: 380, height: 420), to: dir.appendingPathComponent("chains.png"))
+        await shoot(CollectionBar(model: PickerModel()).frame(width: 900).background(Theme.ground),
+                    size: NSSize(width: 900, height: 44), to: dir.appendingPathComponent("collections.png"))
+        ReportWindow.shared.show()
+        try? await Task.sleep(for: .milliseconds(800))
+        if let w = NSApp.windows.first(where: { $0.isVisible && $0.contentView is NSHostingView<ReportView> }) {
+            await capture(w, to: dir.appendingPathComponent("report.png"))
+        }
+        let sizes = await ReportView.diskByMaker()
+        say("disk by maker top: \(sizes.prefix(3).map { "\($0.maker) \(ByteCountFormatter.string(fromByteCount: $0.bytes, countStyle: .file))" })")
+
+        // Clean up everything the test made.
+        lib.useCount[ids[2]] = before
+        lib.notes[ids[0]] = nil
+        lib.pin(freeKey, to: oldPin)
+        lib.deleteChain(chain.id)
+        lib.collections.removeAll { $0.id == col.id }
+        say("cleaned up: chains \(lib.chains.count), collections \(lib.collections.count)")
+        say("done")
+    }
+
+    private static func shoot<V: View>(_ view: V, size: NSSize, to url: URL) async {
+        let w = NSWindow(contentRect: NSRect(origin: NSPoint(x: 80, y: 80), size: size),
+                         styleMask: [.borderless], backing: .buffered, defer: false)
+        w.appearance = NSAppearance(named: .darkAqua)
+        w.backgroundColor = .black
+        w.contentView = NSHostingView(rootView: view.preferredColorScheme(.dark))
+        w.orderFrontRegardless()
+        try? await Task.sleep(for: .milliseconds(700))
+        await capture(w, to: url)
+        w.orderOut(nil)
+    }
+
     static func runIfRequested() {
         let args = CommandLine.arguments
         // --dump-logic: save Logic's interface tree.  --test-insert <name>: insert like Return does.
@@ -44,6 +129,10 @@ enum SelfTest {
                 }
                 print("WINDOW state \(Updater.shared.state)"); fflush(stdout)
             }
+        }
+        if let k = args.firstIndex(of: "--selftest-features"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task { await features(dir); fflush(stdout) }
         }
         if let k = args.firstIndex(of: "--selftest-whatsnew"), k + 1 < args.count {
             let out = URL(fileURLWithPath: args[k + 1])

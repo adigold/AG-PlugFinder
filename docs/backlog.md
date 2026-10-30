@@ -7,9 +7,6 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
-- [~] **BL-24** `P1 · High` **An amazing updater:** a beautiful update window with what is new, live download progress, clear steps (downloading, checking, installing, restarting), then the app installs the verified version, quits and opens again by itself. Adi, 2026-10-31.
-- [~] **BL-23** `P2 · Medium` **Smooth search results:** while typing, plugins that no longer match fade and shrink away and the rest glide into place, instead of popping. Adi, 2026-10-30.
-- [ ] **BL-22** `P2 · Medium` **Download the plugin pack from GitHub:** new installs can download a pack of plugin pictures and looked-up info from the GitHub release instead of capturing everything themselves. Adi, 2026-10-30.
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 ## Now
@@ -18,6 +15,19 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-24** `P1 · High` **An amazing updater:** a beautiful update window with what is new, live download progress, clear steps (downloading, checking, installing, restarting), then the app installs the verified version, quits and opens again by itself. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-25** `P1 · High` **Plugin chains:** save a chain of plugins (for example EQ, Compressor, DeEsser, Reverb) and drop the whole chain on the selected track with one key. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-26** `P1 · High` **Number hotkeys for favorites:** pin plugins to Control Option 1 to 9 and insert them from anywhere in Logic without opening the window. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-27** `P1 · Medium` **Search by what it does:** search matches each plugin's description and best feature, so "warm tape saturation" finds the right plugins. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-28** `P2 · Medium` **More like this:** the info panel shows similar plugins you own (same kind and category). Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-29** `P2 · Medium` **Collections:** your own collections like "Mix bus" or "Lo-fi", shown as chips above the grid; add plugins with a right click. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-30** `P2 · Medium` **Personal notes per plugin:** write your own tips for each plugin right in the info panel. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-31** `P2 · Medium` **Usage stats:** count every insert; sort by most used and see plugins you never use. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-32** `P3 · Low` **Plugin cleanup report:** find plugins installed twice and how much disk space each maker takes. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-33** `P2 · Medium` **Suggestions for the selected track:** read the selected Logic track's name and show matching plugins first (vocals, drums, bass, guitar, keys). Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-34** `P3 · Low` **Sync across Macs:** favorites, collections, chains, notes, pins and hidden plugins sync through iCloud Drive. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-23** `P2 · Medium` **Smooth search results:** while typing, plugins that no longer match fade and shrink away and the rest glide into place, instead of popping. Adi, 2026-10-30. · done 2026-10-31
+- [x] **BL-22** `P2 · Medium` **Download the plugin pack from GitHub:** new installs can download a pack of plugin pictures and looked-up info from the GitHub release instead of capturing everything themselves. Adi, 2026-10-30. · done 2026-10-31
 - [x] **BL-21** `P1 · High` **Ship Logic's plugin pictures inside the app:** capture every Logic plugin once and bundle the pictures in the app, so other users never need to take them. Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-15** `P1 · Medium` **Screenshots of Logic's own plugins:** capture them inside Logic (scratch track in an empty project, open each plugin window, capture, remove), since they cannot run outside Logic. Needs Insert in Logic working first (BL-12). Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-16** `P1 · High` **Instruments go to the instrument slot, effects to the inserts:** a software instrument must land in the track's instrument slot, an audio effect in the first empty audio insert. Adi, 2026-10-30. · done 2026-10-30

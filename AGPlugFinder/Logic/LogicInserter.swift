@@ -470,6 +470,42 @@ final class LogicInserter {
 
     /// Logic's project window, never a plug-in window (inserting opens the plug-in's window,
     /// which then becomes the focused one): the window titled "… - Tracks", else the largest.
+    /// The selected track's name, from the inspector's channel strip ("Left inspector channel
+    /// strip", its description is the track name), else the inspector's "Track:" name field.
+    /// Read only. Only the inspector on the left of the window is searched, so it is quick.
+    func selectedTrackName() -> String? {
+        guard AXAccess.isTrusted, let logic = logicApp else { return nil }
+        return Self.trackName(pid: logic.processIdentifier)
+    }
+
+    nonisolated static func trackName(pid: pid_t) -> String? {
+        let app = AXNode(el: AXUIElementCreateApplication(pid))
+        AXUIElementSetMessagingTimeout(app.el, 0.5)
+        let windows = app.children.filter { $0.role == kAXWindowRole as String }
+        guard let win = windows.first(where: { $0.title.contains(" - ") }) else { return nil }
+        let left = win.frame.minX + 420
+        var queue = [win]
+        var i = 0
+        var fieldAfterTrackLabel = false
+        while i < queue.count, i < 6000 {
+            let n = queue[i]; i += 1
+            if n.help.hasPrefix("Left inspector channel strip"), !n.desc.isEmpty { return n.desc }
+            if n.help.hasPrefix("Name field. Double-click to rename the channel strip"), !n.stringValue.isEmpty {
+                return n.stringValue
+            }
+            for c in n.children {
+                let f = c.frame
+                // Skip everything right of the inspector (tracks, regions, rulers).
+                if f.width > 0, f.minX > left { continue }
+                if c.role == "AXStaticText", c.stringValue == "Track:" { fieldAfterTrackLabel = true; continue }
+                if fieldAfterTrackLabel, c.role == AXRole.textField, !c.stringValue.isEmpty { return c.stringValue }
+                queue.append(c)
+            }
+            fieldAfterTrackLabel = false
+        }
+        return nil
+    }
+
     func projectWindow(_ app: AXNode) -> AXUIElement? {
         let windows = app.children.filter { $0.role == kAXWindowRole as String }
         if let tracks = windows.first(where: { $0.title.hasSuffix("- Tracks") || $0.title.contains(" - ") }) {
@@ -697,6 +733,10 @@ enum LogicProbe {
             }
             if args.contains("--probe-instrument-menu") {
                 print("PROBE \(await inserter.probeInstrumentMenu())")
+            }
+            // --track-name: logs the selected track's name (read only).
+            if args.contains("--track-name") {
+                inserter.log("TRACK \(inserter.selectedTrackName() ?? "none") trusted=\(AXAccess.isTrusted)")
             }
             // --close-logic-windows: closes every open plug-in window in Logic.
             if args.contains("--close-logic-windows"), let logic = inserter.logicApp {

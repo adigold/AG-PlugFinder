@@ -36,7 +36,8 @@ enum PluginScanner {
                     isV3: isV3,
                     componentType: d.componentType,
                     componentSubType: d.componentSubType,
-                    componentManufacturer: d.componentManufacturer)
+                    componentManufacturer: d.componentManufacturer,
+                    path: c.componentURL?.path)
             }
         }
         return Array(result.values)

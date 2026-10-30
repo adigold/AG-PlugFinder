@@ -13,6 +13,7 @@ struct LibraryView: View {
     @State private var mini = false
     @State private var fullFrame: NSRect?
     @State private var showActions = false
+    @State private var showChains = false
     var store = PluginStore.shared
     var snapshots = SnapshotQueue.shared
     var fetcher = PluginInfoFetcher.shared
@@ -36,6 +37,9 @@ struct LibraryView: View {
             applyPin()
         })
         .onAppear(perform: installKeys)
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { n in
+            if (n.object as? NSWindow) === window { model.refreshSuggestion() }
+        }
         .onDisappear(perform: removeKeys)
         .onReceive(NotificationCenter.default.publisher(for: .toggleMiniMode)) { _ in toggleMini() }
         .alert("Look up \(fetcher.missingCount()) plugins?", isPresented: $confirmLookup) {
@@ -57,6 +61,7 @@ struct LibraryView: View {
             topBar
             UpdateBanner()
             activityStrip
+            CollectionBar(model: model)
             HStack(spacing: 0) {
                 PluginGrid(model: model) { insert() }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -107,6 +112,10 @@ struct LibraryView: View {
                 .frame(minWidth: 220, maxWidth: 480)
             Spacer(minLength: 16)
             HStack(spacing: 2) {
+                BarIconButton(systemImage: "link", help: "Chains: add several plugins at once", active: showChains) {
+                    showChains.toggle()
+                }
+                .popover(isPresented: $showChains, arrowEdge: .bottom) { ChainsPanel { showChains = false } }
                 ViewControls(model: model)
                 BarIconButton(systemImage: "ellipsis", help: "Plugins, screenshots and info", active: showActions) {
                     showActions.toggle()
@@ -301,6 +310,9 @@ struct LibraryActions: View {
                 Task { await pack.install() }
             }
             Rectangle().fill(Theme.rule).frame(height: 1).padding(.vertical, 6)
+            action("chart.bar", "Plugin report", detail: "Most used, never used, installed twice, disk space") {
+                ReportWindow.shared.show()
+            }
             action("rectangle.stack", "Screenshot progress", detail: nil) { SnapshotProgressWindow.shared.show() }
             action("gearshape", "Settings and plugin list", detail: nil) { openSettings() }
         }

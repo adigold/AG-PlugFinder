@@ -11,7 +11,7 @@ enum Entry {
             SnapshotRenderer.run(Array(args[i...]))
         }
         // Read-only checks of Logic's interface, without the app's windows.
-        if args.contains("--dump-logic") || args.contains("--probe-instrument-menu") || args.contains("--test-insert") || args.contains("--capture-logic") || args.contains("--close-logic-windows") {
+        if args.contains("--dump-logic") || args.contains("--probe-instrument-menu") || args.contains("--test-insert") || args.contains("--capture-logic") || args.contains("--close-logic-windows") || args.contains("--track-name") {
             LogicProbe.run(args)
         }
         Migration.run()
@@ -84,6 +84,12 @@ struct MenuBarContent: View {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         HotKey.shared.register { PickerPanelController.shared.toggle() }
+        _ = UserLibrary.shared
+        HotKey.shared.registerPins()
+        NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil,
+                                               queue: .main) { _ in
+            Task { @MainActor in UserLibrary.shared.pullFromCloud() }
+        }
         Task { @MainActor in Updater.shared.start() }
 
         Task { @MainActor in

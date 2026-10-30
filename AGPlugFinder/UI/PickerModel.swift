@@ -11,6 +11,10 @@ final class PickerModel {
     }
     var selection = 0
     var columns = 4
+    /// The collection chip that is on (BL-29); nil shows everything.
+    var collectionID: String? { didSet { if collectionID != oldValue { selection = 0 } } }
+    /// Plugins that fit the selected Logic track, shown first while the search is empty (BL-33).
+    var suggestion: (track: String, ids: [String])?
 
     /// Set when every insert slot is full: the user picks which one to replace.
     var slotChoices: [SlotChoice]?
@@ -20,7 +24,40 @@ final class PickerModel {
     var isBusy = false
 
     var results: [Plugin] {
-        PluginStore.shared.filtered(query: query, sort: sort, favoritesOnly: ViewSettings.shared.favoritesOnly)
+        let only = collectionID.flatMap { id in UserLibrary.shared.collections.first { $0.id == id } }
+            .map { Set($0.pluginIDs) }
+        let list = PluginStore.shared.filtered(query: query, sort: sort,
+                                               favoritesOnly: ViewSettings.shared.favoritesOnly, only: only)
+        guard query.isEmpty, collectionID == nil, let s = suggestion, !s.ids.isEmpty else { return list }
+        let rank = Dictionary(uniqueKeysWithValues: s.ids.enumerated().map { ($1, $0) })
+        let first = list.filter { rank[$0.id] != nil }.sorted { rank[$0.id]! < rank[$1.id]! }
+        return first + list.filter { rank[$0.id] == nil }
+    }
+
+    /// Reads the selected Logic track's name and picks plugins for it. Read only: nothing in
+    /// Logic is clicked or typed.
+    func refreshSuggestion() {
+        guard AXAccess.isTrusted, let pid = LogicInserter.shared.logicApp?.processIdentifier else {
+            suggestion = nil; return
+        }
+        Task {
+            let name = await Task.detached { LogicInserter.trackName(pid: pid) }.value
+            guard let name else { suggestion = nil; return }
+            if suggestion?.track == name { return }
+            let ids = TrackSuggestions.plugins(for: name)
+            suggestion = ids.isEmpty ? nil : (name, ids)
+            selection = 0
+        }
+    }
+
+    /// Shows a plugin even if the search or a collection hides it (More like this).
+    func reveal(_ id: String) {
+        if !results.contains(where: { $0.id == id }) {
+            query = ""
+            collectionID = nil
+            ViewSettings.shared.favoritesOnly = false
+        }
+        select(id)
     }
 
     var selected: Plugin? {

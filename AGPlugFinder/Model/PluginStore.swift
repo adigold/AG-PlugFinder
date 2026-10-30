@@ -17,6 +17,8 @@ final class PluginStore {
     /// Single plugins hidden or forced visible in the list editor.
     var hiddenPlugins: Set<String> = [] { didSet { saveDefaults() } }
     var shownPlugins: Set<String> = [] { didSet { saveDefaults() } }
+    /// Called when favorites or visibility change, so they sync to the user's other Macs.
+    var onSettingsChanged: (() -> Void)?
     /// Bumped whenever a screenshot file changes, so views reload images.
     private(set) var imageGeneration = 0
 
@@ -118,7 +120,10 @@ final class PluginStore {
         if favorites.contains(id) { favorites.remove(id) } else { favorites.insert(id) }
     }
 
-    func markUsed(_ id: String) { lastUsed[id] = Date() }
+    func markUsed(_ id: String) {
+        lastUsed[id] = Date()
+        UserLibrary.shared.countUse(id)
+    }
 
     // MARK: Visibility (list editor)
 
@@ -173,15 +178,44 @@ final class PluginStore {
 
     // MARK: Search and sort
 
-    func filtered(query: String, sort: PluginSort, favoritesOnly: Bool = false) -> [Plugin] {
+    func filtered(query: String, sort: PluginSort, favoritesOnly: Bool = false,
+                  only ids: Set<String>? = nil) -> [Plugin] {
         let words = query.lowercased().split(separator: " ").map(String.init)
-        let pool = plugins.filter { isVisible($0) && (!favoritesOnly || favorites.contains($0.id)) }
-        let list = words.isEmpty ? pool : pool.filter { p in
-            let hay = [p.name, p.manufacturer, p.displayCategory, p.typeName, p.formatName,
-                       p.details?.kind ?? "", p.tags.joined(separator: " ")]
-                .joined(separator: " ").lowercased()
+        let pool = plugins.filter {
+            isVisible($0) && (!favoritesOnly || favorites.contains($0.id)) && (ids?.contains($0.id) ?? true)
+        }
+        var list = words.isEmpty ? pool : pool.filter { p in
+            let hay = Self.nameHay(p)
             return words.allSatisfy { hay.contains($0) }
         }
+        // Search by what it does (BL-27): name matches first, then plugins whose description,
+        // best feature or highlights match every word.
+        if !words.isEmpty {
+            let named = Set(list.map(\.id))
+            let described = pool.filter { p in
+                guard !named.contains(p.id) else { return false }
+                let hay = Self.descriptionHay(p)
+                return words.allSatisfy { hay.contains($0) }
+            }
+            if !described.isEmpty {
+                return sortList(list, sort) + sortList(described, sort)
+            }
+        }
+        list = sortList(list, sort)
+        return list
+    }
+
+    static func nameHay(_ p: Plugin) -> String {
+        [p.name, p.manufacturer, p.displayCategory, p.typeName, p.formatName,
+         p.details?.kind ?? "", p.tags.joined(separator: " ")].joined(separator: " ").lowercased()
+    }
+
+    static func descriptionHay(_ p: Plugin) -> String {
+        guard let d = p.details else { return "" }
+        return ([d.summary, d.bestFeature, d.kind, d.category] + d.highlights).joined(separator: " ").lowercased()
+    }
+
+    private func sortList(_ list: [Plugin], _ sort: PluginSort) -> [Plugin] {
         let byName: (Plugin, Plugin) -> Bool = {
             $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
         }
@@ -197,6 +231,12 @@ final class PluginStore {
             return list.sorted {
                 let c = $0.manufacturer.localizedCaseInsensitiveCompare($1.manufacturer)
                 return c == .orderedSame ? byName($0, $1) : c == .orderedAscending
+            }
+        case .mostUsed:
+            let count = UserLibrary.shared.useCount
+            return list.sorted {
+                let a = count[$0.id] ?? 0, b = count[$1.id] ?? 0
+                return a == b ? byName($0, $1) : a > b
             }
         case .recent:
             return list.sorted {
@@ -250,5 +290,6 @@ final class PluginStore {
         d.set(Array(hiddenGroups), forKey: "hiddenGroups")
         d.set(Array(hiddenPlugins), forKey: "hiddenPlugins")
         d.set(Array(shownPlugins), forKey: "shownPlugins")
+        onSettingsChanged?()
     }
 }

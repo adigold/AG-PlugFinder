@@ -22,6 +22,7 @@ struct GeneralSettings: View {
     @State private var trusted = AXAccess.isTrusted
     @State private var model = PluginInfoFetcher.shared.model
     @State private var diagnosticsNote = ""
+    @State private var sync = UserLibrary.shared.syncEnabled
 
     var body: some View {
         Form {
@@ -29,6 +30,18 @@ struct GeneralSettings: View {
                 Toggle("Open at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, on in LaunchAtLogin.set(on) }
                 LabeledContent("Picker hotkey", value: HotKey.display)
+                LabeledContent("Number keys", value: "⌃⌥1 to ⌃⌥9 insert what you pin to them")
+            }
+
+            Section("Sync") {
+                Toggle("Sync with my other Macs through iCloud Drive", isOn: $sync)
+                    .onChange(of: sync) { _, on in UserLibrary.shared.syncEnabled = on }
+                    .disabled(UserLibrary.cloudFile == nil)
+                Text(UserLibrary.cloudFile == nil
+                     ? "Turn on iCloud Drive in System Settings to sync favorites, collections, chains, notes, number keys and hidden plugins."
+                     : "Favorites, collections, chains, notes, number keys and hidden plugins"
+                        + (UserLibrary.shared.lastSynced.map { ". Last synced \($0.formatted(.relative(presentation: .named)))." } ?? "."))
+                    .font(.caption).foregroundStyle(.secondary)
             }
 
             Section("Logic Pro") {

@@ -462,6 +462,7 @@ struct PluginDetailView: View {
                         .aspectRatio(1.5, contentMode: .fit)
                     titleBlock
                     if let d = plugin.details { info(d) } else { noInfo }
+                    PluginExtras(plugin: plugin, model: model)
                     detailsList
                 }
                 .padding(.horizontal, 18).padding(.bottom, 22).padding(.top, 4)
@@ -686,6 +687,37 @@ struct PluginContextMenu: View {
             PluginInfoFetcher.shared.start(ids: [plugin.id])
         }
         .disabled(PluginInfoFetcher.shared.isRunning || !PluginInfoFetcher.shared.hasKey)
+        Divider()
+        Menu("Add to Chain") {
+            ForEach(UserLibrary.shared.chains) { c in
+                Button(c.name) { UserLibrary.shared.addToChain(c.id, plugin.id) }
+            }
+            if !UserLibrary.shared.chains.isEmpty { Divider() }
+            Button("New Chain…") {
+                if let n = NamePrompt.ask("New chain", placeholder: "For example Vocal chain") {
+                    UserLibrary.shared.newChain(named: n, with: [plugin.id])
+                }
+            }
+        }
+        Menu("Collections") {
+            ForEach(UserLibrary.shared.collections) { c in
+                Button((c.pluginIDs.contains(plugin.id) ? "✓ " : "") + c.name) { UserLibrary.shared.toggle(plugin.id, in: c.id) }
+            }
+            if !UserLibrary.shared.collections.isEmpty { Divider() }
+            Button("New Collection…") {
+                if let n = NamePrompt.ask("New collection", placeholder: "For example Mix bus") {
+                    UserLibrary.shared.collections.append(.init(name: n, pluginIDs: [plugin.id]))
+                }
+            }
+        }
+        Menu("Pin to Key") {
+            let mine = UserLibrary.shared.key(for: .plugin(plugin.id))
+            ForEach(1...9, id: \.self) { n in
+                Button((mine == n ? "✓ " : "") + HotKey.pinDisplay(n)) {
+                    UserLibrary.shared.pin(n, to: mine == n ? nil : .plugin(plugin.id))
+                }
+            }
+        }
         Divider()
         Button("Hide This Plugin") { store.setPlugin(plugin.id, visible: false) }
     }
