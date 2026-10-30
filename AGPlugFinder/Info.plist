@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>AGPFUpdateFeedURL</key>
-	<string></string>
+	<string>https://github.com/adigold/AG-PlugFinder/releases/latest/download/update.json</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

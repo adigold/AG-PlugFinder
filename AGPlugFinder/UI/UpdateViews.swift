@@ -15,7 +15,7 @@ struct UpdateBanner: View {
                  notes: []) { ProgressView().controlSize(.small) }
         } else if case .failed(let msg) = updater.state, msg != "No update address is set for this build." {
             card(title: "Update problem", notes: [msg]) {
-                Button("Try Again") { Task { await updater.check() } }
+                Button("Try Again") { Task { await updater.check(userInitiated: true) } }
             }
         } else if let w = updater.whatsNew {
             card(title: "What's new in \(w.version)", notes: w.notes) {
@@ -58,7 +58,7 @@ struct UpdateSettings: View {
                 Toggle("Check for updates automatically", isOn: $autoCheck)
                     .onChange(of: autoCheck) { _, v in updater.autoCheck = v }
                 HStack {
-                    Button("Check Now") { Task { await updater.check() } }
+                    Button("Check Now") { Task { await updater.check(userInitiated: true) } }
                         .disabled(updater.feedURL == nil || updater.state == .checking)
                     if updater.available != nil {
                         Button("Install and Restart") { updater.install() }

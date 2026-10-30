@@ -91,7 +91,8 @@ final class Updater {
 
     // MARK: Check
 
-    func check() async {
+    /// Automatic checks stay quiet when something fails; only "Check Now" shows the problem.
+    func check(userInitiated: Bool = false) async {
         guard let feedURL else { state = .failed("No update address is set for this build."); return }
         if case .downloading = state { return }
         if case .installing = state { return }
@@ -115,7 +116,7 @@ final class Updater {
                 state = .upToDate
             }
         } catch {
-            state = .failed(error.localizedDescription)
+            state = userInitiated ? .failed(error.localizedDescription) : .idle
         }
     }
 

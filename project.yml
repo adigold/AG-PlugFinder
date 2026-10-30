@@ -34,7 +34,7 @@ targets:
         LSApplicationCategoryType: public.app-category.music
         LSMinimumSystemVersion: "15.0"
         NSHumanReadableCopyright: "© 2026 Adi Goldstein"
-        AGPFUpdateFeedURL: ""
+        AGPFUpdateFeedURL: "https://github.com/adigold/AG-PlugFinder/releases/latest/download/update.json"
         NSAccessibilityUsageDescription: "AG PlugFinder places the plugin you pick into an empty insert slot in Logic Pro."
     settings:
       base:

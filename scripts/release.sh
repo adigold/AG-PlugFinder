@@ -14,7 +14,7 @@ SKIP_NOTARIZE=""; PUBLISH=""
 for a in "${@:2}"; do
   case "$a" in --skip-notarize) SKIP_NOTARIZE="--skip-notarize";; --publish) PUBLISH=1;; esac
 done
-REPO=""   # set to the GitHub repo that holds the releases, e.g. owner/name
+REPO="adigold/AG-PlugFinder"
 [ -n "$PUBLISH" ] && [ -n "$SKIP_NOTARIZE" ] && { echo "Refusing to publish a build that is not notarized"; exit 1; }
 export DEVELOPER_DIR=/Applications/Xcode-27.0.app/Contents/Developer
 APP_NAME="AG PlugFinder"
@@ -64,8 +64,11 @@ if [ "$SKIP_NOTARIZE" != "--skip-notarize" ]; then
   xcrun stapler staple dist/AG-PlugFinder.dmg
 fi
 if [ -n "$PUBLISH" ]; then
-  gh repo view "$REPO" >/dev/null 2>&1 || gh repo create "$REPO" --public \
-    --description "Release downloads for AG PlugFinder" >/dev/null
+  VIS=$(gh repo view "$REPO" --json visibility --jq .visibility 2>/dev/null || echo MISSING)
+  if [ "$VIS" != "PUBLIC" ]; then
+    echo "Not published: $REPO is $VIS. Installed apps can only download updates from a public repo."
+    exit 1
+  fi
   gh release create "v$VERSION" "$ZIP" dist/update.json dist/AG-PlugFinder.dmg \
     --repo "$REPO" --title "AG PlugFinder $VERSION" --notes-file "$NOTES" --latest
   echo "Published v$VERSION to https://github.com/$REPO/releases"
