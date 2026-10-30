@@ -68,7 +68,9 @@ final class PickerModel {
             case .allFull(let slots):
                 slotChoices = slots
                 slotSelection = max(0, slots.count - 1)
-                message = "Every insert slot on this track is full. Pick one to replace."
+                message = plugin.slotKind == .instrument
+                    ? "This track already has an instrument. Replace it with \(plugin.name)?"
+                    : "Every insert slot on this track is full. Pick one to replace."
             case .needsAccessibility:
                 AXAccess.requestTrust()
                 showAccessibilityButton = true

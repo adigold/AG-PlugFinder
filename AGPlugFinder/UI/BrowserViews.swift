@@ -566,7 +566,8 @@ struct SlotChooser: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Replace which insert?").font(.headline)
+            Text(model.selected?.slotKind == .instrument ? "Replace the instrument?" : "Replace which insert?")
+                .font(.headline)
             ForEach(model.slotChoices ?? []) { slot in
                 Button { onChoose(slot.id) } label: {
                     HStack {

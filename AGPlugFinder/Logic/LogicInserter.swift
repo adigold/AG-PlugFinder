@@ -34,7 +34,27 @@ final class LogicInserter {
         }.first
     }
 
+    /// Every attempt is written to "Insert log.txt" in the app's data folder, so a failure can
+    /// be traced without guessing.
     func insert(_ plugin: Plugin, replacing slotIndex: Int? = nil) async -> InsertOutcome {
+        log("— \(plugin.name) [\(plugin.slotKind.rawValue)] trusted=\(AXAccess.isTrusted) logic=\(logicApp != nil)")
+        let outcome = await performInsert(plugin, replacing: slotIndex)
+        log("  result: \(outcome)")
+        return outcome
+    }
+
+    private func log(_ line: String) {
+        let url = PluginStore.shared.supportDir.appendingPathComponent("Insert log.txt")
+        let stamp = Date().formatted(date: .numeric, time: .standard)
+        let text = "\(stamp) \(line)\n"
+        if let h = try? FileHandle(forWritingTo: url) {
+            h.seekToEndOfFile(); h.write(Data(text.utf8)); try? h.close()
+        } else {
+            try? text.write(to: url, atomically: true, encoding: .utf8)
+        }
+    }
+
+    private func performInsert(_ plugin: Plugin, replacing slotIndex: Int?) async -> InsertOutcome {
         guard AXAccess.isTrusted else { return .needsAccessibility }
         guard let logic = logicApp else { return .logicNotRunning }
         logic.activate()
@@ -46,9 +66,29 @@ final class LogicInserter {
         else { return .failed("Logic has no open project window.") }
         let win = AXNode(el: window)
         let winFrame = win.frame
+        log("  window: \"\(win.title)\" \(Int(winFrame.width))x\(Int(winFrame.height))")
 
-        let strip = findSlots(in: win, kind: plugin.slotKind, windowMinX: winFrame.minX)
+        var strip = findSlots(in: win, kind: plugin.slotKind, windowMinX: winFrame.minX)
 
+        // Instruments only ever go into the track's instrument slot, never an audio insert.
+        if plugin.slotKind == .instrument, strip.empty == nil {
+            let audio = findSlots(in: win, kind: .audioFX, windowMinX: winFrame.minX)
+            if let current = instrumentSlot(in: win, above: audio) {
+                strip.filled = [current]          // offered as "replace", never done silently
+            } else if audio.empty != nil || !audio.filled.isEmpty {
+                return .failed("The selected track is an audio track, it has no instrument slot. " +
+                               "Select a software instrument track to add \(plugin.name).")
+            }
+        }
+        if plugin.slotKind == .midiFX, strip.empty == nil, strip.filled.isEmpty {
+            let audio = findSlots(in: win, kind: .audioFX, windowMinX: winFrame.minX)
+            if audio.empty != nil || !audio.filled.isEmpty {
+                return .failed("MIDI effects go on software instrument tracks. " +
+                               "Select one to add \(plugin.name).")
+            }
+        }
+
+        log("  slots: empty=\(strip.empty != nil) filled=\(strip.filled.count)")
         let target: AXNode
         if let index = slotIndex {
             guard index < strip.filled.count else { return .failed("That slot is no longer there.") }
@@ -64,9 +104,11 @@ final class LogicInserter {
                                    "Open the Inspector in Logic (press I) and try again.")
         }
 
+        log("  opening slot: \(target.role) \"\(target.allText.prefix(80))\" actions=\(target.actions)")
         guard let menu = await openMenu(on: target, app: app) else {
             return .failed("Logic's plug-in menu did not open.")
         }
+        log("  menu opened, items=\(menu.children.count)")
         if await chooseBySearch(plugin, menu: menu, app: app, pid: logic.processIdentifier) {
             return .inserted
         }
@@ -83,6 +125,25 @@ final class LogicInserter {
     private struct Strip {
         var empty: AXNode?
         var filled: [AXNode]
+        /// Where the audio insert column sits, used to find the instrument slot above it.
+        var columnX: CGFloat?
+        var topY: CGFloat?
+    }
+
+    /// The filled instrument slot of the selected strip: the slot-sized control directly above
+    /// the first audio insert in the same column, or anything there that says "instrument".
+    private func instrumentSlot(in win: AXNode, above audio: Strip) -> AXNode? {
+        guard let x = audio.columnX, let top = audio.topY else { return nil }
+        let slotRoles: Set<String> = ["AXButton", "AXMenuButton", "AXPopUpButton", "AXCheckBox", "AXGroup"]
+        let candidates = win.findAll(skipRoles: [AXRole.menuBar]) { node in
+            guard slotRoles.contains(node.role) else { return false }
+            let f = node.frame
+            return abs(f.minX - x) < 12 && f.maxY <= top + 2 && top - f.maxY < 60 && f.height > 8 && f.height < 40
+        }
+        if let named = candidates.first(where: { $0.allText.localizedCaseInsensitiveContains("instrument") }) {
+            return named
+        }
+        return candidates.max { $0.frame.maxY < $1.frame.maxY }
     }
 
     private func emptyMarkers(_ kind: SlotKind) -> [String] {
@@ -122,9 +183,11 @@ final class LogicInserter {
         let allX = (emptyIn + filledIn).map(\.1.minX)
         guard let columnX = allX.min() else { return Strip(empty: nil, filled: []) }
         let sameColumn: ((AXNode, CGRect)) -> Bool = { abs($0.1.minX - columnX) < 12 }
+        let column = (emptyIn + filledIn).filter(sameColumn)
         let empty = emptyIn.filter(sameColumn).min { $0.1.minY < $1.1.minY }?.0
         let filled = filledIn.filter(sameColumn).sorted { $0.1.minY < $1.1.minY }.map(\.0)
-        return Strip(empty: empty, filled: filled)
+        return Strip(empty: empty, filled: filled, columnX: columnX,
+                     topY: column.map(\.1.minY).min())
     }
 
     private func slotName(_ node: AXNode) -> String {
