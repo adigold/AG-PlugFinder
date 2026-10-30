@@ -48,7 +48,7 @@ enum LogicCatalog {
                         "High Shelving EQ", "Low Cut", "Low Pass Filter", "Low Shelving EQ",
                         "Parametric EQ", "PlatinumVerb", "Silver Compressor", "Silver EQ",
                         "Silver Gate", "Speech Enhancer"], legacy: true)
-        all += inst("Synth", ["Alchemy", "EFM1", "ES E", "ES M", "ES P", "ES1", "ES2", "EVOC 20 PolySynth",
+        all += inst("Synth", ["Alchemy", "EFM1", "ES E", "ES M", "ES P", "ES1", "ES2",
                          "Retro Synth", "Sculpture"])
         all += inst("Sampler", ["Quick Sampler", "Sample Alchemy", "Sampler"])
         all += inst("Drums", ["Drum Synth", "Drum Machine Designer", "Drum Kit Designer"])
@@ -56,7 +56,7 @@ enum LogicCatalog {
                         "Vintage Mellotron"])
         all += inst("Orchestral", ["Studio Strings", "Studio Horns"])
         all += inst("Bass", ["Studio Bass"])
-        all += inst("Legacy", ["Klopfgeist", "Ultrabeat"], legacy: true)
+        // Klopfgeist, Ultrabeat and EVOC 20 PolySynth are no longer in Logic 12.4's menus.
         all += ["Arpeggiator", "Chord Trigger", "Modifier", "Modulator", "Note Repeater", "Randomizer",
            "Scripter", "Transposer", "Velocity Processor"].map {
                Entry(name: $0, category: "MIDI FX", slot: .midiFX)

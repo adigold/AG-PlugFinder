@@ -495,7 +495,7 @@ final class LogicInserter {
             return .failed("The selected track has no instrument slot. Select a software instrument " +
                            "track (and show the Inspector with I) to add \(plugin.name).")
         }
-        log("  instrument slot: \(slot.current ?? "empty")")
+        log("  instrument slot: \(slot.current ?? "empty") actions=\(slot.press.actions)")
         // A track has one instrument; replacing it is always the user's choice.
         if let current = slot.current, !confirmedReplace {
             return .allFull([SlotChoice(id: 0, name: current)])
@@ -518,8 +518,13 @@ final class LogicInserter {
             try? await Task.sleep(for: .milliseconds(300))
         }
         // Legacy instruments (and Logic instruments that moved to Legacy): the slot's legacy menu.
-        if plugin.isLogic, let withLegacy {
-            slot.press.perform(withLegacy)
+        if plugin.isLogic {
+            if let withLegacy {
+                slot.press.perform(withLegacy)
+            } else {
+                // An empty instrument slot has no legacy action: Option-click it, as a person would.
+                Keyboard.optionClick(at: CGPoint(x: slot.press.frame.midX, y: slot.press.frame.midY))
+            }
             if let menu = await waitForMenu(app: app) {
                 if await chooseLegacy(plugin, menu: menu, app: app) { return .inserted }
                 log("  legacy menu titles: " + menuItems(menu).map(\.title).joined(separator: " | "))

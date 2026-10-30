@@ -104,10 +104,6 @@ enum AXAccess {
 /// Types text into a process as real key presses.
 enum Keyboard {
     static func type(_ text: String, pid: pid_t) {
-        // Only into a text field: typed letters in Logic's main window are key commands.
-        let app = AXNode(el: AXUIElementCreateApplication(pid))
-        guard let focused: AXUIElement = app.attr(kAXFocusedUIElementAttribute),
-              [AXRole.textField, "AXSearchField", "AXComboBox"].contains(AXNode(el: focused).role) else { return }
         let source = CGEventSource(stateID: .hidSystemState)
         for ch in text.utf16 {
             var c = ch
@@ -125,6 +121,16 @@ enum Keyboard {
     /// Never sends Esc: in Logic's main window Esc opens the Tool menu, and Logic's closed
     /// pop-up buttons look like open menus to Accessibility. Menus close by themselves.
     static func escapeIfOpen(pid: pid_t) {}
+
+    static func optionClick(at point: CGPoint) {
+        let source = CGEventSource(stateID: .hidSystemState)
+        for type in [CGEventType.leftMouseDown, .leftMouseUp] {
+            let e = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: point, mouseButton: .left)
+            e?.flags = .maskAlternate
+            e?.post(tap: .cghidEventTap)
+            usleep(40_000)
+        }
+    }
 
     static func press(_ key: CGKeyCode, pid: pid_t) {
         let source = CGEventSource(stateID: .hidSystemState)
