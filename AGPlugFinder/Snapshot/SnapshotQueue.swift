@@ -48,7 +48,14 @@ final class SnapshotQueue {
             .filter { p in
                 guard !p.isLogic else { return false }
                 if let ids { return ids.contains(p.id) }
-                return force || p.snapshotState == .pending
+                if force { return true }
+                // Never re-capture a plugin whose picture is already on disk.
+                let hasImage = FileManager.default.fileExists(atPath: store.snapshotURL(for: p.id).path)
+                switch p.snapshotState {
+                case .pending, .failed: return !hasImage
+                case .done: return !hasImage
+                case .noUI, .builtIn: return false
+                }
             }
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         guard !todo.isEmpty else { return }
@@ -96,10 +103,19 @@ final class SnapshotQueue {
         start(only: ids)
     }
 
-    /// Re-captures one plugin.
+    /// Re-captures one plugin on request (right-click → Retake Screenshot).
     func recapture(_ id: String) {
-        PluginStore.shared.update(id) { $0.snapshotState = .pending }
-        start()
+        guard !isRunning else { return }
+        start(only: [id])
+    }
+
+    /// How many plugins still have no picture (what the camera button would capture).
+    var missingCount: Int {
+        let store = PluginStore.shared
+        return store.plugins.filter { p in
+            !p.isLogic && (p.snapshotState == .pending || p.snapshotState == .failed || p.snapshotState == .done)
+                && !FileManager.default.fileExists(atPath: store.snapshotURL(for: p.id).path)
+        }.count
     }
 
     struct Result {

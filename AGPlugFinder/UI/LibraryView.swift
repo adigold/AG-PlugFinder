@@ -114,10 +114,12 @@ struct LibraryView: View {
                 Button { store.rescan(); snapshots.start() } label: {
                     Label("Rescan Plugins", systemImage: "arrow.clockwise")
                 }.help("Find newly installed plugins")
-                Button { snapshots.start(force: true) } label: {
-                    Label("Retake Screenshots", systemImage: "camera")
-                }.help("Capture every plugin's window again")
-                    .disabled(snapshots.isRunning)
+                Button { snapshots.start() } label: {
+                    Label("Capture Missing Screenshots", systemImage: "camera")
+                }.help(snapshots.missingCount == 0
+                       ? "Every plugin that can be captured already has a screenshot. Right-click a plugin to retake it."
+                       : "Capture the \(snapshots.missingCount) plugins that have no screenshot yet")
+                    .disabled(snapshots.isRunning || snapshots.missingCount == 0)
                 Button { confirmLookup = true } label: {
                     Label("Look Up Info", systemImage: "sparkles")
                 }.help("Look up each plugin's summary and best feature")

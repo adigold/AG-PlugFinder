@@ -391,6 +391,7 @@ struct PluginGrid: View {
                 .id(plugin.id)
                 .onTapGesture(count: 2) { model.selection = i; onActivate() }
                 .onTapGesture { model.selection = i }
+                .contextMenu { PluginContextMenu(plugin: plugin, select: { model.selection = i }, insert: onActivate) }
         }
     }
 }
@@ -588,5 +589,33 @@ struct SlotChooser: View {
         .frame(width: 340)
         .background(RoundedRectangle(cornerRadius: 14).fill(.regularMaterial))
         .shadow(radius: 20)
+    }
+}
+
+/// Right-click on a plugin.
+struct PluginContextMenu: View {
+    let plugin: Plugin
+    var select: () -> Void
+    var insert: () -> Void
+    var store = PluginStore.shared
+
+    var body: some View {
+        Button("Insert in Logic") { select(); insert() }
+        Button(store.favorites.contains(plugin.id) ? "Remove from Favorites" : "Add to Favorites") {
+            store.toggleFavorite(plugin.id)
+        }
+        Divider()
+        if !plugin.isLogic {
+            Button(plugin.snapshotState == .done ? "Retake Screenshot" : "Take Screenshot") {
+                SnapshotQueue.shared.recapture(plugin.id)
+            }
+            .disabled(SnapshotQueue.shared.isRunning)
+        }
+        Button(plugin.details == nil ? "Look Up Info" : "Look Up Info Again") {
+            PluginInfoFetcher.shared.start(ids: [plugin.id])
+        }
+        .disabled(PluginInfoFetcher.shared.isRunning || !PluginInfoFetcher.shared.hasKey)
+        Divider()
+        Button("Hide This Plugin") { store.setPlugin(plugin.id, visible: false) }
     }
 }

@@ -19,6 +19,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-18** `P1 · Medium` **Never re-capture screenshots we already have:** the camera button captures only plugins with no picture; retaking one is a right-click on that plugin. Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-13** `P1 · Medium` **Keep the window on top, mini mode:** a pin that keeps the main window above Logic, and a compact mini mode that floats on top. Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-11** `P1 · High` **First-run onboarding for permissions:** on first install, a friendly step-by-step window gets every permission (Accessibility for Logic, open at login, optional API key) approved before the app starts working. Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-10** `P2 · Low` **App title centered at the top:** show "AG PlugFinder" in the middle of the main window's top bar. Adi, 2026-10-30. · done 2026-10-30

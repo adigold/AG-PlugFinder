@@ -57,6 +57,16 @@ final class LogicInserter {
     private func performInsert(_ plugin: Plugin, replacing slotIndex: Int?) async -> InsertOutcome {
         guard AXAccess.isTrusted else { return .needsAccessibility }
         guard let logic = logicApp else { return .logicNotRunning }
+
+        // First choice: Logic's own Mix → Search and Add Plug-in…, which puts the plugin on the
+        // selected track in the right place (instrument slot or the next free insert).
+        if slotIndex == nil {
+            switch await searchAndAdd(plugin, logic: logic) {
+            case .done: return .inserted
+            case .stop(let outcome): return outcome
+            case .unavailable: log("  Search and Add not available, falling back to the slots")
+            }
+        }
         logic.activate()
         try? await Task.sleep(for: .milliseconds(150))
 
@@ -118,6 +128,119 @@ final class LogicInserter {
         Keyboard.press(53, pid: logic.processIdentifier) // Esc closes the menu
         return .failed("I couldn't find \"\(plugin.name)\" in Logic's plug-in menu. " +
                        "Make sure Logic has scanned it (Plug-in Manager).")
+    }
+
+    // MARK: Logic's Search and Add Plug-in
+
+    private enum SearchAddResult { case done, stop(InsertOutcome), unavailable }
+
+    private func searchAndAdd(_ plugin: Plugin, logic: NSRunningApplication) async -> SearchAddResult {
+        let pid = logic.processIdentifier
+        let app = AXNode(el: AXUIElementCreateApplication(pid))
+        AXUIElementSetMessagingTimeout(app.el, 2.0)
+        logic.activate()
+        try? await Task.sleep(for: .milliseconds(200))
+
+        guard let menuBar: AXUIElement = app.attr(kAXMenuBarAttribute),
+              let mix = AXNode(el: menuBar).children.first(where: { $0.title == "Mix" }),
+              let mixMenu = mix.children.first(where: { $0.role == AXRole.menu }),
+              let command = mixMenu.children.first(where: { $0.title.hasPrefix("Search and Add Plug-in") })
+        else { return .unavailable }
+        guard command.isEnabled else {
+            return .stop(.failed("Select a track in Logic first, then try again."))
+        }
+        let windowsBefore = Set(app.children.filter { $0.role == kAXWindowRole as String }.map { CFHash($0.el) })
+        command.perform(kAXPressAction)
+        log("  pressed Mix > Search and Add Plug-in")
+
+        // Find the search field Logic opens (focused element, or a field in a new window).
+        var field: AXNode?
+        for _ in 0..<25 {
+            try? await Task.sleep(for: .milliseconds(80))
+            if let focused: AXUIElement = app.attr(kAXFocusedUIElementAttribute) {
+                let f = AXNode(el: focused)
+                if [AXRole.textField, "AXSearchField", "AXComboBox"].contains(f.role) { field = f; break }
+            }
+        }
+        guard let field else {
+            log("  no search field appeared")
+            Keyboard.press(53, pid: pid)
+            return .stop(.failed("Logic's plug-in search did not open. Click a track in Logic and try again."))
+        }
+        log("  search field: \(field.role) \"\(field.placeholder)\"")
+        if !field.setValue(plugin.name) || field.stringValue != plugin.name {
+            Keyboard.type(plugin.name, pid: pid)
+        }
+        try? await Task.sleep(for: .milliseconds(600))
+
+        // The results live in the window that holds the field.
+        let popup = window(containing: field, app: app, before: windowsBefore)
+        let candidates = popup.findAll(maxNodes: 3000) { n in
+            let r = n.role
+            return r == "AXRow" || r == "AXCell" || r == "AXStaticText" || r == AXRole.menuItem
+                || r == "AXButton" || r == "AXOutlineRow"
+        }
+        let name = plugin.name.lowercased()
+        func text(_ n: AXNode) -> String { [n.title, n.stringValue, n.desc].first { !$0.isEmpty } ?? "" }
+        let exact = candidates.filter { text($0).lowercased() == name }
+        log("  results: \(candidates.count) elements, \(exact.count) exact for \"\(plugin.name)\"")
+        if exact.isEmpty {
+            logTree(popup)
+            Keyboard.press(53, pid: pid)
+            return .stop(.failed("Logic's search did not list \"\(plugin.name)\". " +
+                                 "If it is an instrument, select a software instrument track."))
+        }
+        // Prefer the match whose row also names the maker (two plugins can share a name).
+        let maker = plugin.manufacturer.lowercased()
+        let pick = exact.first { el in
+            let rowText = (parentRow(of: el) ?? el).findAll(maxNodes: 40) { _ in true }
+                .map { text($0).lowercased() }.joined(separator: " ")
+            return rowText.contains(maker)
+        } ?? exact[0]
+        let row = parentRow(of: pick) ?? pick
+        AXUIElementSetAttributeValue(row.el, kAXSelectedAttribute as CFString, kCFBooleanTrue)
+        if row.actions.contains(kAXPressAction) {
+            row.perform(kAXPressAction)
+        } else {
+            Keyboard.press(36, pid: pid) // Return adds the selected result
+        }
+        log("  picked \(row.role) \"\(text(pick))\"")
+        return .done
+    }
+
+    private func window(containing node: AXNode, app: AXNode, before: Set<CFHashCode>) -> AXNode {
+        var current: AXUIElement? = node.el
+        while let el = current {
+            let n = AXNode(el: el)
+            if n.role == kAXWindowRole as String { return n }
+            current = n.attr(kAXParentAttribute)
+        }
+        let windows = app.children.filter { $0.role == kAXWindowRole as String }
+        return windows.first { !before.contains(CFHash($0.el)) } ?? windows.first ?? app
+    }
+
+    private func parentRow(of node: AXNode) -> AXNode? {
+        var current: AXUIElement? = node.el
+        for _ in 0..<4 {
+            guard let el = current else { return nil }
+            let n = AXNode(el: el)
+            if n.role == "AXRow" || n.role == "AXOutlineRow" { return n }
+            current = n.attr(kAXParentAttribute)
+        }
+        return nil
+    }
+
+    /// Writes a small tree of the search window to the log, for tuning.
+    private func logTree(_ root: AXNode) {
+        var count = 0
+        func walk(_ n: AXNode, _ depth: Int) {
+            guard count < 120, depth < 12 else { return }
+            count += 1
+            log("    " + String(repeating: "  ", count: depth) +
+                "\(n.role) t=\(n.title) v=\(n.stringValue.prefix(40)) d=\(n.desc) h=\(n.help.prefix(40))")
+            for c in n.children { walk(c, depth + 1) }
+        }
+        walk(root, 0)
     }
 
     // MARK: Finding the slots
