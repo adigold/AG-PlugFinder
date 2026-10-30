@@ -65,9 +65,10 @@ final class LogicInserter {
             return await insertInstrument(plugin, logic: logic, confirmedReplace: slotIndex != nil)
         }
 
-        // Effects: Logic's own Mix → Search and Add Plug-in… puts the plugin in the next free
-        // insert of the selected track.
-        if slotIndex == nil {
+        // Audio effects: Logic's own Mix → Search and Add Plug-in… puts the plugin in the next
+        // free insert of the selected track. It only lists audio effects, so MIDI effects go
+        // through the MIDI Effect slot's own menu below.
+        if slotIndex == nil, plugin.slotKind == .audioFX {
             switch await searchAndAdd(plugin, logic: logic) {
             case .done: return .inserted
             case .stop(let outcome): return outcome
@@ -79,7 +80,7 @@ final class LogicInserter {
 
         let app = AXNode(el: AXUIElementCreateApplication(logic.processIdentifier))
         AXUIElementSetMessagingTimeout(app.el, 2.0)
-        guard let window: AXUIElement = app.attr(kAXFocusedWindowAttribute) ?? app.attr(kAXMainWindowAttribute)
+        guard let window: AXUIElement = projectWindow(app)
         else { return .failed("Logic has no open project window.") }
         let win = AXNode(el: window)
         let winFrame = win.frame
@@ -436,6 +437,21 @@ final class LogicInserter {
             ?? items.first { $0.title.lowercased().hasPrefix(name.lowercased()) }
     }
 
+    // MARK: The project window
+
+    /// Logic's project window, never a plug-in window (inserting opens the plug-in's window,
+    /// which then becomes the focused one): the window titled "… - Tracks", else the largest.
+    func projectWindow(_ app: AXNode) -> AXUIElement? {
+        let windows = app.children.filter { $0.role == kAXWindowRole as String }
+        if let tracks = windows.first(where: { $0.title.hasSuffix("- Tracks") || $0.title.contains(" - ") }) {
+            return tracks.el
+        }
+        return windows.max { a, b in
+            let fa = a.frame, fb = b.frame
+            return fa.width * fa.height < fb.width * fb.height
+        }?.el ?? app.attr(kAXMainWindowAttribute)
+    }
+
     // MARK: The instrument slot
 
     private func insertInstrument(_ plugin: Plugin, logic: NSRunningApplication,
@@ -444,7 +460,7 @@ final class LogicInserter {
         AXUIElementSetMessagingTimeout(app.el, 2.0)
         logic.activate()
         try? await Task.sleep(for: .milliseconds(150))
-        guard let window: AXUIElement = app.attr(kAXFocusedWindowAttribute) ?? app.attr(kAXMainWindowAttribute)
+        guard let window: AXUIElement = projectWindow(app)
         else { return .failed("Logic has no open project window.") }
         guard let slot = instrumentSlot(in: AXNode(el: window)) else {
             return .failed("The selected track has no instrument slot. Select a software instrument " +
@@ -505,12 +521,28 @@ final class LogicInserter {
 
     // MARK: Probe
 
+    /// The plugins on the selected (left Inspector) strip right now, top to bottom.
+    func stripContents() -> [String] {
+        guard AXAccess.isTrusted, let logic = logicApp else { return ["no access"] }
+        let app = AXNode(el: AXUIElementCreateApplication(logic.processIdentifier))
+        AXUIElementSetMessagingTimeout(app.el, 2.0)
+        guard let window: AXUIElement = projectWindow(app)
+        else { return ["no window"] }
+        let win = AXNode(el: window)
+        let minX = win.frame.minX
+        let groups = win.findAll(skipRoles: [AXRole.menuBar]) { n in
+            n.role == "AXGroup" && !n.desc.isEmpty && n.frame.minX - minX < 60 && n.frame.minX - minX > 10
+                && n.children.contains(where: { $0.desc == "list" })
+        }
+        return groups.sorted { $0.frame.minY < $1.frame.minY }.map { $0.desc }
+    }
+
     /// Every slot-like control in the Inspector, with its help text and actions (read-only).
     func describeSlots() -> [String] {
         guard AXAccess.isTrusted, let logic = logicApp else { return ["not trusted or Logic closed"] }
         let app = AXNode(el: AXUIElementCreateApplication(logic.processIdentifier))
         AXUIElementSetMessagingTimeout(app.el, 2.0)
-        guard let window: AXUIElement = app.attr(kAXFocusedWindowAttribute) ?? app.attr(kAXMainWindowAttribute)
+        guard let window: AXUIElement = projectWindow(app)
         else { return ["no window"] }
         let win = AXNode(el: window)
         let minX = win.frame.minX
@@ -530,7 +562,7 @@ final class LogicInserter {
         guard let logic = logicApp else { return "Logic closed" }
         let app = AXNode(el: AXUIElementCreateApplication(logic.processIdentifier))
         AXUIElementSetMessagingTimeout(app.el, 2.0)
-        guard let window: AXUIElement = app.attr(kAXFocusedWindowAttribute) ?? app.attr(kAXMainWindowAttribute)
+        guard let window: AXUIElement = projectWindow(app)
         else { return "no window" }
         let win = AXNode(el: window)
         let minX = win.frame.minX
@@ -617,6 +649,20 @@ enum LogicProbe {
             }
             if args.contains("--probe-instrument-menu") {
                 print("PROBE \(await inserter.probeInstrumentMenu())")
+            }
+            // --test-insert <name> [--replace]: insert exactly like Return, then read the strip back.
+            if let i = args.firstIndex(of: "--test-insert"), i + 1 < args.count {
+                let name = args[i + 1]
+                let store = PluginStore.shared
+                if let p = store.plugins.first(where: { $0.name == name }) {
+                    inserter.log("TEST insert \(name)")
+                    let outcome = await inserter.insert(p, replacing: args.contains("--replace") ? 0 : nil)
+                    try? await Task.sleep(for: .milliseconds(1200))
+                    let strip = inserter.stripContents()
+                    inserter.log("TEST outcome \(outcome) · strip now: \(strip.joined(separator: " | "))")
+                } else {
+                    inserter.log("TEST no plugin named \(name)")
+                }
             }
             fflush(stdout)
             exit(0)

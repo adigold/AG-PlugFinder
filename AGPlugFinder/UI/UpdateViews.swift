@@ -1,44 +1,43 @@
 import SwiftUI
 
-/// "Update available" / "What's new" card shown at the top of the library window.
+/// "Update available" / "What's new" strip under the top bar of the library window.
 struct UpdateBanner: View {
     var updater = Updater.shared
 
     var body: some View {
         if let r = updater.available {
-            card(title: "Update available: version \(r.version)", notes: r.notes) {
-                Button("Install and Restart") { updater.install() }
-                    .keyboardShortcut(.defaultAction)
+            strip(dot: Theme.accent, title: "A new update is available: version \(r.version)", notes: r.notes) {
+                PrimaryPill(title: "Install and Restart", height: 30) { updater.install() }
             }
         } else if updater.state == .downloading || updater.state == .installing {
-            card(title: updater.state == .downloading ? "Downloading the update…" : "Installing…",
-                 notes: []) { ProgressView().controlSize(.small) }
+            strip(dot: Theme.accent, title: updater.state == .downloading ? "Downloading the update…" : "Installing, the app will restart…",
+                  notes: []) { ProgressView().controlSize(.small) }
         } else if case .failed(let msg) = updater.state, msg != "No update address is set for this build." {
-            card(title: "Update problem", notes: [msg]) {
-                Button("Try Again") { Task { await updater.check(userInitiated: true) } }
+            strip(dot: Theme.warning, title: "The update did not install", notes: [msg]) {
+                QuietPill(title: "Try Again") { Task { await updater.check(userInitiated: true) } }
             }
         } else if let w = updater.whatsNew {
-            card(title: "What's new in \(w.version)", notes: w.notes) {
-                Button("Got It") { updater.whatsNew = nil }
+            strip(dot: Theme.accent, title: "What's new in \(w.version)", notes: w.notes) {
+                QuietPill(title: "Got It") { updater.whatsNew = nil }
             }
         }
     }
 
-    private func card<A: View>(title: String, notes: [String], @ViewBuilder action: () -> A) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "arrow.down.circle.fill").font(.system(size: 22)).foregroundStyle(Theme.accent)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.system(size: 13, weight: .semibold))
-                ForEach(notes.prefix(5), id: \.self) { n in
-                    Text(n).font(.system(size: 12)).foregroundStyle(.secondary)
+    private func strip<A: View>(dot: Color, title: String, notes: [String], @ViewBuilder action: () -> A) -> some View {
+        HStack(alignment: .center, spacing: 14) {
+            Circle().fill(dot).frame(width: 8, height: 8)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text)
+                if !notes.isEmpty {
+                    Text(notes.prefix(3).joined(separator: "  ·  "))
+                        .font(.system(size: 12)).foregroundStyle(Theme.muted).lineLimit(2)
                 }
             }
             Spacer()
             action()
         }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Theme.accent.opacity(0.12)))
-        .padding(.horizontal, 12).padding(.bottom, 8)
+        .padding(.horizontal, 18).padding(.vertical, 12)
+        .background(Theme.surface)
     }
 }
 
@@ -92,19 +91,29 @@ struct UpdateSettings: View {
 struct VersionBadge: View {
     var updater = Updater.shared
     @State private var showVersions = false
+    @State private var hovering = false
 
     var body: some View {
         Button { showVersions.toggle() } label: {
-            HStack(spacing: 6) {
-                Image(systemName: icon)
-                    .foregroundStyle(updater.available != nil ? Color.black : tint)
+            HStack(spacing: 7) {
+                if updater.available != nil {
+                    Circle().fill(Theme.accent).frame(width: 7, height: 7)
+                } else if updater.state == .checking {
+                    ProgressView().controlSize(.mini)
+                } else {
+                    Image(systemName: updater.state == .upToDate ? "checkmark" : "arrow.triangle.2.circlepath")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(Theme.faint)
+                }
                 Text(label).font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(updater.available != nil ? Theme.text : Theme.muted)
             }
-            .padding(.horizontal, 10).padding(.vertical, 4)
-            .background(Capsule().fill(updater.available != nil ? Theme.accent : Color.primary.opacity(0.07)))
-            .foregroundStyle(updater.available != nil ? Color.black : Color.primary)
+            .padding(.horizontal, 12).frame(height: 28)
+            .background(Capsule().fill(updater.available != nil || hovering ? Theme.raised : Color.clear))
+            .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressScale())
+        .onHover { hovering = $0 }
         .help("Versions and updates")
         .popover(isPresented: $showVersions, arrowEdge: .bottom) { VersionsPanel() }
     }
@@ -119,23 +128,6 @@ struct VersionBadge: View {
         default: return "v\(updater.currentVersion) · Check for update"
         }
     }
-
-    private var icon: String {
-        switch updater.state {
-        case .available: return "arrow.down.circle.fill"
-        case .upToDate: return "checkmark.circle.fill"
-        case .failed: return "exclamationmark.circle"
-        default: return "arrow.triangle.2.circlepath"
-        }
-    }
-
-    private var tint: Color {
-        switch updater.state {
-        case .upToDate: return .green
-        case .failed: return .orange
-        default: return .secondary
-        }
-    }
 }
 
 /// The Versions popover.
@@ -143,37 +135,45 @@ struct VersionsPanel: View {
     var updater = Updater.shared
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Versions").font(.system(size: 15, weight: .bold))
-            row("Installed", "v\(updater.currentVersion)")
-            if let r = updater.available { row("Latest", "v\(r.version)") }
-            if let d = updater.lastChecked {
-                row("Last checked", d.formatted(date: .abbreviated, time: .shortened))
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 10) {
+                BrandMark(size: 18)
+                Text("AG PlugFinder").font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.text)
             }
-
             Text(status)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(statusColor)
-
-            if let r = updater.available, !r.notes.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("What's new").font(.system(size: 12)).foregroundStyle(.secondary)
-                    ForEach(r.notes, id: \.self) { Text($0).font(.system(size: 12)) }
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(Theme.text)
+            VStack(spacing: 0) {
+                row("Installed", "v\(updater.currentVersion)")
+                if let r = updater.available { row("Latest", "v\(r.version)", dot: true) }
+                if let d = updater.lastChecked {
+                    row("Last checked", d.formatted(date: .abbreviated, time: .shortened))
                 }
             }
-
-            HStack {
-                Button("Check for Update") { Task { await updater.check(userInitiated: true) } }
-                    .disabled(updater.state == .checking || updater.state == .downloading
-                              || updater.state == .installing)
-                if updater.available != nil {
-                    Button("Install and Restart") { updater.install() }
-                        .keyboardShortcut(.defaultAction)
+            if let r = updater.available, !r.notes.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("What's new").font(.system(size: 12)).foregroundStyle(Theme.faint)
+                    ForEach(r.notes, id: \.self) { n in
+                        Text(n).font(.system(size: 13)).foregroundStyle(Theme.muted)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
+            }
+            HStack(spacing: 8) {
+                if updater.available != nil {
+                    PrimaryPill(title: "Install and Restart", height: 32) { updater.install() }
+                }
+                QuietPill(title: updater.state == .checking ? "Checking…" : "Check for Update", height: 32) {
+                    Task { await updater.check(userInitiated: true) }
+                }
+                .disabled(updater.state == .checking || updater.state == .downloading
+                          || updater.state == .installing)
             }
         }
-        .padding(16)
-        .frame(width: 320, alignment: .leading)
+        .padding(22)
+        .frame(width: 340, alignment: .leading)
+        .background(Theme.surface)
+        .preferredColorScheme(.dark)
     }
 
     private var status: String {
@@ -188,19 +188,17 @@ struct VersionsPanel: View {
         }
     }
 
-    private var statusColor: Color {
-        switch updater.state {
-        case .available: return Theme.accent
-        case .upToDate: return .green
-        case .failed: return .orange
-        default: return .secondary
+    private func row(_ k: String, _ v: String, dot: Bool = false) -> some View {
+        VStack(spacing: 0) {
+            Rectangle().fill(Theme.rule).frame(height: 1)
+            HStack {
+                Text(k).foregroundStyle(Theme.faint)
+                Spacer()
+                if dot { Circle().fill(Theme.accent).frame(width: 6, height: 6) }
+                Text(v).foregroundStyle(Theme.text).monospacedDigit()
+            }
+            .font(.system(size: 13))
+            .padding(.vertical, 9)
         }
-    }
-
-    private func row(_ k: String, _ v: String) -> some View {
-        HStack {
-            Text(k).foregroundStyle(.secondary).frame(width: 90, alignment: .leading)
-            Text(v)
-        }.font(.system(size: 12))
     }
 }

@@ -28,6 +28,7 @@
 		B1E65F4E61D464E5340D09D2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB8804982519104A3E9C10 /* SettingsView.swift */; };
 		B4343ECFDF6C445F008BB50D /* PluginScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F96300B45F6AC9AB4D9D915 /* PluginScanner.swift */; };
 		BBBBCD96B562310ED1BA33DC /* PluginListEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD1C34D4EFF0692962BAAE7 /* PluginListEditor.swift */; };
+		C531734DE546A332930B0C09 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F227679D76489B61B50D3EF /* DesignSystem.swift */; };
 		D11B1A084B198C0461413B26 /* PickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 972CDC623675D6EAE7C6B741 /* PickerPanel.swift */; };
 		E80952E50B926A41F630F61F /* BrowserViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0BC245023DFE7ED68CE6AA /* BrowserViews.swift */; };
 		E854273C1E3933DE20D03BA7 /* PickerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B603335B7ED50468B310DE /* PickerModel.swift */; };
@@ -43,6 +44,7 @@
 		1F96300B45F6AC9AB4D9D915 /* PluginScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginScanner.swift; sourceTree = "<group>"; };
 		23FC6C5138045E623B2A0134 /* Migration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Migration.swift; sourceTree = "<group>"; };
 		2AFB8804982519104A3E9C10 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		2F227679D76489B61B50D3EF /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		3126DBE9AE17BDEEEA02A558 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		3489490CA53609C463DF80B1 /* SnapshotProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotProgressView.swift; sourceTree = "<group>"; };
 		36742C3F75E620A4C9713D2D /* AGPlugFinder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AGPlugFinder.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -123,6 +125,7 @@
 			isa = PBXGroup;
 			children = (
 				CC0BC245023DFE7ED68CE6AA /* BrowserViews.swift */,
+				2F227679D76489B61B50D3EF /* DesignSystem.swift */,
 				1AED26F1AE92B46F89A94CE6 /* LibraryView.swift */,
 				597B1DCFC14B2876ADEF60AA /* OnboardingView.swift */,
 				88B603335B7ED50468B310DE /* PickerModel.swift */,
@@ -244,6 +247,7 @@
 				3BBC1A8A91E10880B239C18D /* AX.swift in Sources */,
 				6A189FEC2349289FD418F81D /* AppEntry.swift in Sources */,
 				E80952E50B926A41F630F61F /* BrowserViews.swift in Sources */,
+				C531734DE546A332930B0C09 /* DesignSystem.swift in Sources */,
 				29635C0C264E29F51E293901 /* HotKey.swift in Sources */,
 				2626830B5D9848089F58FEAF /* Keychain.swift in Sources */,
 				8E8D3A87A231BD3E8D683B69 /* LibraryView.swift in Sources */,

@@ -13,6 +13,8 @@ final class SnapshotProgressWindow {
                          backing: .buffered, defer: false)
         w.title = "Plugin Screenshots"
         w.isReleasedWhenClosed = false
+        w.backgroundColor = .black
+        w.appearance = NSAppearance(named: .darkAqua)
         w.minSize = NSSize(width: 520, height: 420)
         w.contentView = NSHostingView(rootView: SnapshotProgressView())
         w.center()
@@ -41,8 +43,10 @@ struct SnapshotProgressView: View {
             list
             footer
         }
-        .padding(18)
+        .padding(22)
         .frame(minWidth: 520, minHeight: 420)
+        .background(Theme.ground)
+        .preferredColorScheme(.dark)
     }
 
     // MARK: Header: big bar, numbers, time
@@ -64,7 +68,7 @@ struct SnapshotProgressView: View {
                 Spacer()
                 Text(timeText).monospacedDigit()
             }
-            .font(.system(size: 12)).foregroundStyle(.secondary)
+            .font(.system(size: 12)).foregroundStyle(Theme.faint)
         }
     }
 
@@ -97,7 +101,7 @@ struct SnapshotProgressView: View {
         let shownID = queue.currentID ?? queue.items.last(where: { $0.status == .done || $0.status == .generic })?.id
         return VStack(alignment: .leading, spacing: 6) {
             Text(queue.isRunning ? "Now" : "Last captured")
-                .font(.system(size: 12)).foregroundStyle(.secondary)
+                .font(.system(size: 12)).foregroundStyle(Theme.faint)
             ZStack {
                 RoundedRectangle(cornerRadius: 8).fill(Color.black.opacity(0.78))
                 if let id = shownID, let p = store.plugin(id), store.image(for: id) != nil {
@@ -105,14 +109,14 @@ struct SnapshotProgressView: View {
                 } else if queue.isRunning {
                     VStack(spacing: 8) {
                         ProgressView().controlSize(.small)
-                        Text("Opening the plugin…").font(.system(size: 11)).foregroundStyle(.secondary)
+                        Text("Opening the plugin…").font(.system(size: 11)).foregroundStyle(Theme.faint)
                     }
                 }
             }
             .frame(width: 260, height: 150)
             if let id = shownID, let item = queue.items.first(where: { $0.id == id }) {
                 Text(item.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
-                Text(item.maker).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                Text(item.maker).font(.system(size: 11)).foregroundStyle(Theme.faint).lineLimit(1)
             }
         }
     }
@@ -127,7 +131,7 @@ struct SnapshotProgressView: View {
             countRow("clock", .secondary, "Waiting",
                      queue.items.filter { $0.status == .waiting }.count)
             Text("Each plugin opens for a moment in the bottom left corner of your screen while it is captured. Logic's own plugins only run inside Logic, so they keep their category card.")
-                .font(.system(size: 11)).foregroundStyle(.secondary)
+                .font(.system(size: 11)).foregroundStyle(Theme.faint)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -154,7 +158,7 @@ struct SnapshotProgressView: View {
                     }
                 }
             }
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color.primary.opacity(0.04)))
+            .background(RoundedRectangle(cornerRadius: 10).fill(Theme.surface))
             .onChange(of: queue.currentID) { _, id in
                 if let id { withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo(id, anchor: .center) } }
             }
@@ -171,9 +175,9 @@ struct SnapshotProgressView: View {
                 }
             }
             Spacer()
-            Text(item.maker).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+            Text(item.maker).font(.system(size: 11)).foregroundStyle(Theme.faint).lineLimit(1)
             Text(item.seconds.map { String(format: "%.1fs", $0) } ?? "")
-                .font(.system(size: 11)).monospacedDigit().foregroundStyle(.secondary)
+                .font(.system(size: 11)).monospacedDigit().foregroundStyle(Theme.faint)
                 .frame(width: 44, alignment: .trailing)
         }
         .padding(.horizontal, 10).padding(.vertical, 6)
@@ -187,9 +191,9 @@ struct SnapshotProgressView: View {
         case .working: ProgressView().controlSize(.mini)
         case .done: Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
         case .generic: Image(systemName: "rectangle.dashed").foregroundStyle(.blue)
-        case .noUI: Image(systemName: "minus.circle").foregroundStyle(.secondary)
+        case .noUI: Image(systemName: "minus.circle").foregroundStyle(Theme.faint)
         case .failed: Image(systemName: "xmark.octagon.fill").foregroundStyle(.red)
-        case .skipped: Image(systemName: "forward.end").foregroundStyle(.secondary)
+        case .skipped: Image(systemName: "forward.end").foregroundStyle(Theme.faint)
         }
     }
 

@@ -10,7 +10,8 @@ struct SettingsView: View {
             UpdateSettings()
                 .tabItem { Label("Updates", systemImage: "arrow.down.circle") }
         }
-        .frame(width: 760, height: 560)
+        .frame(width: 780, height: 580)
+        .preferredColorScheme(.dark)
     }
 }
 
@@ -69,17 +70,10 @@ struct GeneralSettings: View {
                 LabeledContent("Model") {
                     HStack(spacing: 4) {
                         ForEach(PluginInfoFetcher.Model.allCases) { m in
-                            Button {
+                            Chip(title: "\(m.title) (~$\(String(format: "%.2f", m.estimatedCostPerPlugin)) each)", on: model == m) {
                                 model = m
                                 PluginInfoFetcher.shared.model = m
-                            } label: {
-                                Text("\(m.title) (~$\(String(format: "%.2f", m.estimatedCostPerPlugin))/plugin)")
-                                    .font(.system(size: 12))
-                                    .padding(.horizontal, 10).padding(.vertical, 5)
-                                    .background(Capsule().fill(model == m ? Theme.accent.opacity(0.85)
-                                                                          : Color.primary.opacity(0.06)))
-                                    .foregroundStyle(model == m ? Color.black : Color.primary)
-                            }.buttonStyle(.plain)
+                            }
                         }
                     }
                 }

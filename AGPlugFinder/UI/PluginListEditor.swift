@@ -29,16 +29,9 @@ struct PluginListEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 4) {
-                Text("Group by").font(.system(size: 12)).foregroundStyle(.secondary)
+                Text("Group by").font(.system(size: 12)).foregroundStyle(Theme.faint)
                 ForEach(PluginStore.GroupKind.allCases) { k in
-                    Button { kind = k; selectedGroup = nil } label: {
-                        Text(k.title)
-                            .font(.system(size: 12, weight: kind == k ? .semibold : .regular))
-                            .padding(.horizontal, 10).padding(.vertical, 5)
-                            .background(Capsule().fill(kind == k ? Theme.accent.opacity(0.85)
-                                                                 : Color.primary.opacity(0.06)))
-                            .foregroundStyle(kind == k ? Color.black : Color.primary)
-                    }.buttonStyle(.plain)
+                    Chip(title: k.title, on: kind == k) { kind = k; selectedGroup = nil }
                 }
                 Spacer()
                 Button("Show Everything") {
@@ -75,14 +68,14 @@ struct PluginListEditor: View {
                     .padding(6)
                 }
                 .frame(width: 250)
-                .background(RoundedRectangle(cornerRadius: 10).fill(Color.primary.opacity(0.04)))
+                .background(RoundedRectangle(cornerRadius: 10).fill(Theme.surface))
 
                 // Plugins
                 VStack(alignment: .leading, spacing: 6) {
                     TextField("Filter this list", text: $search)
                         .textFieldStyle(.plain)
                         .padding(.horizontal, 10).padding(.vertical, 6)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.06)))
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Theme.raised))
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 1) {
                             ForEach(pluginsInView) { p in
@@ -95,7 +88,7 @@ struct PluginListEditor: View {
                                             Text(p.name).font(.system(size: 12, weight: .medium))
                                             Text(p.isLogic ? "\(p.manufacturer) · \(p.displayCategory)"
                                                  : "\(p.manufacturer) · \(p.displayCategory) · \(p.formatName)")
-                                                .font(.system(size: 10)).foregroundStyle(.secondary)
+                                                .font(.system(size: 10)).foregroundStyle(Theme.faint)
                                         }
                                         Spacer()
                                     }
@@ -118,9 +111,10 @@ struct PluginListEditor: View {
                 .frame(maxWidth: .infinity)
             }
             Text("Hidden plugins don't appear in the picker or the library. Logic's legacy plugins start hidden.")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(.caption).foregroundStyle(Theme.faint)
         }
         .padding(16)
+        .background(Theme.ground)
     }
 
     private func groupRow(title: String, count: String, state: Bool?, selected: Bool,
@@ -128,14 +122,12 @@ struct PluginListEditor: View {
         HStack(spacing: 8) {
             if let onCheck {
                 Button(action: onCheck) {
-                    Image(systemName: state == true ? "checkmark.square.fill"
-                          : state == false ? "square" : "minus.square.fill")
-                        .foregroundStyle(state == false ? Color.secondary : Theme.accent)
+                    CheckMark(on: state == true, partial: state == nil)
                 }.buttonStyle(.plain)
             }
             Text(title).font(.system(size: 12)).lineLimit(1)
             Spacer()
-            Text(count).font(.system(size: 11)).monospacedDigit().foregroundStyle(.secondary)
+            Text(count).font(.system(size: 11)).monospacedDigit().foregroundStyle(Theme.faint)
         }
         .padding(.horizontal, 8).padding(.vertical, 5)
         .background(RoundedRectangle(cornerRadius: 6).fill(selected ? Theme.tileSelected : Color.clear))
@@ -144,8 +136,7 @@ struct PluginListEditor: View {
     }
 
     private func checkbox(_ on: Bool) -> some View {
-        Image(systemName: on ? "checkmark.square.fill" : "square")
-            .foregroundStyle(on ? Theme.accent : .secondary)
+        CheckMark(on: on)
     }
 }
 

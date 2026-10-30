@@ -11,7 +11,7 @@ enum Entry {
             SnapshotRenderer.run(Array(args[i...]))
         }
         // Read-only checks of Logic's interface, without the app's windows.
-        if args.contains("--dump-logic") || args.contains("--probe-instrument-menu") {
+        if args.contains("--dump-logic") || args.contains("--probe-instrument-menu") || args.contains("--test-insert") {
             LogicProbe.run(args)
         }
         Migration.run()
@@ -26,7 +26,8 @@ struct AGPlugFinderApp: App {
         Window("AG PlugFinder", id: "library") {
             LibraryView()
         }
-        .defaultSize(width: 1040, height: 680)
+        .defaultSize(width: 1120, height: 720)
+        .windowStyle(.hiddenTitleBar)
 
         MenuBarExtra {
             MenuBarContent()
