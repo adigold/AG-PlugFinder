@@ -122,23 +122,9 @@ enum Keyboard {
 
     /// Esc, but only while Logic has a pop-up menu or a text field open. In Logic's main window
     /// Esc opens the Tool menu, so a "just in case" Esc does damage.
-    static func escapeIfOpen(pid: pid_t) {
-        let app = AXNode(el: AXUIElementCreateApplication(pid))
-        var open = false
-        if let focused: AXUIElement = app.attr(kAXFocusedUIElementAttribute) {
-            let f = AXNode(el: focused)
-            open = [AXRole.textField, "AXSearchField", "AXComboBox", AXRole.menuItem, AXRole.menu].contains(f.role)
-        }
-        if !open {
-            for top in app.children where top.role != AXRole.menuBar {
-                if top.role == AXRole.menu
-                    || top.first(maxNodes: 400, where: { $0.role == AXRole.menu && !$0.children.isEmpty }) != nil {
-                    open = true; break
-                }
-            }
-        }
-        if open { press(53, pid: pid) }
-    }
+    /// Never sends Esc: in Logic's main window Esc opens the Tool menu, and Logic's closed
+    /// pop-up buttons look like open menus to Accessibility. Menus close by themselves.
+    static func escapeIfOpen(pid: pid_t) {}
 
     static func press(_ key: CGKeyCode, pid: pid_t) {
         let source = CGEventSource(stateID: .hidSystemState)
