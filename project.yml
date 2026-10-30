@@ -18,7 +18,11 @@ targets:
   AGPlugFinder:
     type: application
     platform: macOS
-    sources: [AGPlugFinder]
+    sources:
+      - path: AGPlugFinder
+      - path: Bundled/LogicScreenshots
+        type: folder
+        buildPhase: resources
     entitlements:
       path: AGPlugFinder/AGPlugFinder.entitlements
       properties:
@@ -34,6 +38,7 @@ targets:
         LSApplicationCategoryType: public.app-category.music
         LSMinimumSystemVersion: "15.0"
         NSHumanReadableCopyright: "© 2026 Adi Goldstein"
+        AGPFPluginPackURL: "https://github.com/adigold/AG-PlugFinder/releases/latest/download/plugin-pack.zip"
         AGPFUpdateFeedURL: "https://github.com/adigold/AG-PlugFinder/releases/latest/download/update.json"
         NSAccessibilityUsageDescription: "AG PlugFinder places the plugin you pick into an empty insert slot in Logic Pro."
     settings:

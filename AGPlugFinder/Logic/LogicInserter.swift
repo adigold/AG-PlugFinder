@@ -327,7 +327,7 @@ final class LogicInserter {
         return nil
     }
 
-    private func waitForMenu(app: AXNode, timeout: Double = 1.5) async -> AXNode? {
+    func waitForMenu(app: AXNode, timeout: Double = 1.5) async -> AXNode? {
         let end = Date().addingTimeInterval(timeout)
         while Date() < end {
             // A pop-up menu Logic opens is a child of the app or of a window, never the
@@ -656,7 +656,9 @@ enum LogicProbe {
                 if !LogicCapture.hasScreenAccess { LogicCapture.requestScreenAccess() }
                 let names = Set(args[(i + 1)...].filter { !$0.hasPrefix("--") })
                 let list = PluginStore.shared.plugins.filter {
-                    $0.isLogic && $0.isLegacy != true && (names.isEmpty || names.contains($0.name))
+                    $0.isLogic && $0.isLegacy != true && (names.isEmpty
+                        ? !FileManager.default.fileExists(atPath: PluginStore.shared.snapshotURL(for: $0.id).path)
+                        : names.contains($0.name))
                 }
                 let r = await LogicCapture.run(list) { _, name in inserter.log("CAPTURE start \(name)") }
                 inserter.log("CAPTURE done \(r.done), failed: \(r.failed.joined(separator: ", "))")

@@ -56,6 +56,23 @@ print(json.dumps({"version": version, "url": url, "sha256": sha, "size": int(siz
                   "notes": lines, "minOS": "15.0"}, indent=2))
 PY
 
+# Plugin pack (BL-22): every picture and description on this Mac, so new installs can download
+# them instead of capturing every plugin. Logic's own pictures are already inside the app.
+PACK="$BUILD/pack" && rm -rf "$PACK" && mkdir -p "$PACK/screenshots"
+SHOTS="$HOME/Library/Application Support/AG PlugFinder/Screenshots"
+for f in "$SHOTS"/*.png; do
+  [ -e "$f" ] || continue
+  case "$(basename "$f")" in logic-*) continue;; esac
+  sips -s format jpeg -s formatOptions 80 "$f" --out "$PACK/screenshots/$(basename "${f%.png}").jpg" >/dev/null
+done
+python3 - "$HOME/Library/Application Support/AG PlugFinder/catalog.json" > "$PACK/info.json" <<'PY2'
+import json, sys
+plugins = json.load(open(sys.argv[1]))
+print(json.dumps({p["id"]: p["details"] for p in plugins if p.get("details")}))
+PY2
+rm -f dist/plugin-pack.zip && ditto -c -k "$PACK" dist/plugin-pack.zip
+echo "Plugin pack: $(ls "$PACK/screenshots" | wc -l | tr -d ' ') pictures, $(du -h dist/plugin-pack.zip | cut -f1)"
+
 STAGE="$BUILD/dmg" && mkdir -p "$STAGE" && cp -R "$APP" "$STAGE/" && ln -s /Applications "$STAGE/Applications"
 hdiutil create -volname "$APP_NAME" -srcfolder "$STAGE" -ov -format UDZO dist/AG-PlugFinder.dmg >/dev/null
 codesign --sign "Developer ID Application: Adi Goldstein (4HJV6RPCLU)" --timestamp dist/AG-PlugFinder.dmg
@@ -69,7 +86,7 @@ if [ -n "$PUBLISH" ]; then
     echo "Not published: $REPO is $VIS. Installed apps can only download updates from a public repo."
     exit 1
   fi
-  gh release create "v$VERSION" "$ZIP" dist/update.json dist/AG-PlugFinder.dmg \
+  gh release create "v$VERSION" "$ZIP" dist/update.json dist/AG-PlugFinder.dmg dist/plugin-pack.zip \
     --repo "$REPO" --title "AG PlugFinder $VERSION" --notes-file "$NOTES" --latest
   echo "Published v$VERSION to https://github.com/$REPO/releases"
 else

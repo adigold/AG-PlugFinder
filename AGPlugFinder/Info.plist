@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AGPFPluginPackURL</key>
+	<string>https://github.com/adigold/AG-PlugFinder/releases/latest/download/plugin-pack.zip</string>
 	<key>AGPFUpdateFeedURL</key>
 	<string>https://github.com/adigold/AG-PlugFinder/releases/latest/download/update.json</string>
 	<key>CFBundleDevelopmentRegion</key>

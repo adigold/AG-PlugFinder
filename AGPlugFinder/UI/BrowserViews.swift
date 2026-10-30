@@ -360,6 +360,7 @@ struct PluginGrid: View {
     var compact = false
     var onActivate: () -> Void
     var view = ViewSettings.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let results = model.results
@@ -388,6 +389,10 @@ struct PluginGrid: View {
                         }
                     }
                     .padding(inset)
+                    // While typing, plugins that stop matching fade and shrink away and the rest
+                    // glide into their new places (BL-23).
+                    .animation(reduceMotion ? nil : .spring(duration: 0.34, bounce: 0.1),
+                               value: results.map(\.id))
                 }
                 .scrollIndicators(.automatic)
                 .onChange(of: model.selection) { _, new in
@@ -427,6 +432,9 @@ struct PluginGrid: View {
         ForEach(Array(results.enumerated()), id: \.element.id) { i, plugin in
             cell(plugin, i == model.selection)
                 .id(plugin.id)
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .scale(scale: 0.94)),
+                    removal: .opacity.combined(with: .scale(scale: 0.88))))
                 .onTapGesture(count: 2) { model.selection = i; onActivate() }
                 .onTapGesture { model.selection = i }
                 .contextMenu { PluginContextMenu(plugin: plugin, select: { model.selection = i }, insert: onActivate) }

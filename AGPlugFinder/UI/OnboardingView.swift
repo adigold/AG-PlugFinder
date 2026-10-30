@@ -47,6 +47,8 @@ struct OnboardingView: View {
     @State private var keySaved = Keychain.read() != nil
     @State private var scanStarted = false
     var queue = SnapshotQueue.shared
+    var pack = PluginPack.shared
+    private var busy: Bool { queue.isRunning || pack.state == .working }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -169,12 +171,16 @@ struct OnboardingView: View {
     private var scan: some View {
         VStack(spacing: 16) {
             stepIcon("camera.viewfinder")
-            Text(scanStarted && !queue.isRunning ? "All set" : "Find your plugins")
+            Text(scanStarted && !busy ? "All set" : "Find your plugins")
                 .font(.system(size: 22, weight: .bold))
             if !scanStarted {
-                Text("AG PlugFinder will list your plugins and take a picture of each one. Each plugin opens for a moment in the bottom left corner of the screen. This happens once.")
+                Text("AG PlugFinder will list your plugins, download the pictures it already has, and take a picture of any other plugin. Each one opens for a moment in the bottom left corner of the screen. This happens once.")
                     .font(.system(size: 13)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
+            } else if pack.state == .working {
+                ProgressView().controlSize(.small)
+                Text("Downloading plugin pictures and info…")
+                    .font(.system(size: 12)).foregroundStyle(Theme.muted)
             } else if queue.isRunning {
                 ProgressView(value: Double(queue.done), total: Double(max(1, queue.total)))
                     .tint(Theme.accent)
@@ -218,7 +224,7 @@ struct OnboardingView: View {
         case .info: title = "Continue"
         case .scan:
             if !scanStarted { title = "Scan My Plugins" }
-            else if queue.isRunning { title = "Working…"; disabled = true }
+            else if busy { title = "Working…"; disabled = true }
             else { title = "Start Using AG PlugFinder" }
         }
         return Button(action: primary) {
@@ -241,8 +247,12 @@ struct OnboardingView: View {
             if !scanStarted {
                 scanStarted = true
                 PluginStore.shared.rescan()
-                SnapshotQueue.shared.start()
-            } else if !queue.isRunning {
+                // Pictures from the published plugin pack first, then only what is still missing.
+                Task {
+                    await PluginPack.shared.install()
+                    SnapshotQueue.shared.start()
+                }
+            } else if !busy {
                 OnboardingWindow.shared.finish()
             }
         default:

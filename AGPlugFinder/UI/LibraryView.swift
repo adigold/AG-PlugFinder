@@ -278,6 +278,7 @@ struct LibraryActions: View {
     var store = PluginStore.shared
     var snapshots = SnapshotQueue.shared
     var fetcher = PluginInfoFetcher.shared
+    var pack = PluginPack.shared
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
@@ -295,6 +296,10 @@ struct LibraryActions: View {
                    disabled: fetcher.isRunning || fetcher.missingCount() == 0) {
                 confirmLookup = true
             }
+            action("arrow.down.circle", "Download plugin pack", detail: packDetail,
+                   disabled: pack.state == .working) {
+                Task { await pack.install() }
+            }
             Rectangle().fill(Theme.rule).frame(height: 1).padding(.vertical, 6)
             action("rectangle.stack", "Screenshot progress", detail: nil) { SnapshotProgressWindow.shared.show() }
             action("gearshape", "Settings and plugin list", detail: nil) { openSettings() }
@@ -303,6 +308,16 @@ struct LibraryActions: View {
         .frame(width: 300)
         .background(Theme.surface)
         .preferredColorScheme(.dark)
+    }
+
+    private var packDetail: String {
+        switch pack.state {
+        case .idle: return "Pictures and info other users already have"
+        case .working: return "Downloading…"
+        case .finished(let pictures, let info):
+            return pictures + info == 0 ? "Nothing new for your plugins" : "Added \(pictures) pictures, \(info) descriptions"
+        case .failed(let why): return why
+        }
     }
 
     private func action(_ icon: String, _ title: String, detail: String?, disabled: Bool = false,

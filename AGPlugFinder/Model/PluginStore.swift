@@ -67,10 +67,21 @@ final class PluginStore {
 
     func snapshotURL(for id: String) -> URL { thumbsDir.appendingPathComponent("\(id).png") }
 
+    /// Pictures that ship inside the app (Logic's own plugins, BL-21). A picture the user took
+    /// or downloaded always wins over the bundled one.
+    static func bundledSnapshotURL(for id: String) -> URL? {
+        Bundle.main.url(forResource: id, withExtension: "jpg", subdirectory: "LogicScreenshots")
+    }
+
+    func hasScreenshot(_ id: String) -> Bool {
+        FileManager.default.fileExists(atPath: snapshotURL(for: id).path) || Self.bundledSnapshotURL(for: id) != nil
+    }
+
     func image(for id: String) -> NSImage? {
         let key = "\(id)#\(imageGeneration)" as NSString
         if let img = imageCache.object(forKey: key) { return img }
-        guard let img = NSImage(contentsOf: snapshotURL(for: id)) else { return nil }
+        guard let img = NSImage(contentsOf: snapshotURL(for: id))
+                ?? Self.bundledSnapshotURL(for: id).flatMap(NSImage.init(contentsOf:)) else { return nil }
         imageCache.setObject(img, forKey: key)
         return img
     }

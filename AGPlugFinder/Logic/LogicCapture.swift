@@ -22,16 +22,24 @@ enum LogicCapture {
 
         for (i, plugin) in plugins.enumerated() {
             progress(i, plugin.name)
-            let before = Set(windows(app).map { CFHash($0.el) })
+            // Only the project window stays open: leftover plug-in windows hide Logic's menus.
+            await closePluginWindows(app, pid: pid)
             let outcome = await inserter.insert(plugin, replacing: plugin.slotKind == .instrument ? 0 : nil)
             guard case .inserted = outcome else {
-                inserter.log("CAPTURE \(plugin.name): not inserted (\(outcome))"); failed.append(plugin.name); continue
+                inserter.log("CAPTURE \(plugin.name): not inserted (\(outcome))"); failed.append(plugin.name)
+                Keyboard.press(53, pid: pid)
+                try? await Task.sleep(for: .milliseconds(500))
+                continue
             }
             // Logic opens the plug-in's window after inserting it.
             var pluginWindow: AXNode?
             for _ in 0..<30 {
                 try? await Task.sleep(for: .milliseconds(100))
-                pluginWindow = windows(app).first { !before.contains(CFHash($0.el)) }
+                // Logic keeps closed plug-in windows around hidden; the right one shows the name.
+                let open = pluginWindows(app)
+                pluginWindow = open.first { w in
+                    w.first(maxNodes: 400, where: { $0.stringValue == plugin.name || $0.title == plugin.name }) != nil
+                }
                 if pluginWindow != nil { break }
             }
             try? await Task.sleep(for: .milliseconds(1200))      // let it draw
@@ -45,7 +53,7 @@ enum LogicCapture {
                 failed.append(plugin.name)
                 inserter.log("CAPTURE \(plugin.name): no window to capture (window=\(pluginWindow != nil), access=\(hasScreenAccess))")
             }
-            if let w = pluginWindow { close(w) }
+            await closePluginWindows(app, pid: pid)
             if plugin.slotKind != .instrument { await removeLastInsert(app: app, pid: pid) }
         }
         return (done, failed)
@@ -55,9 +63,21 @@ enum LogicCapture {
         app.children.filter { $0.role == kAXWindowRole as String }
     }
 
-    private static func close(_ window: AXNode) {
-        if let button = window.children.first(where: { $0.subrole == "AXCloseButton" }) {
-            button.perform(kAXPressAction)
+    /// Every Logic window except the project's own ("Untitled - Tracks").
+    private static func pluginWindows(_ app: AXNode) -> [AXNode] {
+        windows(app).filter { !$0.title.contains(" - ") }
+    }
+
+    private static func closePluginWindows(_ app: AXNode, pid: pid_t) async {
+        for _ in 0..<2 {
+            let open = pluginWindows(app)
+            if open.isEmpty { return }
+            for w in open {
+                if let button = w.children.first(where: { $0.subrole == "AXCloseButton" }) {
+                    button.perform(kAXPressAction)
+                }
+            }
+            try? await Task.sleep(for: .milliseconds(400))
         }
     }
 
@@ -75,19 +95,19 @@ enum LogicCapture {
         // The instrument slot sits above the first audio insert; the newest insert is the lowest.
         guard let last = inserts.max(by: { $0.frame.minY < $1.frame.minY }),
               let list = last.children.first(where: { $0.desc == "list" }) else { return }
-        list.perform(kAXPressAction)
-        for _ in 0..<15 {
-            try? await Task.sleep(for: .milliseconds(80))
-            if let menu = app.children.first(where: { $0.role == AXRole.menu })
-                ?? app.children.filter({ $0.role != AXRole.menuBar }).lazy
-                    .compactMap({ $0.first(maxNodes: 300, where: { $0.role == AXRole.menu && !$0.children.isEmpty }) }).first,
-               let none = menu.children.first(where: { $0.title == "No Plug-in" }) {
+        // Two tries: the first press sometimes only brings the project window forward.
+        for attempt in 1...2 {
+            list.perform(kAXPressAction)
+            if let menu = await inserter.waitForMenu(app: app, timeout: 2.5),
+               let none = menu.first(maxNodes: 200, where: { $0.title == "No Plug-in" }) {
                 none.perform(kAXPressAction)
                 inserter.log("CAPTURE removed \(last.desc)")
                 return
             }
+            Keyboard.press(53, pid: pid)
+            inserter.log("CAPTURE remove try \(attempt) found no menu for \(last.desc)")
+            try? await Task.sleep(for: .milliseconds(400))
         }
-        Keyboard.press(53, pid: pid)
         inserter.log("CAPTURE could not remove \(last.desc)")
     }
 
