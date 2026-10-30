@@ -69,7 +69,7 @@ final class PickerModel {
                 slotChoices = slots
                 slotSelection = max(0, slots.count - 1)
                 message = plugin.slotKind == .instrument
-                    ? "This track already has an instrument. Replace it with \(plugin.name)?"
+                    ? "This track's instrument is \(slots.first?.name ?? "set"). Replace it with \(plugin.name)?"
                     : "Every insert slot on this track is full. Pick one to replace."
             case .needsAccessibility:
                 AXAccess.requestTrust()

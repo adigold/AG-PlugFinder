@@ -10,6 +10,10 @@ enum Entry {
         if let i = args.firstIndex(of: "--render") {
             SnapshotRenderer.run(Array(args[i...]))
         }
+        // Read-only checks of Logic's interface, without the app's windows.
+        if args.contains("--dump-logic") || args.contains("--probe-instrument-menu") {
+            LogicProbe.run(args)
+        }
         Migration.run()
         AGPlugFinderApp.main()
     }

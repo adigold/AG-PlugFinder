@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import AudioToolbox
 
 /// A filled insert slot the user can choose to replace when the track has no empty slot.
 struct SlotChoice: Identifiable, Hashable {
@@ -43,7 +44,7 @@ final class LogicInserter {
         return outcome
     }
 
-    private func log(_ line: String) {
+    func log(_ line: String) {
         let url = PluginStore.shared.supportDir.appendingPathComponent("Insert log.txt")
         let stamp = Date().formatted(date: .numeric, time: .standard)
         let text = "\(stamp) \(line)\n"
@@ -58,8 +59,14 @@ final class LogicInserter {
         guard AXAccess.isTrusted else { return .needsAccessibility }
         guard let logic = logicApp else { return .logicNotRunning }
 
-        // First choice: Logic's own Mix → Search and Add Plug-in…, which puts the plugin on the
-        // selected track in the right place (instrument slot or the next free insert).
+        // Instruments: Logic's Search and Add only lists audio effects, so an instrument goes
+        // straight into the selected track's instrument slot through that slot's own menu.
+        if plugin.slotKind == .instrument {
+            return await insertInstrument(plugin, logic: logic, confirmedReplace: slotIndex != nil)
+        }
+
+        // Effects: Logic's own Mix → Search and Add Plug-in… puts the plugin in the next free
+        // insert of the selected track.
         if slotIndex == nil {
             switch await searchAndAdd(plugin, logic: logic) {
             case .done: return .inserted
@@ -322,9 +329,13 @@ final class LogicInserter {
     private func waitForMenu(app: AXNode, timeout: Double = 1.5) async -> AXNode? {
         let end = Date().addingTimeInterval(timeout)
         while Date() < end {
-            if let menu = app.children.first(where: { $0.role == AXRole.menu })
-                ?? app.first(maxNodes: 400, where: { $0.role == AXRole.menu }) {
-                return menu
+            // A pop-up menu Logic opens is a child of the app or of a window, never the
+            // menu bar's own menus (those would be the Apple menu, File, Edit …).
+            for top in app.children where top.role != AXRole.menuBar {
+                if top.role == AXRole.menu, !top.children.isEmpty { return top }
+                if let menu = top.first(maxNodes: 400, where: { $0.role == AXRole.menu && !$0.children.isEmpty }) {
+                    return menu
+                }
             }
             try? await Task.sleep(for: .milliseconds(80))
         }
@@ -350,16 +361,32 @@ final class LogicInserter {
 
     private func chooseByBrowsing(_ plugin: Plugin, menu: AXNode, app: AXNode) async -> Bool {
         if plugin.isLogic {
-            // Logic's own plugins sit under their category (Reverb → ChromaVerb).
-            guard let group = menuItems(menu).first(where: {
-                      $0.title.localizedCaseInsensitiveCompare(plugin.category) == .orderedSame
-                  }),
-                  let list = await submenu(of: group),
-                  let item = bestItem(for: plugin, in: list, maxNodes: 2000)
-            else { return false }
-            return await pick(item, app: app)
+            // Top level first (Drum Machine Designer, recent items), then Logic's groups.
+            if let item = menuItems(menu).first(where: {
+                $0.title.localizedCaseInsensitiveCompare(plugin.name) == .orderedSame
+            }) { return await pick(item, app: app) }
+            let groups = plugin.slotKind == .instrument
+                ? ["Synthesizer", "Sampler", "Studio Instruments", "Vintage Keys", "Drums", "Utility"]
+                : [plugin.category]
+            for title in groups {
+                guard let group = menuItems(menu).first(where: {
+                          $0.title.localizedCaseInsensitiveCompare(title) == .orderedSame
+                      }),
+                      let list = await submenu(of: group) else { continue }
+                if let item = bestItem(for: plugin, in: list, maxNodes: 2000) {
+                    return await pick(item, app: app)
+                }
+            }
+            return false
         }
-        guard let au = menuItems(menu).first(where: { $0.title == "Audio Units" }),
+        let auMenu: String
+        switch plugin.componentType {
+        case kAudioUnitType_MusicDevice: auMenu = "AU Instruments"
+        case kAudioUnitType_MusicEffect: auMenu = "AU MIDI-controlled Effects"
+        case kAudioUnitType_MIDIProcessor: auMenu = "AU MIDI-controlled Effects"
+        default: auMenu = "Audio Units"
+        }
+        guard let au = menuItems(menu).first(where: { $0.title == auMenu }),
               let makers = await submenu(of: au),
               let maker = menuItems(makers).first(where: {
                   $0.title.localizedCaseInsensitiveCompare(plugin.manufacturer) == .orderedSame
@@ -409,6 +436,139 @@ final class LogicInserter {
             ?? items.first { $0.title.lowercased().hasPrefix(name.lowercased()) }
     }
 
+    // MARK: The instrument slot
+
+    private func insertInstrument(_ plugin: Plugin, logic: NSRunningApplication,
+                                  confirmedReplace: Bool) async -> InsertOutcome {
+        let app = AXNode(el: AXUIElementCreateApplication(logic.processIdentifier))
+        AXUIElementSetMessagingTimeout(app.el, 2.0)
+        logic.activate()
+        try? await Task.sleep(for: .milliseconds(150))
+        guard let window: AXUIElement = app.attr(kAXFocusedWindowAttribute) ?? app.attr(kAXMainWindowAttribute)
+        else { return .failed("Logic has no open project window.") }
+        guard let slot = instrumentSlot(in: AXNode(el: window)) else {
+            return .failed("The selected track has no instrument slot. Select a software instrument " +
+                           "track (and show the Inspector with I) to add \(plugin.name).")
+        }
+        log("  instrument slot: \(slot.current ?? "empty")")
+        // A track has one instrument; replacing it is always the user's choice.
+        if let current = slot.current, !confirmedReplace {
+            return .allFull([SlotChoice(id: 0, name: current)])
+        }
+        let action = slot.press.actions.first { $0.localizedCaseInsensitiveContains("Open plug-in menu") &&
+                                                !$0.localizedCaseInsensitiveContains("legacy") }
+        slot.press.perform(action ?? kAXPressAction)
+        guard let menu = await waitForMenu(app: app) else {
+            Keyboard.press(53, pid: logic.processIdentifier)
+            return .failed("Logic's instrument menu did not open.")
+        }
+        if await chooseBySearch(plugin, menu: menu, app: app, pid: logic.processIdentifier) {
+            return .inserted
+        }
+        if await chooseByBrowsing(plugin, menu: menu, app: app) { return .inserted }
+        log("  menu titles: " + menuItems(menu).map(\.title).joined(separator: " | "))
+        Keyboard.press(53, pid: logic.processIdentifier)
+        Keyboard.press(53, pid: logic.processIdentifier)
+        return .failed("I couldn't find \"\(plugin.name)\" in Logic's instrument menu.")
+    }
+
+    /// The selected strip's instrument slot: the slot directly under its MIDI Effect slot.
+    /// Filled, it is a group named after the instrument with bypass / open / list buttons
+    /// (the list button opens Logic's plug-in menu); empty, it is a single button.
+    struct InstrumentSlot {
+        let press: AXNode      // what opens the plug-in menu
+        let current: String?   // the instrument in it now, nil when empty
+    }
+
+    func instrumentSlot(in win: AXNode) -> InstrumentSlot? {
+        let minX = win.frame.minX
+        let midiSlots = win.findAll(skipRoles: [AXRole.menuBar]) { n in
+            n.help.localizedCaseInsensitiveContains("MIDI Effect slot") && n.frame.minX - minX < inspectorMaxX
+        }
+        guard let midi = midiSlots.min(by: { $0.frame.minX < $1.frame.minX }) else { return nil }
+        let mf = midi.frame
+        // The next control below the MIDI slot in the same column.
+        let below = win.findAll(skipRoles: [AXRole.menuBar]) { n in
+            let f = n.frame
+            return abs(f.minX - mf.minX) < 4 && f.minY >= mf.maxY + 4 && f.minY < mf.maxY + 40
+                && f.height > 10 && f.height < 30
+                && (n.role == "AXGroup" || n.role == "AXButton")
+        }.sorted { $0.frame.minY < $1.frame.minY }
+        guard let slot = below.first else { return nil }
+        if slot.help.localizedCaseInsensitiveContains("Audio Effect slot") { return nil } // audio track
+        if slot.role == "AXGroup" {
+            guard let list = slot.children.first(where: { $0.desc == "list" }) else { return nil }
+            return InstrumentSlot(press: list, current: slot.desc.isEmpty ? "instrument" : slot.desc)
+        }
+        return InstrumentSlot(press: slot, current: nil)
+    }
+
+    // MARK: Probe
+
+    /// Every slot-like control in the Inspector, with its help text and actions (read-only).
+    func describeSlots() -> [String] {
+        guard AXAccess.isTrusted, let logic = logicApp else { return ["not trusted or Logic closed"] }
+        let app = AXNode(el: AXUIElementCreateApplication(logic.processIdentifier))
+        AXUIElementSetMessagingTimeout(app.el, 2.0)
+        guard let window: AXUIElement = app.attr(kAXFocusedWindowAttribute) ?? app.attr(kAXMainWindowAttribute)
+        else { return ["no window"] }
+        let win = AXNode(el: window)
+        let minX = win.frame.minX
+        return win.findAll(skipRoles: [AXRole.menuBar]) { n in
+            (n.role == "AXButton" || n.role == "AXMenuButton" || n.role == "AXPopUpButton")
+                && n.frame.minX - minX < inspectorMaxX
+                && n.help.localizedCaseInsensitiveContains("slot")
+        }.map { n in
+            let f = n.frame
+            return "\(n.role) t=\(n.title) d=\(n.desc) @\(Int(f.minX)),\(Int(f.minY)) h=\(n.help) a=\(n.actions.map { $0.components(separatedBy: "\n").first ?? $0 })"
+        }
+    }
+
+    func probeInstrumentMenu() async -> String {
+        let slots = describeSlots()
+        for s in slots { log("  slot: \(s)") }
+        guard let logic = logicApp else { return "Logic closed" }
+        let app = AXNode(el: AXUIElementCreateApplication(logic.processIdentifier))
+        AXUIElementSetMessagingTimeout(app.el, 2.0)
+        guard let window: AXUIElement = app.attr(kAXFocusedWindowAttribute) ?? app.attr(kAXMainWindowAttribute)
+        else { return "no window" }
+        let win = AXNode(el: window)
+        let minX = win.frame.minX
+        _ = minX
+        guard let inst = instrumentSlot(in: win) else { return "no instrument slot found (\(slots.count) slots)" }
+        log("  instrument slot: current=\(inst.current ?? "empty") press=\(inst.press.role) \(inst.press.desc) a=\(inst.press.actions.map { $0.components(separatedBy: "\n").first ?? $0 })")
+        logic.activate()
+        try? await Task.sleep(for: .milliseconds(250))
+        let menuAction = inst.press.actions.first { $0.localizedCaseInsensitiveContains("Open plug-in menu") &&
+                                                    !$0.localizedCaseInsensitiveContains("legacy") }
+        inst.press.perform(menuAction ?? kAXPressAction)
+        guard let menu = await waitForMenu(app: app) else {
+            Keyboard.press(53, pid: logic.processIdentifier)
+            return "menu did not open (action \(menuAction ?? "AXPress"))"
+        }
+        let top = menuItems(menu).map(\.title)
+        log("  instrument menu: " + top.joined(separator: " | "))
+        let fields = menu.findAll(maxNodes: 300) { [AXRole.textField, "AXSearchField"].contains($0.role) }
+        log("  search fields in menu: \(fields.map { "\($0.role) \($0.placeholder)" })")
+        if let au = menuItems(menu).first(where: { $0.title.localizedCaseInsensitiveContains("AU ") }),
+           let sub = await submenu(of: au) {
+            log("  \(au.title): " + menuItems(sub).map(\.title).joined(separator: " | "))
+            if let maker = menuItems(sub).first, let list = await submenu(of: maker) {
+                log("    \(maker.title): " + menuItems(list).map(\.title).joined(separator: " | "))
+                if let first = menuItems(list).first, let formats = await submenu(of: first, pressIfNeeded: false) {
+                    log("      \(first.title): " + menuItems(formats).map(\.title).joined(separator: " | "))
+                }
+            }
+        }
+        if let alchemy = menuItems(menu).first(where: { $0.title == "Alchemy" }),
+           let formats = await submenu(of: alchemy, pressIfNeeded: false) {
+            log("  Alchemy: " + menuItems(formats).map(\.title).joined(separator: " | "))
+        }
+        Keyboard.press(53, pid: logic.processIdentifier)
+        Keyboard.press(53, pid: logic.processIdentifier)
+        return "ok, \(top.count) entries"
+    }
+
     // MARK: Diagnostics
 
     /// Writes Logic's interface tree to a text file so slot detection can be tuned.
@@ -441,4 +601,27 @@ enum AXRole {
     static let menuItem = kAXMenuItemRole as String
     static let menuBar = kAXMenuBarRole as String
     static let textField = kAXTextFieldRole as String
+}
+
+/// `--dump-logic` saves Logic's interface tree; `--probe-instrument-menu` opens the selected
+/// track's instrument slot menu, writes its entries to the insert log and closes it with Esc.
+/// Neither changes anything in the project.
+enum LogicProbe {
+    static func run(_ args: [String]) -> Never {
+        let app = NSApplication.shared
+        app.setActivationPolicy(.accessory)
+        Task { @MainActor in
+            let inserter = LogicInserter.shared
+            if args.contains("--dump-logic") {
+                print("DUMP \(inserter.dumpDiagnostics()?.path ?? "failed")")
+            }
+            if args.contains("--probe-instrument-menu") {
+                print("PROBE \(await inserter.probeInstrumentMenu())")
+            }
+            fflush(stdout)
+            exit(0)
+        }
+        app.run()
+        exit(0)
+    }
 }

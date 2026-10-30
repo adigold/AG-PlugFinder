@@ -99,7 +99,7 @@ struct LibraryView: View {
     }
 
     @ToolbarContentBuilder private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .principal) {
+        ToolbarItem(placement: .navigation) {
             HStack(spacing: 8) {
                 BrandMark(size: 15)
                 Text("AG PlugFinder").font(.system(size: 13, weight: .semibold))

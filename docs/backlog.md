@@ -17,6 +17,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-19** `P2 · Medium` **Right-click in the Plugin List:** per plugin, per group and for all plugins: take or retake screenshots, look up info, clear a screenshot or info, clear the screenshot cache, show only this group. Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-12** `P1 · High` **Fix Insert in Logic and redesign the info panel:** the Insert in Logic button does nothing for Adi; keep it always visible at the top of the panel and give the panel a nicer design. Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-01** `P1 · High` **AU Plugin Picker app for Logic Pro:** native SwiftUI background app; global hotkey and menu-bar item open a popup listing every installed Audio Unit with a cached screenshot of its UI, name, manufacturer, category and scanned info (incl. best feature); search as you type, sort by name/category/manufacturer/recent/favorites, arrows and Esc; Enter places the plugin in the first empty insert slot in Logic Pro. Asked by Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-18** `P1 · Medium` **Never re-capture screenshots we already have:** the camera button captures only plugins with no picture; retaking one is a right-click on that plugin. Adi, 2026-10-30. · done 2026-10-30

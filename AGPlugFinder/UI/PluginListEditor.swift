@@ -52,6 +52,7 @@ struct PluginListEditor: View {
                     VStack(alignment: .leading, spacing: 2) {
                         groupRow(title: "All plugins", count: "\(store.plugins.filter(store.isVisible).count)/\(store.plugins.count)",
                                  state: nil, selected: selectedGroup == nil) { selectedGroup = nil }
+                            .contextMenu { BulkMenu(ids: store.plugins.map(\.id), name: "all plugins", isAll: true) }
                         Divider().padding(.vertical, 4)
                         ForEach(groups, id: \.value) { g in
                             groupRow(title: g.value, count: "\(g.shown)/\(g.total)",
@@ -59,6 +60,15 @@ struct PluginListEditor: View {
                                      selected: selectedGroup == g.value,
                                      onCheck: { store.setGroup(kind, g.value, visible: g.shown < g.total) }) {
                                 selectedGroup = g.value
+                            }
+                            .contextMenu {
+                                Button("Show Only \(g.value)") { store.showOnly(kind, g.value) }
+                                Button(g.shown == 0 ? "Show \(g.value)" : "Hide \(g.value)") {
+                                    store.setGroup(kind, g.value, visible: g.shown == 0)
+                                }
+                                Divider()
+                                BulkMenu(ids: store.plugins.filter { PluginStore.groupValue($0, kind) == g.value }.map(\.id),
+                                         name: g.value)
                             }
                         }
                     }
@@ -83,7 +93,8 @@ struct PluginListEditor: View {
                                         PluginThumbnail(plugin: p).frame(width: 46, height: 28)
                                         VStack(alignment: .leading, spacing: 1) {
                                             Text(p.name).font(.system(size: 12, weight: .medium))
-                                            Text("\(p.manufacturer) · \(p.displayCategory) · \(p.formatName)")
+                                            Text(p.isLogic ? "\(p.manufacturer) · \(p.displayCategory)"
+                                                 : "\(p.manufacturer) · \(p.displayCategory) · \(p.formatName)")
                                                 .font(.system(size: 10)).foregroundStyle(.secondary)
                                         }
                                         Spacer()
@@ -93,6 +104,13 @@ struct PluginListEditor: View {
                                     .opacity(visible ? 1 : 0.5)
                                 }
                                 .buttonStyle(.plain)
+                                .contextMenu {
+                                    Button(visible ? "Hide \(p.name)" : "Show \(p.name)") {
+                                        store.setPlugin(p.id, visible: !visible)
+                                    }
+                                    Divider()
+                                    BulkMenu(ids: [p.id], name: p.name)
+                                }
                             }
                         }
                     }
@@ -128,5 +146,53 @@ struct PluginListEditor: View {
     private func checkbox(_ on: Bool) -> some View {
         Image(systemName: on ? "checkmark.square.fill" : "square")
             .foregroundStyle(on ? Theme.accent : .secondary)
+    }
+}
+
+/// Screenshot and info actions for one plugin, a group, or everything.
+struct BulkMenu: View {
+    let ids: [String]
+    let name: String
+    var isAll = false
+    var store = PluginStore.shared
+    var snapshots = SnapshotQueue.shared
+    var fetcher = PluginInfoFetcher.shared
+
+    private var capturable: [String] {
+        ids.filter { id in store.plugin(id).map { !$0.isLogic } ?? false }
+    }
+    private var missing: [String] {
+        capturable.filter { !FileManager.default.fileExists(atPath: store.snapshotURL(for: $0).path) }
+    }
+    private var withoutInfo: [String] { ids.filter { store.plugin($0)?.details == nil } }
+
+    var body: some View {
+        if isAll {
+            Button("Rescan Installed Plugins") { store.rescan() }
+            Divider()
+        }
+        Button(missing.isEmpty ? "No Missing Screenshots" : "Take Missing Screenshots (\(missing.count))") {
+            snapshots.start(only: Set(missing))
+        }
+        .disabled(missing.isEmpty || snapshots.isRunning)
+        Button(capturable.count == 1 ? "Retake Screenshot" : "Retake Screenshots (\(capturable.count))") {
+            snapshots.start(only: Set(capturable))
+        }
+        .disabled(capturable.isEmpty || snapshots.isRunning)
+        Button(capturable.count == 1 ? "Clear Screenshot" : "Clear Screenshots (\(capturable.count))") {
+            store.clearScreenshots(capturable)
+        }
+        .disabled(capturable.isEmpty || snapshots.isRunning)
+        Divider()
+        Button(withoutInfo.isEmpty ? "Look Up Info Again (\(ids.count))" : "Look Up Missing Info (\(withoutInfo.count))") {
+            fetcher.start(ids: withoutInfo.isEmpty ? ids : withoutInfo)
+        }
+        .disabled(fetcher.isRunning || !fetcher.hasKey)
+        Button("Clear Info") { store.clearInfo(ids) }
+            .disabled(ids.allSatisfy { store.plugin($0)?.details == nil })
+        if isAll {
+            Divider()
+            Button("Show Screenshot Folder") { NSWorkspace.shared.open(store.thumbsDir) }
+        }
     }
 }

@@ -75,6 +75,27 @@ final class PluginStore {
         return img
     }
 
+    /// Deletes a plugin's screenshot so it can be taken again (Logic's own plugins keep their card).
+    func clearScreenshots(_ ids: [String]) {
+        for id in ids {
+            try? FileManager.default.removeItem(at: snapshotURL(for: id))
+            update(id) { p in
+                if !p.isLogic { p.snapshotState = .pending; p.snapshotError = nil }
+            }
+        }
+        snapshotChanged()
+    }
+
+    func clearInfo(_ ids: [String]) {
+        for id in ids { update(id) { $0.details = nil } }
+    }
+
+    /// Shows only the plugins of one group: every other value of that grouping is hidden.
+    func showOnly(_ kind: GroupKind, _ value: String) {
+        let values = Set(plugins.map { Self.groupValue($0, kind) })
+        for v in values { setGroup(kind, v, visible: v == value) }
+    }
+
     func snapshotChanged() {
         imageCache.removeAllObjects()
         imageGeneration += 1
