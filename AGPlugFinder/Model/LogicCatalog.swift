@@ -40,13 +40,14 @@ enum LogicCatalog {
         all += fx("Pitch", ["Pitch Correction", "Pitch Shifter", "Vocal Transformer"])
         all += fx("Reverb", ["ChromaVerb", "EnVerb", "Quantec Room Simulator", "SilverVerb",
                         "Space Designer"])
-        all += fx("Specialized", ["Denoiser", "Exciter", "Grooveshifter", "SubBass"])
+        all += fx("Specialized", ["Exciter", "SubBass"])
         all += fx("Utility", ["Gain", "Multichannel Gain", "Down Mixer", "Test Oscillator"])
-        all += fx("Legacy", ["AVerb", "Bass Amp", "DeEsser", "Distortion II", "DJ EQ", "Ducker", "Fat EQ",
+        // Logic 12.4's Legacy menu (Distortion II and Ducker are no longer in it).
+        all += fx("Legacy", ["AVerb", "Bass Amp", "DeEsser", "Denoiser", "DJ EQ", "Fat EQ", "Grooveshifter",
                         "GoldVerb", "Guitar Amp Pro", "High Cut", "High Pass Filter",
                         "High Shelving EQ", "Low Cut", "Low Pass Filter", "Low Shelving EQ",
                         "Parametric EQ", "PlatinumVerb", "Silver Compressor", "Silver EQ",
-                        "Silver Gate"], legacy: true)
+                        "Silver Gate", "Speech Enhancer"], legacy: true)
         all += inst("Synth", ["Alchemy", "EFM1", "ES E", "ES M", "ES P", "ES1", "ES2", "EVOC 20 PolySynth",
                          "Retro Synth", "Sculpture"])
         all += inst("Sampler", ["Quick Sampler", "Sample Alchemy", "Sampler"])

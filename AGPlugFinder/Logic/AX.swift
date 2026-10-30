@@ -104,6 +104,10 @@ enum AXAccess {
 /// Types text into a process as real key presses.
 enum Keyboard {
     static func type(_ text: String, pid: pid_t) {
+        // Only into a text field: typed letters in Logic's main window are key commands.
+        let app = AXNode(el: AXUIElementCreateApplication(pid))
+        guard let focused: AXUIElement = app.attr(kAXFocusedUIElementAttribute),
+              [AXRole.textField, "AXSearchField", "AXComboBox"].contains(AXNode(el: focused).role) else { return }
         let source = CGEventSource(stateID: .hidSystemState)
         for ch in text.utf16 {
             var c = ch
@@ -114,6 +118,26 @@ enum Keyboard {
             }
             usleep(8_000)
         }
+    }
+
+    /// Esc, but only while Logic has a pop-up menu or a text field open. In Logic's main window
+    /// Esc opens the Tool menu, so a "just in case" Esc does damage.
+    static func escapeIfOpen(pid: pid_t) {
+        let app = AXNode(el: AXUIElementCreateApplication(pid))
+        var open = false
+        if let focused: AXUIElement = app.attr(kAXFocusedUIElementAttribute) {
+            let f = AXNode(el: focused)
+            open = [AXRole.textField, "AXSearchField", "AXComboBox", AXRole.menuItem, AXRole.menu].contains(f.role)
+        }
+        if !open {
+            for top in app.children where top.role != AXRole.menuBar {
+                if top.role == AXRole.menu
+                    || top.first(maxNodes: 400, where: { $0.role == AXRole.menu && !$0.children.isEmpty }) != nil {
+                    open = true; break
+                }
+            }
+        }
+        if open { press(53, pid: pid) }
     }
 
     static func press(_ key: CGKeyCode, pid: pid_t) {

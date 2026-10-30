@@ -132,7 +132,7 @@ final class LogicInserter {
             return .inserted
         }
         log("  menu titles: " + menuItems(menu).map(\.title).joined(separator: " | "))
-        Keyboard.press(53, pid: logic.processIdentifier) // Esc closes the menu
+        Keyboard.escapeIfOpen(pid: logic.processIdentifier) // Esc closes the menu
         return .failed("I couldn't find \"\(plugin.name)\" in Logic's plug-in menu. " +
                        "Make sure Logic has scanned it (Plug-in Manager).")
     }
@@ -171,7 +171,7 @@ final class LogicInserter {
         }
         guard let field else {
             log("  no search field appeared")
-            Keyboard.press(53, pid: pid)
+            Keyboard.escapeIfOpen(pid: pid)
             return .stop(.failed("Logic's plug-in search did not open. Click a track in Logic and try again."))
         }
         log("  search field: \(field.role) \"\(field.placeholder)\"")
@@ -193,7 +193,7 @@ final class LogicInserter {
         log("  results: \(candidates.count) elements, \(exact.count) exact for \"\(plugin.name)\"")
         if exact.isEmpty {
             logTree(popup)
-            Keyboard.press(53, pid: pid)
+            Keyboard.escapeIfOpen(pid: pid)
             return .stop(.failed("Logic's search did not list \"\(plugin.name)\". " +
                                  "If it is an instrument, select a software instrument track."))
         }
@@ -500,22 +500,33 @@ final class LogicInserter {
         if let current = slot.current, !confirmedReplace {
             return .allFull([SlotChoice(id: 0, name: current)])
         }
-        let action = slot.press.actions.first { $0.localizedCaseInsensitiveContains("Open plug-in menu") &&
+        let pid = logic.processIdentifier
+        let normal = slot.press.actions.first { $0.localizedCaseInsensitiveContains("Open plug-in menu") &&
                                                 !$0.localizedCaseInsensitiveContains("legacy") }
-        slot.press.perform(action ?? kAXPressAction)
-        guard let menu = await waitForMenu(app: app) else {
-            Keyboard.press(53, pid: logic.processIdentifier)
-            return .failed("Logic's instrument menu did not open.")
+        let withLegacy = slot.press.actions.first { $0.localizedCaseInsensitiveContains("legacy plug-ins") }
+        if plugin.isLegacy != true {
+            slot.press.perform(normal ?? kAXPressAction)
+            guard let menu = await waitForMenu(app: app) else {
+                Keyboard.escapeIfOpen(pid: pid)
+                return .failed("Logic's instrument menu did not open.")
+            }
+            if await chooseBySearch(plugin, menu: menu, app: app, pid: pid) { return .inserted }
+            if await chooseByBrowsing(plugin, menu: menu, app: app) { return .inserted }
+            log("  menu titles: " + menuItems(menu).map(\.title).joined(separator: " | "))
+            Keyboard.escapeIfOpen(pid: pid)
+            Keyboard.escapeIfOpen(pid: pid)
+            try? await Task.sleep(for: .milliseconds(300))
         }
-        if plugin.isLegacy == true {
-            if await chooseLegacy(plugin, menu: menu, app: app) { return .inserted }
-        } else if await chooseBySearch(plugin, menu: menu, app: app, pid: logic.processIdentifier) {
-            return .inserted
+        // Legacy instruments (and Logic instruments that moved to Legacy): the slot's legacy menu.
+        if plugin.isLogic, let withLegacy {
+            slot.press.perform(withLegacy)
+            if let menu = await waitForMenu(app: app) {
+                if await chooseLegacy(plugin, menu: menu, app: app) { return .inserted }
+                log("  legacy menu titles: " + menuItems(menu).map(\.title).joined(separator: " | "))
+            }
+            Keyboard.escapeIfOpen(pid: pid)
+            Keyboard.escapeIfOpen(pid: pid)
         }
-        if await chooseByBrowsing(plugin, menu: menu, app: app) { return .inserted }
-        log("  menu titles: " + menuItems(menu).map(\.title).joined(separator: " | "))
-        Keyboard.press(53, pid: logic.processIdentifier)
-        Keyboard.press(53, pid: logic.processIdentifier)
         return .failed("I couldn't find \"\(plugin.name)\" in Logic's instrument menu.")
     }
 
@@ -607,7 +618,7 @@ final class LogicInserter {
                                                     !$0.localizedCaseInsensitiveContains("legacy") }
         inst.press.perform(menuAction ?? kAXPressAction)
         guard let menu = await waitForMenu(app: app) else {
-            Keyboard.press(53, pid: logic.processIdentifier)
+            Keyboard.escapeIfOpen(pid: logic.processIdentifier)
             return "menu did not open (action \(menuAction ?? "AXPress"))"
         }
         let top = menuItems(menu).map(\.title)
@@ -628,8 +639,8 @@ final class LogicInserter {
            let formats = await submenu(of: alchemy, pressIfNeeded: false) {
             log("  Alchemy: " + menuItems(formats).map(\.title).joined(separator: " | "))
         }
-        Keyboard.press(53, pid: logic.processIdentifier)
-        Keyboard.press(53, pid: logic.processIdentifier)
+        Keyboard.escapeIfOpen(pid: logic.processIdentifier)
+        Keyboard.escapeIfOpen(pid: logic.processIdentifier)
         return "ok, \(top.count) entries"
     }
 

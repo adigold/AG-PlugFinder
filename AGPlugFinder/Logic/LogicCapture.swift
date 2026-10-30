@@ -27,13 +27,13 @@ enum LogicCapture {
             var outcome = await inserter.insert(plugin, replacing: plugin.slotKind == .instrument ? 0 : nil)
             if case .inserted = outcome {} else {
                 // One retry: Logic sometimes needs a moment after the previous plug-in.
-                Keyboard.press(53, pid: pid)
+                Keyboard.escapeIfOpen(pid: pid)
                 try? await Task.sleep(for: .milliseconds(1200))
                 outcome = await inserter.insert(plugin, replacing: plugin.slotKind == .instrument ? 0 : nil)
             }
             guard case .inserted = outcome else {
                 inserter.log("CAPTURE \(plugin.name): not inserted (\(outcome))"); failed.append(plugin.name)
-                Keyboard.press(53, pid: pid)
+                Keyboard.escapeIfOpen(pid: pid)
                 try? await Task.sleep(for: .milliseconds(500))
                 continue
             }
@@ -85,7 +85,10 @@ enum LogicCapture {
             let open = pluginWindows(app)
             if open.isEmpty { return }
             for w in open {
-                if let button = w.children.first(where: { $0.subrole == "AXCloseButton" }) {
+                // The window's own close-button attribute, else any close button inside it.
+                if let el: AXUIElement = w.attr(kAXCloseButtonAttribute) {
+                    AXNode(el: el).perform(kAXPressAction)
+                } else if let button = w.first(maxNodes: 60, where: { $0.subrole == "AXCloseButton" }) {
                     button.perform(kAXPressAction)
                 }
             }
@@ -116,7 +119,7 @@ enum LogicCapture {
                 inserter.log("CAPTURE removed \(last.desc)")
                 return
             }
-            Keyboard.press(53, pid: pid)
+            Keyboard.escapeIfOpen(pid: pid)
             inserter.log("CAPTURE remove try \(attempt) found no menu for \(last.desc)")
             try? await Task.sleep(for: .milliseconds(400))
         }
