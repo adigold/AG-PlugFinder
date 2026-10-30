@@ -11,7 +11,7 @@ enum Entry {
             SnapshotRenderer.run(Array(args[i...]))
         }
         // Read-only checks of Logic's interface, without the app's windows.
-        if args.contains("--dump-logic") || args.contains("--probe-instrument-menu") || args.contains("--test-insert") || args.contains("--capture-logic") {
+        if args.contains("--dump-logic") || args.contains("--probe-instrument-menu") || args.contains("--test-insert") || args.contains("--capture-logic") || args.contains("--close-logic-windows") {
             LogicProbe.run(args)
         }
         Migration.run()

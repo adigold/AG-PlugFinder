@@ -651,6 +651,12 @@ enum LogicProbe {
             if args.contains("--probe-instrument-menu") {
                 print("PROBE \(await inserter.probeInstrumentMenu())")
             }
+            // --close-logic-windows: closes every open plug-in window in Logic.
+            if args.contains("--close-logic-windows"), let logic = inserter.logicApp {
+                let app = AXNode(el: AXUIElementCreateApplication(logic.processIdentifier))
+                await LogicCapture.closePluginWindows(app, pid: logic.processIdentifier)
+                inserter.log("CLOSE windows done")
+            }
             // --capture-logic <name>…: screenshots of Logic's own plugins (all when no names).
             if let i = args.firstIndex(of: "--capture-logic") {
                 if !LogicCapture.hasScreenAccess { LogicCapture.requestScreenAccess() }

@@ -80,7 +80,7 @@ enum LogicCapture {
         windows(app).filter { !$0.title.contains(" - ") }
     }
 
-    private static func closePluginWindows(_ app: AXNode, pid: pid_t) async {
+    static func closePluginWindows(_ app: AXNode, pid: pid_t) async {
         for _ in 0..<2 {
             let open = pluginWindows(app)
             if open.isEmpty { return }
