@@ -21,7 +21,7 @@ final class HotKey {
             handlerInstalled = true
         }
         if let ref { UnregisterEventHotKey(ref) }
-        let id = EventHotKeyID(signature: OSType(0x4155_5048), id: 1) // "AUPH"
+        let id = EventHotKeyID(signature: OSType(0x4147_5046), id: 1) // "AGPF"
         RegisterEventHotKey(UInt32(kVK_ANSI_P), UInt32(controlKey | optionKey), id,
                             GetApplicationEventTarget(), 0, &ref)
     }

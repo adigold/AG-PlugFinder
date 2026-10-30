@@ -3,7 +3,7 @@ import Foundation
 import Observation
 
 /// Holds the plugin catalog, favorites, recents and the screenshot cache. Everything lives in
-/// ~/Library/Application Support/AU Plugin Helper so the popup opens instantly.
+/// ~/Library/Application Support/AG PlugFinder so the popup opens instantly.
 @MainActor
 @Observable
 final class PluginStore {
@@ -27,7 +27,7 @@ final class PluginStore {
 
     private init() {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        supportDir = base.appendingPathComponent("AU Plugin Helper", isDirectory: true)
+        supportDir = base.appendingPathComponent("AG PlugFinder", isDirectory: true)
         thumbsDir = supportDir.appendingPathComponent("Screenshots", isDirectory: true)
         catalogURL = supportDir.appendingPathComponent("catalog.json")
         try? FileManager.default.createDirectory(at: thumbsDir, withIntermediateDirectories: true)
@@ -206,7 +206,7 @@ final class PluginStore {
             let data = try JSONEncoder().encode(plugins)
             try data.write(to: catalogURL, options: .atomic)
         } catch {
-            NSLog("AU Plugin Helper: could not save catalog: \(error)")
+            NSLog("AG PlugFinder: could not save catalog: \(error)")
         }
     }
 

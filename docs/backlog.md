@@ -14,6 +14,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-07** `P1 · Medium` **Rename the app to an AG name:** Adi wants a name tied to him (AG); he will then give the GitHub repo for updates. Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-06** `P2 · Low` **Report app and data size:** tell Adi how big the app is and how much data it stores. Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-04** `P1 · Medium` **Browser view options:** toggle the info under each tile, thumbnail size (small/medium/large), remove the category chips and title, grid or list, sort name/maker/recent, favorites only. Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-03** `P1 · Medium` **Plugin list editor in Settings:** hide or show plugins by group (manufacturer, category, format, type) so the browser shows only what Adi wants, like PlugSearch. Adi, 2026-10-30. · done 2026-10-30

@@ -3,7 +3,7 @@ import Security
 
 /// Stores the Anthropic API key in the login Keychain, never in a file.
 enum Keychain {
-    private static let service = "com.adigoldstein.AUPluginHelper.anthropic"
+    private static let service = "com.adigoldstein.AGPlugFinder.anthropic"
     private static let account = "api-key"
 
     static func read() -> String? {

@@ -2,4 +2,4 @@ build/
 dist/
 .DS_Store
 .agent-grid/
-AUPluginHelper.xcodeproj/xcuserdata/
+AGPlugFinder.xcodeproj/xcuserdata/

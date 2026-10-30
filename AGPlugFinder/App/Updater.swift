@@ -4,7 +4,7 @@ import Observation
 
 /// One-click updates, built like AGenda's (BL-05).
 ///
-/// 30 s after launch and every 6 h the app reads the update feed (`AUPHUpdateFeedURL` in
+/// 30 s after launch and every 6 h the app reads the update feed (`AGPFUpdateFeedURL` in
 /// Info.plist), a small JSON file the release script publishes. A newer version shows
 /// "Update available" with what's new. "Install and Restart" downloads the zip, and the copy must
 /// pass every check before it can replace the app: the published sha256, the bundle id and
@@ -16,7 +16,7 @@ final class Updater {
     static let shared = Updater()
 
     static let teamID = "4HJV6RPCLU"
-    static let bundleID = "com.adigoldstein.AUPluginHelper"
+    static let bundleID = "com.adigoldstein.AGPlugFinder"
 
     struct Release: Codable, Equatable {
         var version: String
@@ -47,9 +47,9 @@ final class Updater {
 
     var feedURL: URL? {
         #if DEBUG
-        if let test = ProcessInfo.processInfo.environment["AUPH_UPDATE_FEED"] { return URL(string: test) }
+        if let test = ProcessInfo.processInfo.environment["AGPF_UPDATE_FEED"] { return URL(string: test) }
         #endif
-        return (Bundle.main.infoDictionary?["AUPHUpdateFeedURL"] as? String)
+        return (Bundle.main.infoDictionary?["AGPFUpdateFeedURL"] as? String)
             .flatMap { $0.isEmpty ? nil : URL(string: $0) }
     }
 
@@ -57,7 +57,7 @@ final class Updater {
     /// not notarized). Never active in a release build.
     private var testMode: Bool {
         #if DEBUG
-        return ProcessInfo.processInfo.environment["AUPH_UPDATE_TEST"] == "1"
+        return ProcessInfo.processInfo.environment["AGPF_UPDATE_TEST"] == "1"
         #else
         return false
         #endif
@@ -131,7 +131,7 @@ final class Updater {
         let appURL = Bundle.main.bundleURL
         let parent = appURL.deletingLastPathComponent()
         guard FileManager.default.isWritableFile(atPath: parent.path) else {
-            state = .failed("Move AU Plugin Helper to your Applications folder to update it.")
+            state = .failed("Move AG PlugFinder to your Applications folder to update it.")
             return
         }
         state = .downloading
@@ -156,7 +156,7 @@ final class Updater {
             throw UpdateError.message("The download failed.")
         }
         let work = FileManager.default.temporaryDirectory
-            .appendingPathComponent("AUPH-update-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("AGPF-update-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
         let zip = work.appendingPathComponent("update.zip")
         try FileManager.default.moveItem(at: tmp, to: zip)

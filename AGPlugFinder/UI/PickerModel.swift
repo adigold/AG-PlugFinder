@@ -72,7 +72,7 @@ final class PickerModel {
             case .needsAccessibility:
                 AXAccess.requestTrust()
                 showAccessibilityButton = true
-                message = "AU Plugin Helper needs Accessibility access to place plugins in Logic. " +
+                message = "AG PlugFinder needs Accessibility access to place plugins in Logic. " +
                     "Turn it on in System Settings → Privacy & Security → Accessibility, then try again."
             case .logicNotRunning:
                 message = "Logic Pro isn't open."

@@ -2,12 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>AUPHUpdateFeedURL</key>
+	<key>AGPFUpdateFeedURL</key>
 	<string></string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>AU Plugin Helper</string>
+	<string>AG PlugFinder</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>AU Plugin Helper</string>
+	<string>AG PlugFinder</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -27,7 +27,7 @@
 	<key>LSMinimumSystemVersion</key>
 	<string>15.0</string>
 	<key>NSAccessibilityUsageDescription</key>
-	<string>AU Plugin Helper places the plugin you pick into an empty insert slot in Logic Pro.</string>
+	<string>AG PlugFinder places the plugin you pick into an empty insert slot in Logic Pro.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 Adi Goldstein</string>
 </dict>

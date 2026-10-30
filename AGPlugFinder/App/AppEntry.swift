@@ -10,15 +10,16 @@ enum Entry {
         if let i = args.firstIndex(of: "--render") {
             SnapshotRenderer.run(Array(args[i...]))
         }
-        AUPluginHelperApp.main()
+        Migration.run()
+        AGPlugFinderApp.main()
     }
 }
 
-struct AUPluginHelperApp: App {
+struct AGPlugFinderApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
     var body: some Scene {
-        Window("AU Plugin Helper", id: "library") {
+        Window("AG PlugFinder", id: "library") {
             LibraryView()
                 .frame(minWidth: 820, minHeight: 520)
         }
@@ -59,7 +60,7 @@ struct MenuBarContent: View {
             NSApp.activate()
             openSettings()
         }
-        Button("Quit AU Plugin Helper") { NSApp.terminate(nil) }
+        Button("Quit AG PlugFinder") { NSApp.terminate(nil) }
     }
 }
 
@@ -92,7 +93,7 @@ enum LaunchAtLogin {
         do {
             if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
         } catch {
-            NSLog("AU Plugin Helper: launch at login change failed: \(error)")
+            NSLog("AG PlugFinder: launch at login change failed: \(error)")
         }
     }
 
