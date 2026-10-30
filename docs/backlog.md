@@ -7,16 +7,17 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
-- [ ] **BL-02** `P1 · High` **Scan Logic's own plugins:** list Logic Pro's built-in plugins (ChromaVerb, Channel EQ, Alchemy...) alongside the Audio Units, so the picker shows everything Logic offers. Adi, 2026-10-30.
-- [ ] **BL-03** `P1 · Medium` **Plugin list editor in Settings:** hide or show plugins by group (manufacturer, category, format, type) so the browser shows only what Adi wants, like PlugSearch. Adi, 2026-10-30.
-- [ ] **BL-04** `P1 · Medium` **Browser view options:** toggle the info under each tile, thumbnail size (small/medium/large), remove the category chips and title, grid or list, sort name/maker/recent, favorites only. Adi, 2026-10-30.
-- [ ] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
-- [ ] **BL-06** `P2 · Low` **Report app and data size:** tell Adi how big the app is and how much data it stores. Adi, 2026-10-30.
-- [ ] **BL-01** `P1 · High` **AU Plugin Picker app for Logic Pro:** native SwiftUI background app; global hotkey and menu-bar item open a popup listing every installed Audio Unit with a cached screenshot of its UI, name, manufacturer, category and scanned info (incl. best feature); search as you type, sort by name/category/manufacturer/recent/favorites, arrows and Esc; Enter places the plugin in the first empty insert slot in Logic Pro. Asked by Adi, 2026-10-30.
-
 ## Now
 
+- [~] **BL-01** `P1 · High` **AU Plugin Picker app for Logic Pro:** native SwiftUI background app; global hotkey and menu-bar item open a popup listing every installed Audio Unit with a cached screenshot of its UI, name, manufacturer, category and scanned info (incl. best feature); search as you type, sort by name/category/manufacturer/recent/favorites, arrows and Esc; Enter places the plugin in the first empty insert slot in Logic Pro. Asked by Adi, 2026-10-30.
+- [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
+
 ## Done
+
+- [x] **BL-06** `P2 · Low` **Report app and data size:** tell Adi how big the app is and how much data it stores. Adi, 2026-10-30. · done 2026-10-30
+- [x] **BL-04** `P1 · Medium` **Browser view options:** toggle the info under each tile, thumbnail size (small/medium/large), remove the category chips and title, grid or list, sort name/maker/recent, favorites only. Adi, 2026-10-30. · done 2026-10-30
+- [x] **BL-03** `P1 · Medium` **Plugin list editor in Settings:** hide or show plugins by group (manufacturer, category, format, type) so the browser shows only what Adi wants, like PlugSearch. Adi, 2026-10-30. · done 2026-10-30
+- [x] **BL-02** `P1 · High` **Scan Logic's own plugins:** list Logic Pro's built-in plugins (ChromaVerb, Channel EQ, Alchemy...) alongside the Audio Units, so the picker shows everything Logic offers. Adi, 2026-10-30. · done 2026-10-30
 
 ## Notes
 - 2026-10-30 BL-01: app built and installed; scan, cached screenshots (29/30), popup, search and sorts verified. Still to verify live: insert into Logic (Accessibility), info lookup (API key), notarized release (`scripts/release.sh`).
