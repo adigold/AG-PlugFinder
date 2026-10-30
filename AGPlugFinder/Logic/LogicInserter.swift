@@ -68,7 +68,8 @@ final class LogicInserter {
         // Audio effects: Logic's own Mix → Search and Add Plug-in… puts the plugin in the next
         // free insert of the selected track. It only lists audio effects, so MIDI effects go
         // through the MIDI Effect slot's own menu below.
-        if slotIndex == nil, plugin.slotKind == .audioFX {
+        // Legacy plug-ins are not in Logic's search, only in the slot menu's Legacy submenu.
+        if slotIndex == nil, plugin.slotKind == .audioFX, plugin.isLegacy != true {
             switch await searchAndAdd(plugin, logic: logic) {
             case .done: return .inserted
             case .stop(let outcome): return outcome
@@ -118,11 +119,13 @@ final class LogicInserter {
         }
 
         log("  opening slot: \(target.role) \"\(target.allText.prefix(80))\" actions=\(target.actions)")
-        guard let menu = await openMenu(on: target, app: app) else {
+        guard let menu = await openMenu(on: target, app: app, legacy: plugin.isLegacy == true) else {
             return .failed("Logic's plug-in menu did not open.")
         }
         log("  menu opened, items=\(menu.children.count)")
-        if await chooseBySearch(plugin, menu: menu, app: app, pid: logic.processIdentifier) {
+        if plugin.isLegacy == true {
+            if await chooseLegacy(plugin, menu: menu, app: app) { return .inserted }
+        } else if await chooseBySearch(plugin, menu: menu, app: app, pid: logic.processIdentifier) {
             return .inserted
         }
         if await chooseByBrowsing(plugin, menu: menu, app: app) {
@@ -317,8 +320,13 @@ final class LogicInserter {
 
     // MARK: The plug-in menu
 
-    private func openMenu(on slot: AXNode, app: AXNode) async -> AXNode? {
+    private func openMenu(on slot: AXNode, app: AXNode, legacy: Bool = false) async -> AXNode? {
         let actions = slot.actions
+        // Logic's own second action on a slot (its Option-click) lists the legacy plug-ins too.
+        if legacy, let withLegacy = actions.first(where: { $0.contains("legacy plug-ins") }) {
+            slot.perform(withLegacy)
+            if let menu = await waitForMenu(app: app) { return menu }
+        }
         let order = [kAXPressAction, kAXShowMenuAction].filter { actions.contains($0) }
         for action in order.isEmpty ? [kAXPressAction] : order {
             slot.perform(action)
@@ -358,6 +366,27 @@ final class LogicInserter {
         let current = await waitForMenu(app: app) ?? menu
         guard let item = bestItem(for: plugin, in: current) else { return false }
         return await pick(item, app: app)
+    }
+
+    /// The slot menu's Legacy submenu: Legacy → group (Delay, EQ …) → plug-in.
+    private func chooseLegacy(_ plugin: Plugin, menu: AXNode, app: AXNode) async -> Bool {
+        var groups = menu
+        if let legacy = menuItems(menu).first(where: { $0.title == "Legacy" }),
+           let sub = await submenu(of: legacy) { groups = sub }
+        if let item = bestLegacyItem(plugin, in: groups) { return await pick(item, app: app) }
+        for group in menuItems(groups) {
+            guard let list = await submenu(of: group) else { continue }
+            if let item = bestLegacyItem(plugin, in: list) {
+                log("  legacy group: \(group.title)")
+                return await pick(item, app: app)
+            }
+        }
+        log("  legacy groups: " + menuItems(groups).map(\.title).joined(separator: " | "))
+        return false
+    }
+
+    private func bestLegacyItem(_ plugin: Plugin, in menu: AXNode) -> AXNode? {
+        menuItems(menu).first { $0.isEnabled && $0.title.localizedCaseInsensitiveCompare(plugin.name) == .orderedSame }
     }
 
     private func chooseByBrowsing(_ plugin: Plugin, menu: AXNode, app: AXNode) async -> Bool {
@@ -478,7 +507,9 @@ final class LogicInserter {
             Keyboard.press(53, pid: logic.processIdentifier)
             return .failed("Logic's instrument menu did not open.")
         }
-        if await chooseBySearch(plugin, menu: menu, app: app, pid: logic.processIdentifier) {
+        if plugin.isLegacy == true {
+            if await chooseLegacy(plugin, menu: menu, app: app) { return .inserted }
+        } else if await chooseBySearch(plugin, menu: menu, app: app, pid: logic.processIdentifier) {
             return .inserted
         }
         if await chooseByBrowsing(plugin, menu: menu, app: app) { return .inserted }
@@ -662,7 +693,7 @@ enum LogicProbe {
                 if !LogicCapture.hasScreenAccess { LogicCapture.requestScreenAccess() }
                 let names = Set(args[(i + 1)...].filter { !$0.hasPrefix("--") })
                 let list = PluginStore.shared.plugins.filter {
-                    $0.isLogic && $0.isLegacy != true && (names.isEmpty
+                    $0.isLogic && ($0.isLegacy != true || args.contains("--legacy")) && (names.isEmpty
                         ? !FileManager.default.fileExists(atPath: PluginStore.shared.snapshotURL(for: $0.id).path)
                         : names.contains($0.name))
                 }
