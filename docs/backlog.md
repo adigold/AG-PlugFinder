@@ -12,3 +12,6 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 ## Now
 
 ## Done
+
+## Notes
+- 2026-10-30 BL-01: app built and installed; scan, cached screenshots (29/30), popup, search and sorts verified. Still to verify live: insert into Logic (Accessibility), info lookup (API key), notarized release (`scripts/release.sh`).
