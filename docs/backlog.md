@@ -8,17 +8,17 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 ## Inbox
 
 - [~] **BL-23** `P2 · Medium` **Smooth search results:** while typing, plugins that no longer match fade and shrink away and the rest glide into place, instead of popping. Adi, 2026-10-30.
-- [~] **BL-21** `P1 · High` **Ship Logic's plugin pictures inside the app:** capture every Logic plugin once and bundle the pictures in the app, so other users never need to take them. Adi, 2026-10-30.
 - [ ] **BL-22** `P2 · Medium` **Download the plugin pack from GitHub:** new installs can download a pack of plugin pictures and looked-up info from the GitHub release instead of capturing everything themselves. Adi, 2026-10-30.
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
-- [ ] **BL-15** `P1 · Medium` **Screenshots of Logic's own plugins:** capture them inside Logic (scratch track in an empty project, open each plugin window, capture, remove), since they cannot run outside Logic. Needs Insert in Logic working first (BL-12). Adi, 2026-10-30.
 ## Now
 
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
 
+- [x] **BL-21** `P1 · High` **Ship Logic's plugin pictures inside the app:** capture every Logic plugin once and bundle the pictures in the app, so other users never need to take them. Adi, 2026-10-30. · done 2026-10-30
+- [x] **BL-15** `P1 · Medium` **Screenshots of Logic's own plugins:** capture them inside Logic (scratch track in an empty project, open each plugin window, capture, remove), since they cannot run outside Logic. Needs Insert in Logic working first (BL-12). Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-16** `P1 · High` **Instruments go to the instrument slot, effects to the inserts:** a software instrument must land in the track's instrument slot, an audio effect in the first empty audio insert. Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-14** `P1 · Medium` **Arrow keys in the main window:** arrows browse and select, Return inserts, like the popup. Adi, 2026-10-30. · done 2026-10-30
 - [x] **BL-19** `P2 · Medium` **Right-click in the Plugin List:** per plugin, per group and for all plugins: take or retake screenshots, look up info, clear a screenshot or info, clear the screenshot cache, show only this group. Adi, 2026-10-30. · done 2026-10-30
