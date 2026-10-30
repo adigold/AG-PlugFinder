@@ -7,6 +7,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
+- [~] **BL-24** `P1 · High` **An amazing updater:** a beautiful update window with what is new, live download progress, clear steps (downloading, checking, installing, restarting), then the app installs the verified version, quits and opens again by itself. Adi, 2026-10-31.
 - [~] **BL-23** `P2 · Medium` **Smooth search results:** while typing, plugins that no longer match fade and shrink away and the rest glide into place, instead of popping. Adi, 2026-10-30.
 - [ ] **BL-22** `P2 · Medium` **Download the plugin pack from GitHub:** new installs can download a pack of plugin pictures and looked-up info from the GitHub release instead of capturing everything themselves. Adi, 2026-10-30.
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.

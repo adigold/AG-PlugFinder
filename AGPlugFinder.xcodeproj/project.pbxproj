@@ -35,6 +35,7 @@
 		D11B1A084B198C0461413B26 /* PickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 972CDC623675D6EAE7C6B741 /* PickerPanel.swift */; };
 		E80952E50B926A41F630F61F /* BrowserViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0BC245023DFE7ED68CE6AA /* BrowserViews.swift */; };
 		E854273C1E3933DE20D03BA7 /* PickerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B603335B7ED50468B310DE /* PickerModel.swift */; };
+		EA7D18667B3A2958C5433C0B /* UpdateWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F81E8A2D388B60472551735 /* UpdateWindow.swift */; };
 		EDB9BE6E1825D71E46A3A49F /* SnapshotQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522F310F8121F51CEEC4502A /* SnapshotQueue.swift */; };
 		F03AC7DB259F432CAD156DC2 /* PickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5404214EB311D626E97267AD /* PickerView.swift */; };
 		F187F1FBF38723B078A30291 /* SnapshotRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F77814834E56DA4A623391 /* SnapshotRenderer.swift */; };
@@ -64,6 +65,7 @@
 		88B603335B7ED50468B310DE /* PickerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerModel.swift; sourceTree = "<group>"; };
 		925D8B9B25BDB22A89D24468 /* LogicCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicCapture.swift; sourceTree = "<group>"; };
 		972CDC623675D6EAE7C6B741 /* PickerPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerPanel.swift; sourceTree = "<group>"; };
+		9F81E8A2D388B60472551735 /* UpdateWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateWindow.swift; sourceTree = "<group>"; };
 		B19606CDC7F0663446B24FE2 /* SelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfTest.swift; sourceTree = "<group>"; };
 		B30B196AF35A2DA1C5B50F07 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B431D534CB99B5A459D3517F /* Plugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plugin.swift; sourceTree = "<group>"; };
@@ -150,6 +152,7 @@
 				2AFB8804982519104A3E9C10 /* SettingsView.swift */,
 				3489490CA53609C463DF80B1 /* SnapshotProgressView.swift */,
 				F023E1377B6D025990A4AD1D /* UpdateViews.swift */,
+				9F81E8A2D388B60472551735 /* UpdateWindow.swift */,
 				B8EBF150252A9B6AF992139C /* ViewSettings.swift */,
 			);
 			path = UI;
@@ -289,6 +292,7 @@
 				EDB9BE6E1825D71E46A3A49F /* SnapshotQueue.swift in Sources */,
 				F187F1FBF38723B078A30291 /* SnapshotRenderer.swift in Sources */,
 				450CA6479EE050AEE218A77A /* UpdateViews.swift in Sources */,
+				EA7D18667B3A2958C5433C0B /* UpdateWindow.swift in Sources */,
 				2A1392243813F1CFAF3CA9CC /* Updater.swift in Sources */,
 				ABF6017627F4BF04469803C6 /* ViewSettings.swift in Sources */,
 			);
@@ -333,7 +337,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 3000;
+				CURRENT_PROJECT_VERSION = 4000;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 4HJV6RPCLU;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -354,7 +358,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.3.0;
+				MARKETING_VERSION = 0.4.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -438,7 +442,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 3000;
+				CURRENT_PROJECT_VERSION = 4000;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4HJV6RPCLU;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -453,7 +457,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.3.0;
+				MARKETING_VERSION = 0.4.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

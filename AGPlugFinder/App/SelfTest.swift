@@ -15,8 +15,15 @@ enum SelfTest {
                 await Updater.shared.check()
                 print("UPDATE state \(Updater.shared.state)"); fflush(stdout)
                 if Updater.shared.available != nil { Updater.shared.install() }
-                for _ in 0..<40 {
+                // --selftest-update <dir>: photograph the update window (only that window) as it works.
+                let dir = args.firstIndex(of: "--selftest-update").flatMap { i in
+                    i + 1 < args.count && !args[i + 1].hasPrefix("--") ? URL(fileURLWithPath: args[i + 1]) : nil
+                }
+                for n in 0..<40 {
                     try? await Task.sleep(for: .milliseconds(500))
+                    if let dir, let w = NSApp.windows.first(where: { $0.isVisible && $0.contentView is NSHostingView<UpdateProgressView> }) {
+                        await capture(w, to: dir.appendingPathComponent("update-\(n).png"))
+                    }
                     if case .failed(let m) = Updater.shared.state { print("UPDATE failed \(m)"); fflush(stdout); return }
                 }
             }
@@ -36,6 +43,19 @@ enum SelfTest {
                     print("MINI \(Int(window.frame.width))x\(Int(window.frame.height))")
                 }
                 print("WINDOW state \(Updater.shared.state)"); fflush(stdout)
+            }
+        }
+        if let k = args.firstIndex(of: "--selftest-whatsnew"), k + 1 < args.count {
+            let out = URL(fileURLWithPath: args[k + 1])
+            Task {
+                Updater.shared.whatsNew = (Updater.shared.currentVersion,
+                                           ["New: Plugin chains you can drop on a track with one key.", "Improved: Faster search."])
+                UpdateWindow.shared.show()
+                try? await Task.sleep(for: .milliseconds(1200))
+                if let w = NSApp.windows.first(where: { $0.isVisible && $0.contentView is NSHostingView<UpdateProgressView> }) {
+                    await capture(w, to: out); print("WHATSNEW ok")
+                } else { print("WHATSNEW none") }
+                fflush(stdout)
             }
         }
         if let k = args.firstIndex(of: "--selftest-onboarding"), k + 1 < args.count {

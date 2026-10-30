@@ -9,9 +9,10 @@ struct UpdateBanner: View {
             strip(dot: Theme.accent, title: "A new update is available: version \(r.version)", notes: r.notes) {
                 PrimaryPill(title: "Install and Restart", height: 30) { updater.install() }
             }
-        } else if updater.state == .downloading || updater.state == .installing {
-            strip(dot: Theme.accent, title: updater.state == .downloading ? "Downloading the update…" : "Installing, the app will restart…",
-                  notes: []) { ProgressView().controlSize(.small) }
+        } else if updater.busy {
+            strip(dot: Theme.accent, title: "Updating AG PlugFinder…", notes: []) {
+                QuietPill(title: "Show Progress") { UpdateWindow.shared.show() }
+            }
         } else if case .failed(let msg) = updater.state, msg != "No update address is set for this build." {
             strip(dot: Theme.warning, title: "The update did not install", notes: [msg]) {
                 QuietPill(title: "Try Again") { Task { await updater.check(userInitiated: true) } }
@@ -80,7 +81,9 @@ struct UpdateSettings: View {
         case .upToDate: return "You're updated."
         case .available(let r): return "A new update is available (v\(r.version))."
         case .downloading: return "Downloading…"
+        case .verifying: return "Checking the download…"
         case .installing: return "Installing…"
+        case .restarting: return "Restarting…"
         case .failed(let m): return m
         }
     }
@@ -123,8 +126,8 @@ struct VersionBadge: View {
         case .available: return "A new update is available"
         case .upToDate: return "v\(updater.currentVersion) · You're updated."
         case .checking: return "Checking…"
-        case .downloading: return "Downloading…"
-        case .installing: return "Installing…"
+        case .downloading: return "Downloading \(Int(updater.progress * 100))%"
+        case .verifying, .installing, .restarting: return "Installing…"
         default: return "v\(updater.currentVersion) · Check for update"
         }
     }
@@ -166,8 +169,7 @@ struct VersionsPanel: View {
                 QuietPill(title: updater.state == .checking ? "Checking…" : "Check for Update", height: 32) {
                     Task { await updater.check(userInitiated: true) }
                 }
-                .disabled(updater.state == .checking || updater.state == .downloading
-                          || updater.state == .installing)
+                .disabled(updater.state == .checking || updater.busy)
             }
         }
         .padding(22)
@@ -182,7 +184,9 @@ struct VersionsPanel: View {
         case .upToDate: return "You're updated."
         case .checking: return "Checking for updates…"
         case .downloading: return "Downloading the update…"
-        case .installing: return "Installing, the app will restart."
+        case .verifying: return "Checking the download…"
+        case .installing: return "Installing…"
+        case .restarting: return "Restarting…"
         case .failed(let m): return m
         case .idle: return "Not checked yet."
         }

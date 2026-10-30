@@ -28,10 +28,16 @@ final class Updater {
     }
 
     enum State: Equatable {
-        case idle, checking, upToDate, available(Release), downloading, installing, failed(String)
+        case idle, checking, upToDate, available(Release), downloading, verifying, installing, restarting
+        case failed(String)
     }
 
     private(set) var state: State = .idle
+    /// The release being installed (kept while it downloads and installs, for the update window).
+    private(set) var installing: Release?
+    /// Download progress, 0…1, and bytes so far.
+    private(set) var progress: Double = 0
+    private(set) var receivedBytes: Int64 = 0
     private(set) var lastChecked: Date?
     /// Shown once after an update installed itself.
     var whatsNew: (version: String, notes: [String])?
@@ -61,6 +67,10 @@ final class Updater {
         #else
         return false
         #endif
+    }
+
+    var busy: Bool {
+        [.downloading, .verifying, .installing, .restarting].contains(state)
     }
 
     var available: Release? {
@@ -94,8 +104,7 @@ final class Updater {
     /// Automatic checks stay quiet when something fails; only "Check Now" shows the problem.
     func check(userInitiated: Bool = false) async {
         guard let feedURL else { state = .failed("No update address is set for this build."); return }
-        if case .downloading = state { return }
-        if case .installing = state { return }
+        if busy { return }
         state = .checking
         do {
             var request = URLRequest(url: feedURL, cachePolicy: .reloadIgnoringLocalCacheData)
@@ -134,14 +143,19 @@ final class Updater {
         var errorDescription: String? { if case .message(let m) = self { return m }; return nil }
     }
 
+    /// Downloads, checks, installs, then quits and opens the new version by itself (BL-24).
     func install() {
-        guard let release = available else { return }
+        guard let release = available ?? (state.isFailed ? installing : nil) else { return }
         let appURL = Bundle.main.bundleURL
         let parent = appURL.deletingLastPathComponent()
+        installing = release
+        UpdateWindow.shared.show()
         guard FileManager.default.isWritableFile(atPath: parent.path) else {
             state = .failed("Move AG PlugFinder to your Applications folder to update it.")
             return
         }
+        progress = 0
+        receivedBytes = 0
         state = .downloading
         Task {
             do {
@@ -149,7 +163,10 @@ final class Updater {
                 state = .installing
                 UserDefaults.standard.set(release.notes, forKey: "update.pendingNotes")
                 UserDefaults.standard.set(release.version, forKey: "update.pendingVersion")
+                try await Task.sleep(for: .milliseconds(600))
+                state = .restarting
                 try launchSwapper(newApp: newApp, appURL: appURL)
+                try await Task.sleep(for: .milliseconds(1400))      // let "Restarting" be seen
                 NSApp.terminate(nil)
             } catch {
                 state = .failed(error.localizedDescription)
@@ -157,12 +174,32 @@ final class Updater {
         }
     }
 
+    /// Downloads with live progress for the update window.
+    private func download(_ url: URL, expected: Int64) async throws -> (URL, URLResponse) {
+        let delegate = DownloadProgress { [weak self] got, total in
+            Task { @MainActor in
+                guard let self else { return }
+                self.receivedBytes = got
+                let all = total > 0 ? total : expected
+                self.progress = all > 0 ? min(1, Double(got) / Double(all)) : 0
+            }
+        }
+        let session = URLSession(configuration: .ephemeral, delegate: delegate, delegateQueue: nil)
+        defer { session.finishTasksAndInvalidate() }
+        return try await withCheckedThrowingContinuation { c in
+            delegate.finish = { result in c.resume(with: result) }
+            session.downloadTask(with: url).resume()
+        }
+    }
+
     private func downloadAndVerify(_ r: Release) async throws -> URL {
         guard let url = URL(string: r.url) else { throw UpdateError.message("Bad download address.") }
-        let (tmp, response) = try await URLSession.shared.download(from: url)
+        let (tmp, response) = try await download(url, expected: r.size)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else {
             throw UpdateError.message("The download failed.")
         }
+        progress = 1
+        state = .verifying
         let work = FileManager.default.temporaryDirectory
             .appendingPathComponent("AGPF-update-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
@@ -237,7 +274,11 @@ final class Updater {
         d.removeObject(forKey: "update.pendingVersion")
         let notes = d.stringArray(forKey: "update.pendingNotes") ?? []
         d.removeObject(forKey: "update.pendingNotes")
-        if version == currentVersion { whatsNew = (version, notes) }
+        if version == currentVersion {
+            whatsNew = (version, notes)
+            // The new version opens on a "You're updated" window with what is new.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { UpdateWindow.shared.show() }
+        }
     }
 
     // MARK: Helpers
@@ -281,5 +322,45 @@ final class Updater {
         guard p.terminationStatus == 0 else {
             throw UpdateError.message(failure ?? "Could not unpack the update.")
         }
+    }
+}
+
+extension Updater.State {
+    var isFailed: Bool { if case .failed = self { return true }; return false }
+}
+
+/// Reports download progress and hands back the finished file (moved out of the session's
+/// temporary location before the delegate returns).
+final class DownloadProgress: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
+    let onProgress: (Int64, Int64) -> Void
+    var finish: ((Result<(URL, URLResponse), Error>) -> Void)?
+    private var done = false
+
+    init(_ onProgress: @escaping (Int64, Int64) -> Void) { self.onProgress = onProgress }
+
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64,
+                    totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+        onProgress(totalBytesWritten, totalBytesExpectedToWrite)
+    }
+
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        let keep = FileManager.default.temporaryDirectory.appendingPathComponent("AGPF-\(UUID().uuidString).zip")
+        do {
+            try FileManager.default.moveItem(at: location, to: keep)
+            guard let response = downloadTask.response else { throw URLError(.badServerResponse) }
+            complete(.success((keep, response)))
+        } catch {
+            complete(.failure(error))
+        }
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if let error { complete(.failure(error)) }
+    }
+
+    private func complete(_ r: Result<(URL, URLResponse), Error>) {
+        guard !done else { return }
+        done = true
+        finish?(r)
     }
 }
