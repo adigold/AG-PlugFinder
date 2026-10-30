@@ -9,6 +9,17 @@ enum SelfTest {
     static func runIfRequested() {
         let args = CommandLine.arguments
         // --dump-logic: save Logic's interface tree.  --test-insert <name>: insert like Return does.
+        if args.contains("--selftest-update") {
+            Task {
+                await Updater.shared.check()
+                print("UPDATE state \(Updater.shared.state)"); fflush(stdout)
+                if Updater.shared.available != nil { Updater.shared.install() }
+                for _ in 0..<40 {
+                    try? await Task.sleep(for: .milliseconds(500))
+                    if case .failed(let m) = Updater.shared.state { print("UPDATE failed \(m)"); fflush(stdout); return }
+                }
+            }
+        }
         if args.contains("--dump-logic") {
             print("DUMP \(LogicInserter.shared.dumpDiagnostics()?.path ?? "failed (Logic open? Accessibility allowed?)")")
             fflush(stdout)
@@ -31,19 +42,28 @@ enum SelfTest {
             while SnapshotQueue.shared.isRunning { try? await Task.sleep(for: .milliseconds(500)) }
             let controller = PickerPanelController.shared
             controller.show()
-            try? await Task.sleep(for: .milliseconds(800))
-            await capture(to: folder.appendingPathComponent("picker.png"))
+            let view = ViewSettings.shared
+            view.layout = .grid; view.size = .medium; view.showName = true; view.showDetails = true
+            view.showInfoPane = true; view.favoritesOnly = false
             controller.model.query = query
-            controller.model.move(1)
+            try? await Task.sleep(for: .milliseconds(900))
+            await capture(to: folder.appendingPathComponent("1-grid.png"))
+            view.layout = .list
             try? await Task.sleep(for: .milliseconds(600))
-            await capture(to: folder.appendingPathComponent("picker-search.png"))
-            for sort in PluginSort.allCases {
-                controller.model.query = ""
-                controller.model.sort = sort
-                let names = controller.model.results.prefix(6).map(\.name).joined(separator: ", ")
-                print("SORT \(sort.rawValue): \(names)")
-            }
-            controller.model.sort = .name
+            await capture(to: folder.appendingPathComponent("2-list.png"))
+            view.layout = .grid; view.size = .huge; view.showName = false; view.showDetails = false
+            view.showInfoPane = false; controller.model.query = ""
+            try? await Task.sleep(for: .milliseconds(700))
+            await capture(to: folder.appendingPathComponent("3-xl-no-info.png"))
+            view.size = .medium; view.showName = true; view.showDetails = true; view.showInfoPane = true
+            let store = PluginStore.shared
+            print("COUNTS total \(store.plugins.count) visible \(store.plugins.filter(store.isVisible).count) logic \(store.plugins.filter(\.isLogic).count)")
+            store.setGroup(.maker, "Apple", visible: false)
+            print("HIDE Apple -> visible \(store.plugins.filter(store.isVisible).count)")
+            store.setPlugin(store.plugins.first { $0.name == "AUDelay" }!.id, visible: true)
+            print("SHOW AUDelay -> visible \(store.plugins.filter(store.isVisible).count)")
+            store.setGroup(.maker, "Apple", visible: true)
+            print("RESET -> visible \(store.plugins.filter(store.isVisible).count)")
             print("SELFTEST DONE")
             fflush(stdout)
         }

@@ -7,8 +7,8 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    MARKETING_VERSION: "0.1.0"
-    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "0.2.0"
+    CURRENT_PROJECT_VERSION: "2000"
     DEVELOPMENT_TEAM: 4HJV6RPCLU
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "Developer ID Application"
@@ -28,10 +28,13 @@ targets:
       path: AUPluginHelper/Info.plist
       properties:
         CFBundleDisplayName: AU Plugin Helper
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleName: AU Plugin Helper
         LSApplicationCategoryType: public.app-category.music
         LSMinimumSystemVersion: "15.0"
         NSHumanReadableCopyright: "© 2026 Adi Goldstein"
+        AUPHUpdateFeedURL: ""
         NSAccessibilityUsageDescription: "AU Plugin Helper places the plugin you pick into an empty insert slot in Logic Pro."
     settings:
       base:

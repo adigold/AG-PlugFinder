@@ -39,8 +39,16 @@ struct AUPluginHelperApp: App {
 struct MenuBarContent: View {
     @Environment(\.openWindow) private var openWindow
     @Environment(\.openSettings) private var openSettings
+    var updater = Updater.shared
 
     var body: some View {
+        if let r = updater.available {
+            Button("Update Available: \(r.version)…") {
+                NSApp.activate()
+                openWindow(id: "library")
+            }
+            Divider()
+        }
         Button("Open Plugin Picker  \(HotKey.display)") { PickerPanelController.shared.show() }
         Button("Plugin Library…") {
             NSApp.activate()
@@ -58,6 +66,7 @@ struct MenuBarContent: View {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         HotKey.shared.register { PickerPanelController.shared.toggle() }
+        Task { @MainActor in Updater.shared.start() }
         LaunchAtLogin.applyDefaultOnFirstRun()
 
         Task { @MainActor in

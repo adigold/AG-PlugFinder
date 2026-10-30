@@ -18,7 +18,7 @@ final class SnapshotQueue {
         guard !isRunning else { return }
         let store = PluginStore.shared
         let todo = store.plugins
-            .filter { force || $0.snapshotState == .pending }
+            .filter { !$0.isLogic && (force || $0.snapshotState == .pending) }
             .sorted { $0.name < $1.name }
         guard !todo.isEmpty else { return }
         isRunning = true

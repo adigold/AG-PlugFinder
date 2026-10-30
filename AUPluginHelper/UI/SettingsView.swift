@@ -1,6 +1,20 @@
 import SwiftUI
 
 struct SettingsView: View {
+    var body: some View {
+        TabView {
+            GeneralSettings()
+                .tabItem { Label("General", systemImage: "gearshape") }
+            PluginListEditor()
+                .tabItem { Label("Plugin List", systemImage: "list.bullet.rectangle") }
+            UpdateSettings()
+                .tabItem { Label("Updates", systemImage: "arrow.down.circle") }
+        }
+        .frame(width: 760, height: 560)
+    }
+}
+
+struct GeneralSettings: View {
     @State private var apiKey = ""
     @State private var keySaved = Keychain.read() != nil
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
@@ -80,7 +94,6 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 560)
         .padding(.vertical, 8)
         .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
             trusted = AXAccess.isTrusted

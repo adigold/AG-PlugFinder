@@ -7,14 +7,16 @@ enum Theme {
     static let tileSelected = Color(red: 0.98, green: 0.62, blue: 0.22).opacity(0.22)
 }
 
-/// Search field + sort chips.
+/// Search field + the View button (layout, size, what to show, sort, favorites only).
 struct SearchBar: View {
     @Bindable var model: PickerModel
     var focusOnAppear = true
     @FocusState private var focused: Bool
+    @State private var showOptions = false
+    var view = ViewSettings.shared
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
                 TextField("Search plugins, makers or categories", text: $model.query)
@@ -30,36 +32,107 @@ struct SearchBar: View {
             .padding(.horizontal, 12).padding(.vertical, 9)
             .background(RoundedRectangle(cornerRadius: 10).fill(Color.primary.opacity(0.07)))
 
-            SortChips(sort: $model.sort)
+            Button { view.favoritesOnly.toggle() } label: {
+                Image(systemName: view.favoritesOnly ? "star.fill" : "star")
+                    .foregroundStyle(view.favoritesOnly ? Theme.accent : .secondary)
+                    .frame(width: 34, height: 34)
+                    .background(RoundedRectangle(cornerRadius: 9).fill(Color.primary.opacity(0.07)))
+            }
+            .buttonStyle(.plain)
+            .help("Favorites only (⌘F)")
+
+            Button { showOptions.toggle() } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: view.layout.symbol)
+                    Text("View")
+                    Image(systemName: "chevron.down").font(.system(size: 9, weight: .bold))
+                }
+                .font(.system(size: 13, weight: .medium))
+                .padding(.horizontal, 12).frame(height: 34)
+                .background(RoundedRectangle(cornerRadius: 9).fill(Color.primary.opacity(0.07)))
+            }
+            .buttonStyle(.plain)
+            .popover(isPresented: $showOptions, arrowEdge: .bottom) {
+                ViewOptions(model: model)
+            }
         }
         .onAppear { if focusOnAppear { focused = true } }
         .onChange(of: model.query) { _, _ in focused = true }
     }
 }
 
-/// The five sort options as chips (⌘1 to ⌘5).
-struct SortChips: View {
-    @Binding var sort: PluginSort
+/// The View popover. Every choice is a themed button, no system menus.
+struct ViewOptions: View {
+    @Bindable var model: PickerModel
+    @Bindable var view = ViewSettings.shared
 
     var body: some View {
-        HStack(spacing: 4) {
-            ForEach(Array(PluginSort.allCases.enumerated()), id: \.element) { i, option in
-                Button { sort = option } label: {
-                    Text(option.title)
-                        .font(.system(size: 12, weight: sort == option ? .semibold : .regular))
-                        .padding(.horizontal, 10).padding(.vertical, 6)
-                        .background(Capsule().fill(sort == option ? Theme.accent.opacity(0.85)
-                                                                  : Color.primary.opacity(0.06)))
-                        .foregroundStyle(sort == option ? Color.black : Color.primary)
+        VStack(alignment: .leading, spacing: 14) {
+            section("Layout") {
+                ForEach(ViewSettings.Layout.allCases) { l in
+                    chip(l.title, symbol: l.symbol, on: view.layout == l) { view.layout = l }
                 }
-                .buttonStyle(.plain)
-                .help("Sort by \(option.title.lowercased()) (⌘\(i + 1))")
+            }
+            section("Thumbnail size") {
+                ForEach(ViewSettings.Size.allCases) { s in
+                    chip(s.title, on: view.size == s) { view.size = s }
+                }
+            }
+            section("Sort by") {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(Array(PluginSort.allCases.enumerated()), id: \.element) { i, s in
+                        chip("\(s.title)   ⌘\(i + 1)", on: model.sort == s) { model.sort = s }
+                    }
+                }
+            }
+            section("Show") {
+                VStack(alignment: .leading, spacing: 4) {
+                    toggle("Plugin name", $view.showName)
+                    toggle("Maker and category", $view.showDetails)
+                    toggle("Info panel on the right", $view.showInfoPane)
+                    toggle("Favorites only", $view.favoritesOnly)
+                }
             }
         }
+        .padding(16)
+        .frame(width: 270)
+    }
+
+    private func section<C: View>(_ title: String, @ViewBuilder _ content: () -> C) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title.uppercased()).font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
+            HStack(spacing: 4) { content() }
+        }
+    }
+
+    private func chip(_ title: String, symbol: String? = nil, on: Bool, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                if let symbol { Image(systemName: symbol) }
+                Text(title)
+            }
+            .font(.system(size: 12, weight: on ? .semibold : .regular))
+            .padding(.horizontal, 10).padding(.vertical, 5)
+            .background(Capsule().fill(on ? Theme.accent.opacity(0.85) : Color.primary.opacity(0.06)))
+            .foregroundStyle(on ? Color.black : Color.primary)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func toggle(_ title: String, _ value: Binding<Bool>) -> some View {
+        Button { value.wrappedValue.toggle() } label: {
+            HStack(spacing: 8) {
+                Image(systemName: value.wrappedValue ? "checkmark.square.fill" : "square")
+                    .foregroundStyle(value.wrappedValue ? Theme.accent : .secondary)
+                Text(title).foregroundStyle(Color.primary)
+            }
+            .font(.system(size: 12))
+        }
+        .buttonStyle(.plain)
     }
 }
 
-/// Screenshot or a placeholder that says why there is none.
+/// Screenshot, a category card for Logic's own plugins, or a placeholder that says why there is none.
 struct PluginThumbnail: View {
     let plugin: Plugin
     var store = PluginStore.shared
@@ -71,6 +144,8 @@ struct PluginThumbnail: View {
                 Image(nsImage: img).resizable().aspectRatio(contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
                     .padding(3)
+            } else if plugin.snapshotState == .builtIn {
+                LogicCard(plugin: plugin)
             } else {
                 VStack(spacing: 6) {
                     Text(initials).font(.system(size: 26, weight: .bold, design: .rounded))
@@ -91,8 +166,68 @@ struct PluginThumbnail: View {
         case .pending: return "Screenshot coming…"
         case .noUI: return "No custom window"
         case .failed: return "Screenshot failed"
-        case .done: return ""
+        case .done, .builtIn: return ""
         }
+    }
+}
+
+/// Card for Logic's own plugins: an icon for the category on a tinted background.
+struct LogicCard: View {
+    let plugin: Plugin
+
+    var body: some View {
+        GeometryReader { geo in
+            let side = min(geo.size.width, geo.size.height)
+            ZStack {
+                LinearGradient(colors: [tint.opacity(0.55), tint.opacity(0.18)],
+                               startPoint: .topLeading, endPoint: .bottomTrailing)
+                VStack(spacing: side * 0.06) {
+                    Image(systemName: symbol)
+                        .font(.system(size: side * 0.32, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.92))
+                    Text(plugin.name)
+                        .font(.system(size: max(9, side * 0.1), weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .lineLimit(1).minimumScaleFactor(0.6)
+                        .padding(.horizontal, 6)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .padding(3)
+        }
+    }
+
+    private var symbol: String {
+        switch plugin.category {
+        case "Amps and Pedals": return "guitars"
+        case "Delay": return "repeat"
+        case "Distortion": return "bolt.fill"
+        case "Dynamics": return "waveform.path.ecg"
+        case "EQ": return "slider.vertical.3"
+        case "Filter": return "line.3.horizontal.decrease"
+        case "Imaging": return "circle.lefthalf.filled"
+        case "Metering": return "gauge.with.dots.needle.33percent"
+        case "Modulation": return "water.waves"
+        case "Multi Effects": return "square.stack.3d.up.fill"
+        case "Pitch": return "music.note"
+        case "Reverb": return "dot.radiowaves.left.and.right"
+        case "Specialized": return "sparkles"
+        case "Utility": return "wrench.and.screwdriver"
+        case "Synth": return "waveform"
+        case "Sampler": return "square.grid.3x3.fill"
+        case "Drums": return "circle.hexagongrid.fill"
+        case "Keys": return "pianokeys"
+        case "Orchestral": return "music.quarternote.3"
+        case "Bass": return "guitars.fill"
+        case "MIDI FX": return "pianokeys.inverse"
+        default: return "puzzlepiece.extension"
+        }
+    }
+
+    private var tint: Color {
+        let palette: [Color] = [.orange, .pink, .purple, .blue, .teal, .green, .indigo, .red, .mint, .cyan]
+        let h = plugin.category.unicodeScalars.reduce(0) { ($0 &* 31 &+ Int($1.value)) & 0xFFFF }
+        return palette[h % palette.count]
     }
 }
 
@@ -100,60 +235,142 @@ struct PluginTile: View {
     let plugin: Plugin
     let isSelected: Bool
     var store = PluginStore.shared
+    var view = ViewSettings.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             PluginThumbnail(plugin: plugin)
-                .frame(height: 96)
-            HStack(spacing: 4) {
-                Text(plugin.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
-                Spacer(minLength: 0)
-                if store.favorites.contains(plugin.id) {
-                    Image(systemName: "star.fill").font(.system(size: 10)).foregroundStyle(Theme.accent)
+                .frame(height: view.size.tileWidth * 0.6)
+                .overlay(alignment: .topTrailing) {
+                    if !view.showName && store.favorites.contains(plugin.id) { star.padding(6) }
+                }
+            if view.showName {
+                HStack(spacing: 4) {
+                    Text(plugin.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                    Spacer(minLength: 0)
+                    if store.favorites.contains(plugin.id) { star }
                 }
             }
-            Text("\(plugin.manufacturer) · \(plugin.displayCategory)")
-                .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+            if view.showDetails {
+                Text("\(plugin.manufacturer) · \(plugin.displayCategory)")
+                    .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+            }
         }
-        .padding(8)
+        .padding(view.showName || view.showDetails ? 8 : 5)
         .background(RoundedRectangle(cornerRadius: 12).fill(isSelected ? Theme.tileSelected : Theme.tileBG))
         .overlay(RoundedRectangle(cornerRadius: 12)
             .strokeBorder(isSelected ? Theme.accent : Color.clear, lineWidth: 2))
         .contentShape(RoundedRectangle(cornerRadius: 12))
+        .help(plugin.name)
+    }
+
+    private var star: some View {
+        Image(systemName: "star.fill").font(.system(size: 10)).foregroundStyle(Theme.accent)
     }
 }
 
-/// Grid of tiles that keeps the selection in view.
+/// One line in list layout.
+struct PluginRow: View {
+    let plugin: Plugin
+    let isSelected: Bool
+    var store = PluginStore.shared
+    var view = ViewSettings.shared
+
+    var body: some View {
+        HStack(spacing: 12) {
+            PluginThumbnail(plugin: plugin)
+                .frame(width: view.size.tileWidth * 0.6, height: view.size.tileWidth * 0.36)
+            VStack(alignment: .leading, spacing: 3) {
+                if view.showName {
+                    HStack(spacing: 5) {
+                        Text(plugin.name).font(.system(size: 14, weight: .semibold))
+                        if store.favorites.contains(plugin.id) {
+                            Image(systemName: "star.fill").font(.system(size: 10)).foregroundStyle(Theme.accent)
+                        }
+                    }
+                }
+                if view.showDetails {
+                    Text(plugin.isLogic ? "\(plugin.manufacturer) · \(plugin.displayCategory)"
+                         : "\(plugin.manufacturer) · \(plugin.displayCategory) · \(plugin.formatName)")
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                }
+                if let best = plugin.details?.bestFeature, !best.isEmpty {
+                    Text(best).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(8)
+        .background(RoundedRectangle(cornerRadius: 10).fill(isSelected ? Theme.tileSelected : Color.clear))
+        .overlay(RoundedRectangle(cornerRadius: 10)
+            .strokeBorder(isSelected ? Theme.accent : Color.clear, lineWidth: 2))
+        .contentShape(Rectangle())
+    }
+}
+
+/// Grid or list of plugins that keeps the selection in view and tells the model how many
+/// columns there are, so the arrow keys move the right way.
 struct PluginGrid: View {
     @Bindable var model: PickerModel
     var onActivate: () -> Void
+    var view = ViewSettings.shared
 
     var body: some View {
         let results = model.results
-        ScrollViewReader { proxy in
-            ScrollView {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: model.columns),
-                          spacing: 10) {
-                    ForEach(Array(results.enumerated()), id: \.element.id) { i, plugin in
-                        PluginTile(plugin: plugin, isSelected: i == model.selection)
-                            .id(plugin.id)
-                            .onTapGesture(count: 2) { model.selection = i; onActivate() }
-                            .onTapGesture { model.selection = i }
+        GeometryReader { geo in
+            let spacing: CGFloat = 10
+            let columns = view.layout == .list ? 1
+                : max(1, Int((geo.size.width - 24 + spacing) / (view.size.tileWidth + spacing)))
+            ScrollViewReader { proxy in
+                ScrollView {
+                    Group {
+                        if view.layout == .grid {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: spacing),
+                                                     count: columns), spacing: spacing) {
+                                items(results) { plugin, selected in
+                                    PluginTile(plugin: plugin, isSelected: selected)
+                                }
+                            }
+                        } else {
+                            LazyVStack(spacing: 2) {
+                                items(results) { plugin, selected in
+                                    PluginRow(plugin: plugin, isSelected: selected)
+                                }
+                            }
+                        }
+                    }
+                    .padding(12)
+                }
+                .onChange(of: model.selection) { _, new in
+                    if results.indices.contains(new) {
+                        withAnimation(.easeOut(duration: 0.12)) { proxy.scrollTo(results[new].id) }
                     }
                 }
-                .padding(12)
-            }
-            .onChange(of: model.selection) { _, new in
-                if results.indices.contains(new) {
-                    withAnimation(.easeOut(duration: 0.12)) { proxy.scrollTo(results[new].id) }
-                }
+                .onAppear { model.columns = columns }
+                .onChange(of: columns) { _, c in model.columns = c }
             }
             .overlay {
                 if results.isEmpty {
-                    Text(PluginStore.shared.plugins.isEmpty ? "Scanning plugins…" : "No plugins match")
-                        .foregroundStyle(.secondary)
+                    Text(emptyText).foregroundStyle(.secondary)
                 }
             }
+        }
+    }
+
+    private var emptyText: String {
+        if PluginStore.shared.plugins.isEmpty { return "Scanning plugins…" }
+        if view.favoritesOnly && model.query.isEmpty { return "No favorites yet. Press ⌘D on a plugin to add it." }
+        return "No plugins match"
+    }
+
+    @ViewBuilder
+    private func items<Cell: View>(_ results: [Plugin],
+                                   @ViewBuilder cell: @escaping (Plugin, Bool) -> Cell) -> some View {
+        ForEach(Array(results.enumerated()), id: \.element.id) { i, plugin in
+            cell(plugin, i == model.selection)
+                .id(plugin.id)
+                .onTapGesture(count: 2) { model.selection = i; onActivate() }
+                .onTapGesture { model.selection = i }
         }
     }
 }
@@ -201,8 +418,9 @@ struct PluginDetailView: View {
                 }
                 Divider()
                 VStack(alignment: .leading, spacing: 3) {
-                    meta("Type", plugin.typeName + (plugin.isV3 ? " (AUv3)" : ""))
-                    meta("Version", plugin.version)
+                    meta("Type", plugin.typeGroup)
+                    meta("Format", plugin.isLogic ? "Built into Logic Pro" : plugin.formatName)
+                    meta("Version", plugin.isLogic ? "Logic Pro \(plugin.version)" : plugin.version)
                     if let n = plugin.parameterCount { meta("Parameters", "\(n)") }
                     if !plugin.tags.isEmpty { meta("Tags", plugin.tags.joined(separator: ", ")) }
                     if plugin.snapshotState == .failed, let e = plugin.snapshotError { meta("Screenshot", e) }

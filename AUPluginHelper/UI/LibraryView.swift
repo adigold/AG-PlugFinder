@@ -12,18 +12,21 @@ struct LibraryView: View {
         VStack(spacing: 0) {
             SearchBar(model: model, focusOnAppear: false)
                 .padding(12)
+            UpdateBanner()
             statusBar
             Divider()
             HStack(spacing: 0) {
                 PluginGrid(model: model) { insert() }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                Divider()
-                Group {
-                    if let p = model.selected {
-                        PluginDetailView(plugin: p) { insert() }
-                    } else { Color.clear }
+                if ViewSettings.shared.showInfoPane {
+                    Divider()
+                    Group {
+                        if let p = model.selected {
+                            PluginDetailView(plugin: p) { insert() }
+                        } else { Color.clear }
+                    }
+                    .frame(width: 310)
                 }
-                .frame(width: 310)
             }
             if let message = model.message {
                 Divider()
@@ -36,6 +39,7 @@ struct LibraryView: View {
                 }.padding(10)
             }
         }
+        .toolbar(removing: .title)
         .toolbar {
             ToolbarItemGroup {
                 Button { store.rescan(); snapshots.start() } label: {
@@ -67,7 +71,7 @@ struct LibraryView: View {
 
     @ViewBuilder private var statusBar: some View {
         HStack(spacing: 18) {
-            Text("\(store.plugins.count) Audio Units").foregroundStyle(.secondary)
+            Text("\(model.results.count) of \(store.plugins.count) plugins shown").foregroundStyle(.secondary)
             if snapshots.isRunning {
                 HStack(spacing: 6) {
                     ProgressView(value: Double(snapshots.done), total: Double(max(1, snapshots.total)))

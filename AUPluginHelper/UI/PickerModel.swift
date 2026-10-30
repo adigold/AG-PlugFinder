@@ -19,7 +19,9 @@ final class PickerModel {
     var showAccessibilityButton = false
     var isBusy = false
 
-    var results: [Plugin] { PluginStore.shared.filtered(query: query, sort: sort) }
+    var results: [Plugin] {
+        PluginStore.shared.filtered(query: query, sort: sort, favoritesOnly: ViewSettings.shared.favoritesOnly)
+    }
 
     var selected: Plugin? {
         let r = results

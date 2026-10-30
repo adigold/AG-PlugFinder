@@ -13,16 +13,18 @@ struct PickerView: View {
             HStack(spacing: 0) {
                 PluginGrid(model: model) { controller.insert() }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                Divider()
-                Group {
-                    if let p = model.selected {
-                        PluginDetailView(plugin: p) { controller.insert() }
-                    } else {
-                        Color.clear
+                if ViewSettings.shared.showInfoPane {
+                    Divider()
+                    Group {
+                        if let p = model.selected {
+                            PluginDetailView(plugin: p) { controller.insert() }
+                        } else {
+                            Color.clear
+                        }
                     }
+                    .frame(width: 300)
+                    .frame(maxHeight: .infinity)
                 }
-                .frame(width: 300)
-                .frame(maxHeight: .infinity)
             }
             if let message = model.message {
                 Divider()
@@ -55,7 +57,8 @@ struct PickerView: View {
         HStack(spacing: 16) {
             hint("↩", "insert")
             hint("← → ↑ ↓", "move")
-            hint("⌘1–5", "sort")
+            hint("⌘1–4", "sort")
+            hint("⌘F", "favorites")
             hint("⌘D", "favorite")
             hint("esc", "close")
             Spacer()

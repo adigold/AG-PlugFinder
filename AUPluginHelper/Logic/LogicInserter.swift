@@ -179,6 +179,16 @@ final class LogicInserter {
     }
 
     private func chooseByBrowsing(_ plugin: Plugin, menu: AXNode, app: AXNode) async -> Bool {
+        if plugin.isLogic {
+            // Logic's own plugins sit under their category (Reverb → ChromaVerb).
+            guard let group = menuItems(menu).first(where: {
+                      $0.title.localizedCaseInsensitiveCompare(plugin.category) == .orderedSame
+                  }),
+                  let list = await submenu(of: group),
+                  let item = bestItem(for: plugin, in: list, maxNodes: 2000)
+            else { return false }
+            return await pick(item, app: app)
+        }
         guard let au = menuItems(menu).first(where: { $0.title == "Audio Units" }),
               let makers = await submenu(of: au),
               let maker = menuItems(makers).first(where: {

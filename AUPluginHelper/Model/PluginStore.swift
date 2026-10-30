@@ -12,6 +12,11 @@ final class PluginStore {
     private(set) var plugins: [Plugin] = []
     var favorites: Set<String> = [] { didSet { saveDefaults() } }
     var lastUsed: [String: Date] = [:] { didSet { saveDefaults() } }
+    /// Groups hidden in the list editor, as "maker:Apple", "category:Reverb", "format:Logic", "type:MIDI FX".
+    var hiddenGroups: Set<String> = [] { didSet { saveDefaults() } }
+    /// Single plugins hidden or forced visible in the list editor.
+    var hiddenPlugins: Set<String> = [] { didSet { saveDefaults() } }
+    var shownPlugins: Set<String> = [] { didSet { saveDefaults() } }
     /// Bumped whenever a screenshot file changes, so views reload images.
     private(set) var imageGeneration = 0
 
@@ -34,14 +39,14 @@ final class PluginStore {
     /// Re-reads the installed Audio Units and merges them with what we already know
     /// (screenshots and looked-up info are kept for plugins whose version did not change).
     func rescan() {
-        let found = PluginScanner.scan()
+        let found = PluginScanner.scan() + LogicCatalog.scan()
         let old = Dictionary(uniqueKeysWithValues: plugins.map { ($0.id, $0) })
         plugins = found.map { p in
             guard let prev = old[p.id] else { return p }
             var merged = p
             merged.details = prev.details
             merged.parameterCount = prev.parameterCount
-            if prev.version == p.version {
+            if prev.version == p.version, !p.isLogic {
                 merged.snapshotState = prev.snapshotState
                 merged.snapshotError = prev.snapshotError
             }
@@ -83,12 +88,64 @@ final class PluginStore {
 
     func markUsed(_ id: String) { lastUsed[id] = Date() }
 
+    // MARK: Visibility (list editor)
+
+    enum GroupKind: String, CaseIterable, Identifiable {
+        case maker, category, format, type
+        var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .maker: return "Manufacturer"
+            case .category: return "Category"
+            case .format: return "Format"
+            case .type: return "Type"
+            }
+        }
+    }
+
+    static func groupValue(_ p: Plugin, _ kind: GroupKind) -> String {
+        switch kind {
+        case .maker: return p.manufacturer
+        case .category: return p.displayCategory
+        case .format: return p.formatName
+        case .type: return p.typeGroup
+        }
+    }
+
+    static func groupKey(_ kind: GroupKind, _ value: String) -> String { "\(kind.rawValue):\(value)" }
+
+    func isVisible(_ p: Plugin) -> Bool {
+        if hiddenPlugins.contains(p.id) { return false }
+        if shownPlugins.contains(p.id) { return true }
+        return !GroupKind.allCases.contains { hiddenGroups.contains(Self.groupKey($0, Self.groupValue(p, $0))) }
+    }
+
+    func setPlugin(_ id: String, visible: Bool) {
+        hiddenPlugins.remove(id); shownPlugins.remove(id)
+        guard let p = plugin(id) else { return }
+        let groupHidden = GroupKind.allCases.contains {
+            hiddenGroups.contains(Self.groupKey($0, Self.groupValue(p, $0)))
+        }
+        if visible && groupHidden { shownPlugins.insert(id) }
+        if !visible && !groupHidden { hiddenPlugins.insert(id) }
+    }
+
+    func setGroup(_ kind: GroupKind, _ value: String, visible: Bool) {
+        let key = Self.groupKey(kind, value)
+        if visible { hiddenGroups.remove(key) } else { hiddenGroups.insert(key) }
+        // A group switch overrides earlier single-plugin choices inside it.
+        for p in plugins where Self.groupValue(p, kind) == value {
+            hiddenPlugins.remove(p.id); shownPlugins.remove(p.id)
+        }
+    }
+
     // MARK: Search and sort
 
-    func filtered(query: String, sort: PluginSort) -> [Plugin] {
+    func filtered(query: String, sort: PluginSort, favoritesOnly: Bool = false) -> [Plugin] {
         let words = query.lowercased().split(separator: " ").map(String.init)
-        let list = words.isEmpty ? plugins : plugins.filter { p in
-            let hay = [p.name, p.manufacturer, p.displayCategory, p.typeName,
+        let pool = plugins.filter { isVisible($0) && (!favoritesOnly || favorites.contains($0.id)) }
+        let list = words.isEmpty ? pool : pool.filter { p in
+            let hay = [p.name, p.manufacturer, p.displayCategory, p.typeName, p.formatName,
                        p.details?.kind ?? "", p.tags.joined(separator: " ")]
                 .joined(separator: " ").lowercased()
             return words.allSatisfy { hay.contains($0) }
@@ -119,23 +176,25 @@ final class PluginStore {
                 default: return byName($0, $1)
                 }
             }
-        case .favorites:
-            return list.sorted {
-                let a = favorites.contains($0.id), b = favorites.contains($1.id)
-                return a == b ? byName($0, $1) : a
-            }
         }
     }
 
     // MARK: Persistence
 
+    private var isLoading = false
+
     private func load() {
+        isLoading = true
+        defer { isLoading = false }
         if let data = try? Data(contentsOf: catalogURL),
            let list = try? JSONDecoder().decode([Plugin].self, from: data) {
             plugins = list
         }
         let d = UserDefaults.standard
         favorites = Set(d.stringArray(forKey: "favorites") ?? [])
+        hiddenGroups = Set(d.stringArray(forKey: "hiddenGroups") ?? ["format:Logic (legacy)"])
+        hiddenPlugins = Set(d.stringArray(forKey: "hiddenPlugins") ?? [])
+        shownPlugins = Set(d.stringArray(forKey: "shownPlugins") ?? [])
         if let data = d.data(forKey: "lastUsed"),
            let map = try? JSONDecoder().decode([String: Date].self, from: data) {
             lastUsed = map
@@ -152,8 +211,12 @@ final class PluginStore {
     }
 
     private func saveDefaults() {
+        guard !isLoading else { return }
         let d = UserDefaults.standard
         d.set(Array(favorites), forKey: "favorites")
         d.set(try? JSONEncoder().encode(lastUsed), forKey: "lastUsed")
+        d.set(Array(hiddenGroups), forKey: "hiddenGroups")
+        d.set(Array(hiddenPlugins), forKey: "hiddenPlugins")
+        d.set(Array(shownPlugins), forKey: "shownPlugins")
     }
 }

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0586FA5BF3B48885B4267372 /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4BCFC708FCEC0FCB02FAB8A /* Updater.swift */; };
+		0CA961A8922EC6ED3992384B /* LogicCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299A9B50E9FA00B9CD96BB4B /* LogicCatalog.swift */; };
 		10D82D3F5003500679B0C910 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B042F2F139C9BC37A700B94 /* Keychain.swift */; };
 		19CCAF34EBAF9B01146347EA /* SnapshotRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00077A2165EC45288AA96D3D /* SnapshotRenderer.swift */; };
 		2D6262EC6916422A55A784A2 /* PickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F5393731F3B95F9921F860 /* PickerPanel.swift */; };
@@ -18,11 +20,14 @@
 		6000A924FB289EBB72E82151 /* AppEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4139049302D47C4045C55849 /* AppEntry.swift */; };
 		634B5A29DB173CB186AEA74F /* SelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C74803BB339D796A63C573B /* SelfTest.swift */; };
 		638CE5F5F4421DE5ECDF48CB /* PickerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CCBD9096FB12048D01616CB /* PickerModel.swift */; };
+		732DAC5D4692E09BFD12C5D8 /* ViewSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3AC2FEF69479E98C4D421F1 /* ViewSettings.swift */; };
 		73CDCA3F50E73A1C7274BB32 /* PickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037FAB9A4198307730052878 /* PickerView.swift */; };
 		829650103E3A272BB3F4ECD6 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73F05372A3CFB699F78D3810 /* LibraryView.swift */; };
+		977F064CB3F38C64408C3598 /* PluginListEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BF67BAC5BEBF12736F6DDFB /* PluginListEditor.swift */; };
 		B6698E2B700481F96F237CE6 /* PluginScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC494F2B5B560D7D7E0576F /* PluginScanner.swift */; };
 		BB52456BC73E7F7B63CD7774 /* SnapshotQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D8253A9FE6E21B3D9B397C /* SnapshotQueue.swift */; };
 		C191BBA622110D3CD948D014 /* PluginInfoFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F608B448988A1A89DDCD5FF /* PluginInfoFetcher.swift */; };
+		CD346939783E9F7178E1B46A /* UpdateViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2681796AA97C126FB95E79 /* UpdateViews.swift */; };
 		D22591ED42A10F006786C1C9 /* BrowserViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34E87BE6934F9992090FD3D7 /* BrowserViews.swift */; };
 		F78662B9FA0CEF8D6FD35627 /* PluginStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5CDC69E29414C891F051553 /* PluginStore.swift */; };
 		FFA2055B855A7370107929E1 /* HotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCB6A0BF61AECC6CA35BB1C /* HotKey.swift */; };
@@ -32,7 +37,9 @@
 		00077A2165EC45288AA96D3D /* SnapshotRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotRenderer.swift; sourceTree = "<group>"; };
 		037FAB9A4198307730052878 /* PickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerView.swift; sourceTree = "<group>"; };
 		06868108A7897144F077F1A9 /* AX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AX.swift; sourceTree = "<group>"; };
+		0C2681796AA97C126FB95E79 /* UpdateViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateViews.swift; sourceTree = "<group>"; };
 		0CCBD9096FB12048D01616CB /* PickerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerModel.swift; sourceTree = "<group>"; };
+		299A9B50E9FA00B9CD96BB4B /* LogicCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicCatalog.swift; sourceTree = "<group>"; };
 		34E87BE6934F9992090FD3D7 /* BrowserViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserViews.swift; sourceTree = "<group>"; };
 		4139049302D47C4045C55849 /* AppEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEntry.swift; sourceTree = "<group>"; };
 		47DD4CBAA20C27D528F7B39D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -40,15 +47,18 @@
 		50F5393731F3B95F9921F860 /* PickerPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerPanel.swift; sourceTree = "<group>"; };
 		6B042F2F139C9BC37A700B94 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		73F05372A3CFB699F78D3810 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		7BF67BAC5BEBF12736F6DDFB /* PluginListEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginListEditor.swift; sourceTree = "<group>"; };
 		8C74803BB339D796A63C573B /* SelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfTest.swift; sourceTree = "<group>"; };
 		9832218C846C41CCE84EE25B /* LogicInserter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicInserter.swift; sourceTree = "<group>"; };
 		A0B95710023A6D70478D6947 /* AUPluginHelper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AUPluginHelper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A40958F02FB9A290CAE32633 /* AUPluginHelper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AUPluginHelper.entitlements; sourceTree = "<group>"; };
+		A4BCFC708FCEC0FCB02FAB8A /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
 		B378FE4509CA3109656FB411 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B5CDC69E29414C891F051553 /* PluginStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginStore.swift; sourceTree = "<group>"; };
 		C052973AD80BDB296910A5D1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		CE8A3763F9FDFB3440BFB1BB /* Plugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plugin.swift; sourceTree = "<group>"; };
 		CFCB6A0BF61AECC6CA35BB1C /* HotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKey.swift; sourceTree = "<group>"; };
+		E3AC2FEF69479E98C4D421F1 /* ViewSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSettings.swift; sourceTree = "<group>"; };
 		ECC494F2B5B560D7D7E0576F /* PluginScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginScanner.swift; sourceTree = "<group>"; };
 		F1D8253A9FE6E21B3D9B397C /* SnapshotQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotQueue.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -77,6 +87,7 @@
 				4139049302D47C4045C55849 /* AppEntry.swift */,
 				CFCB6A0BF61AECC6CA35BB1C /* HotKey.swift */,
 				8C74803BB339D796A63C573B /* SelfTest.swift */,
+				A4BCFC708FCEC0FCB02FAB8A /* Updater.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -89,7 +100,10 @@
 				0CCBD9096FB12048D01616CB /* PickerModel.swift */,
 				50F5393731F3B95F9921F860 /* PickerPanel.swift */,
 				037FAB9A4198307730052878 /* PickerView.swift */,
+				7BF67BAC5BEBF12736F6DDFB /* PluginListEditor.swift */,
 				C052973AD80BDB296910A5D1 /* SettingsView.swift */,
+				0C2681796AA97C126FB95E79 /* UpdateViews.swift */,
+				E3AC2FEF69479E98C4D421F1 /* ViewSettings.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -97,6 +111,7 @@
 		738F9566E1677FDB2B354AA1 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				299A9B50E9FA00B9CD96BB4B /* LogicCatalog.swift */,
 				CE8A3763F9FDFB3440BFB1BB /* Plugin.swift */,
 				ECC494F2B5B560D7D7E0576F /* PluginScanner.swift */,
 				B5CDC69E29414C891F051553 /* PluginStore.swift */,
@@ -223,18 +238,23 @@
 				FFA2055B855A7370107929E1 /* HotKey.swift in Sources */,
 				10D82D3F5003500679B0C910 /* Keychain.swift in Sources */,
 				829650103E3A272BB3F4ECD6 /* LibraryView.swift in Sources */,
+				0CA961A8922EC6ED3992384B /* LogicCatalog.swift in Sources */,
 				5F1DDE961B9F8D751CA4190E /* LogicInserter.swift in Sources */,
 				638CE5F5F4421DE5ECDF48CB /* PickerModel.swift in Sources */,
 				2D6262EC6916422A55A784A2 /* PickerPanel.swift in Sources */,
 				73CDCA3F50E73A1C7274BB32 /* PickerView.swift in Sources */,
 				47557892F55215301BC845F2 /* Plugin.swift in Sources */,
 				C191BBA622110D3CD948D014 /* PluginInfoFetcher.swift in Sources */,
+				977F064CB3F38C64408C3598 /* PluginListEditor.swift in Sources */,
 				B6698E2B700481F96F237CE6 /* PluginScanner.swift in Sources */,
 				F78662B9FA0CEF8D6FD35627 /* PluginStore.swift in Sources */,
 				634B5A29DB173CB186AEA74F /* SelfTest.swift in Sources */,
 				350E4778AC15447D7F1DB657 /* SettingsView.swift in Sources */,
 				BB52456BC73E7F7B63CD7774 /* SnapshotQueue.swift in Sources */,
 				19CCAF34EBAF9B01146347EA /* SnapshotRenderer.swift in Sources */,
+				CD346939783E9F7178E1B46A /* UpdateViews.swift in Sources */,
+				0586FA5BF3B48885B4267372 /* Updater.swift in Sources */,
+				732DAC5D4692E09BFD12C5D8 /* ViewSettings.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -277,7 +297,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2000;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 4HJV6RPCLU;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -298,7 +318,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -382,7 +402,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2000;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4HJV6RPCLU;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -397,7 +417,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
