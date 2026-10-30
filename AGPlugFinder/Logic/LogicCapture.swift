@@ -24,7 +24,13 @@ enum LogicCapture {
             progress(i, plugin.name)
             // Only the project window stays open: leftover plug-in windows hide Logic's menus.
             await closePluginWindows(app, pid: pid)
-            let outcome = await inserter.insert(plugin, replacing: plugin.slotKind == .instrument ? 0 : nil)
+            var outcome = await inserter.insert(plugin, replacing: plugin.slotKind == .instrument ? 0 : nil)
+            if case .inserted = outcome {} else {
+                // One retry: Logic sometimes needs a moment after the previous plug-in.
+                Keyboard.press(53, pid: pid)
+                try? await Task.sleep(for: .milliseconds(1200))
+                outcome = await inserter.insert(plugin, replacing: plugin.slotKind == .instrument ? 0 : nil)
+            }
             guard case .inserted = outcome else {
                 inserter.log("CAPTURE \(plugin.name): not inserted (\(outcome))"); failed.append(plugin.name)
                 Keyboard.press(53, pid: pid)
@@ -41,6 +47,12 @@ enum LogicCapture {
                     w.first(maxNodes: 400, where: { $0.stringValue == plugin.name || $0.title == plugin.name }) != nil
                 }
                 if pluginWindow != nil { break }
+            }
+            // Some windows (MIDI FX, Studio instruments) do not show the name to Accessibility:
+            // then the window Logic just focused is the plug-in's.
+            if pluginWindow == nil, let el: AXUIElement = app.attr(kAXFocusedWindowAttribute) {
+                let focused = AXNode(el: el)
+                if !focused.title.contains(" - ") { pluginWindow = focused }
             }
             try? await Task.sleep(for: .milliseconds(1200))      // let it draw
             if let w = pluginWindow, let image = await capture(w, pid: pid),
