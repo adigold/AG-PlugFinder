@@ -1,0 +1,41 @@
+name: AUPluginHelper
+options:
+  bundleIdPrefix: com.adigoldstein
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: 4HJV6RPCLU
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "Developer ID Application"
+    ENABLE_HARDENED_RUNTIME: YES
+    MACOSX_DEPLOYMENT_TARGET: "15.0"
+targets:
+  AUPluginHelper:
+    type: application
+    platform: macOS
+    sources: [AUPluginHelper]
+    entitlements:
+      path: AUPluginHelper/AUPluginHelper.entitlements
+      properties:
+        com.apple.security.cs.disable-library-validation: true
+        com.apple.security.cs.allow-unsigned-executable-memory: true
+    info:
+      path: AUPluginHelper/Info.plist
+      properties:
+        CFBundleDisplayName: AU Plugin Helper
+        CFBundleName: AU Plugin Helper
+        LSApplicationCategoryType: public.app-category.music
+        LSMinimumSystemVersion: "15.0"
+        NSHumanReadableCopyright: "© 2026 Adi Goldstein"
+        NSAccessibilityUsageDescription: "AU Plugin Helper places the plugin you pick into an empty insert slot in Logic Pro."
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.adigoldstein.AUPluginHelper
+        PRODUCT_NAME: AU Plugin Helper
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        OTHER_CODE_SIGN_FLAGS: "--timestamp"
