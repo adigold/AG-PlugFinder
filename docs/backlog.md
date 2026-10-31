@@ -15,6 +15,18 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-46** `P1 · Medium` **Category shortcuts above the grid:** a Settings option to show category buttons (EQ, Reverb, Delay...) in the chip row, next to collections or on their own, so one click shows only that category. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-45** `P1 · Medium` **Hotkey opens the big window:** Control Option P opens the main library window instead of the small popup. Adi, 2026-10-30. · done 2026-10-31
+- [x] **BL-44** `P2 · Low` **Plugin window keys:** close every open plugin window, and open all plugins of the track side by side. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-43** `P2 · Medium` **New track with an instrument:** create a new software instrument track with the chosen instrument loaded. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-42** `P2 · Medium` **Reverb as a send:** set up a bus with the chosen effect and a send from the track in one step. Test on a scratch project first. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-41** `P2 · Medium` **Add to several tracks at once:** insert a plugin or chain on every selected track. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-40** `P1 · Medium` **Find where a plugin is used:** list every track in the project that has a plugin and jump to that track. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-39** `P2 · Medium` **Insert before or after:** place a plugin before or after another one on the track, not only in the first free slot. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-38** `P1 · Medium` **Remove or clear:** remove the last added plugin, or clear all effects from the track. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-37** `P1 · High` **Save the track as a chain:** read the selected track's plugins and save them as a chain. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-36** `P1 · Medium` **Replace a plugin on the track:** "Replace on track" puts the new plugin into the same slot and removes the old one, keeping the chain order. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-35** `P1 · High` **See the track's plugins:** the app shows the plugins already on the selected Logic track, in order, each with an on/off switch. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-24** `P1 · High` **An amazing updater:** a beautiful update window with what is new, live download progress, clear steps (downloading, checking, installing, restarting), then the app installs the verified version, quits and opens again by itself. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-25** `P1 · High` **Plugin chains:** save a chain of plugins (for example EQ, Compressor, DeEsser, Reverb) and drop the whole chain on the selected track with one key. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-26** `P1 · High` **Number hotkeys for favorites:** pin plugins to Control Option 1 to 9 and insert them from anywhere in Logic without opening the window. Adi, 2026-10-31. · done 2026-10-31

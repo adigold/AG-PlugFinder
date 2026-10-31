@@ -13,6 +13,10 @@ final class PickerModel {
     var columns = 4
     /// The collection chip that is on (BL-29); nil shows everything.
     var collectionID: String? { didSet { if collectionID != oldValue { selection = 0 } } }
+    /// The category chip that is on (BL-46); nil shows every category.
+    var category: String? { didSet { if category != oldValue { selection = 0 } } }
+    /// Set from "Replace" on the track panel: the next plugin chosen takes this slot (BL-36).
+    var replaceTarget: StripPlugin?
     /// Plugins that fit the selected Logic track, shown first while the search is empty (BL-33).
     var suggestion: (track: String, ids: [String])?
 
@@ -26,9 +30,10 @@ final class PickerModel {
     var results: [Plugin] {
         let only = collectionID.flatMap { id in UserLibrary.shared.collections.first { $0.id == id } }
             .map { Set($0.pluginIDs) }
-        let list = PluginStore.shared.filtered(query: query, sort: sort,
+        var list = PluginStore.shared.filtered(query: query, sort: sort,
                                                favoritesOnly: ViewSettings.shared.favoritesOnly, only: only)
-        guard query.isEmpty, collectionID == nil, let s = suggestion, !s.ids.isEmpty else { return list }
+        if let category { list = list.filter { $0.displayCategory == category } }
+        guard query.isEmpty, collectionID == nil, category == nil, let s = suggestion, !s.ids.isEmpty else { return list }
         let rank = Dictionary(uniqueKeysWithValues: s.ids.enumerated().map { ($1, $0) })
         let first = list.filter { rank[$0.id] != nil }.sorted { rank[$0.id]! < rank[$1.id]! }
         return first + list.filter { rank[$0.id] == nil }
@@ -55,6 +60,7 @@ final class PickerModel {
         if !results.contains(where: { $0.id == id }) {
             query = ""
             collectionID = nil
+            category = nil
             ViewSettings.shared.favoritesOnly = false
         }
         select(id)
@@ -91,6 +97,10 @@ final class PickerModel {
     /// Places the selected plugin in Logic. `onHide`/`onShow` let the popup step out of the way.
     func insertSelected(replacing slot: Int? = nil, onHide: () -> Void = {}, onShow: @escaping () -> Void = {}) {
         guard let plugin = selected, !isBusy else { return }
+        if let target = replaceTarget, slot == nil {
+            replace(target, with: plugin, onHide: onHide, onShow: onShow)
+            return
+        }
         isBusy = true
         message = nil
         slotChoices = nil
@@ -101,6 +111,8 @@ final class PickerModel {
             switch outcome {
             case .inserted:
                 PluginStore.shared.markUsed(plugin.id)
+                LogicTrack.shared.lastAdded = plugin.name
+                TrackState.shared.refreshSoon()
                 return
             case .allFull(let slots):
                 slotChoices = slots
@@ -119,6 +131,28 @@ final class PickerModel {
                 message = text
             }
             onShow()
+        }
+    }
+
+    /// Puts the chosen plugin in the slot picked on the track panel (BL-36).
+    func replace(_ target: StripPlugin, with plugin: Plugin, onHide: () -> Void = {},
+                 onShow: @escaping () -> Void = {}) {
+        guard !isBusy else { return }
+        isBusy = true
+        message = nil
+        onHide()
+        Task {
+            let problem = await LogicTrack.shared.replace(target, with: plugin)
+            isBusy = false
+            if let problem {
+                message = problem
+                onShow()
+            } else {
+                replaceTarget = nil
+                PluginStore.shared.markUsed(plugin.id)
+                Toast.show("Replaced \(target.name) with \(plugin.name)")
+                TrackState.shared.refreshSoon()
+            }
         }
     }
 }

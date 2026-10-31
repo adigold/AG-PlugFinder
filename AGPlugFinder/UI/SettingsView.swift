@@ -29,7 +29,12 @@ struct GeneralSettings: View {
             Section("General") {
                 Toggle("Open at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, on in LaunchAtLogin.set(on) }
-                LabeledContent("Picker hotkey", value: HotKey.display)
+                LabeledContent("Open AG PlugFinder", value: HotKey.display)
+                LabeledContent("Plugin windows", value: "\(HotKey.openAllDisplay) opens the track's plugins side by side, \(HotKey.closeAllDisplay) closes them")
+                Picker("Buttons above the plugins", selection: Bindable(ViewSettings.shared).chipRow) {
+                    ForEach(ViewSettings.ChipRow.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
                 LabeledContent("Number keys", value: "⌃⌥1 to ⌃⌥9 insert what you pin to them")
             }
 

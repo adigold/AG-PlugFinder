@@ -14,6 +14,7 @@ struct LibraryView: View {
     @State private var fullFrame: NSRect?
     @State private var showActions = false
     @State private var showChains = false
+    @State private var showTrack = false
     var store = PluginStore.shared
     var snapshots = SnapshotQueue.shared
     var fetcher = PluginInfoFetcher.shared
@@ -38,7 +39,10 @@ struct LibraryView: View {
         })
         .onAppear(perform: installKeys)
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { n in
-            if (n.object as? NSWindow) === window { model.refreshSuggestion() }
+            if (n.object as? NSWindow) === window {
+                model.refreshSuggestion()
+                TrackState.shared.refresh()
+            }
         }
         .onDisappear(perform: removeKeys)
         .onReceive(NotificationCenter.default.publisher(for: .toggleMiniMode)) { _ in toggleMini() }
@@ -61,6 +65,7 @@ struct LibraryView: View {
             topBar
             UpdateBanner()
             activityStrip
+            ReplaceBanner(model: model)
             CollectionBar(model: model)
             HStack(spacing: 0) {
                 PluginGrid(model: model) { insert() }
@@ -112,6 +117,9 @@ struct LibraryView: View {
                 .frame(minWidth: 220, maxWidth: 480)
             Spacer(minLength: 16)
             HStack(spacing: 2) {
+                BarIconButton(systemImage: "slider.vertical.3", help: "This track in Logic: its plugins, on and off, replace, remove",
+                              active: showTrack) { showTrack.toggle() }
+                    .popover(isPresented: $showTrack, arrowEdge: .bottom) { TrackPanel(model: model) { showTrack = false } }
                 BarIconButton(systemImage: "link", help: "Chains: add several plugins at once", active: showChains) {
                     showChains.toggle()
                 }
@@ -261,6 +269,7 @@ struct LibraryView: View {
             case 124: model.move(1); return nil                   // Right
             case 36, 76: insert(); return nil                     // Return
             case 53:                                               // Esc
+                if model.replaceTarget != nil { model.replaceTarget = nil; return nil }
                 if !model.query.isEmpty { model.query = "" } else { model.message = nil }
                 return nil
             default: break

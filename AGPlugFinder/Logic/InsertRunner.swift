@@ -33,6 +33,7 @@ enum InsertRunner {
                 case .inserted:
                     added += 1
                     PluginStore.shared.markUsed(p.id)
+                    LogicTrack.shared.lastAdded = p.name
                     try? await Task.sleep(for: .milliseconds(500))
                 case .allFull:
                     problem = p.slotKind == .instrument
@@ -49,6 +50,7 @@ enum InsertRunner {
                 if case .logicNotRunning = outcome { break }
             }
             running = false
+            TrackState.shared.refreshSoon()
             if let problem, added == 0 { Toast.show(problem, warning: true) }
             else if let problem { Toast.show("Added \(added) of \(plugins.count). \(problem)", warning: true) }
             else { Toast.show(plugins.count > 1 ? "Added \(title): \(added) plugins" : "Added \(title)") }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The quick picker (⌃⌥P): a floating panel over Logic. Type, move with the arrows, Return.
+/// The quick picker (menu bar > Quick Picker): a floating panel over Logic. Type, move with the arrows, Return.
 struct PickerView: View {
     @Bindable var model: PickerModel
     var controller: PickerPanelController { .shared }

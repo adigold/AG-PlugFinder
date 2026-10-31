@@ -80,6 +80,17 @@ enum SelfTest {
         say("done")
     }
 
+    /// The real Control Option P, as the keyboard sends it.
+    private static func pressHotKey() {
+        let src = CGEventSource(stateID: .hidSystemState)
+        for down in [true, false] {
+            let e = CGEvent(keyboardEventSource: src, virtualKey: 35, keyDown: down)
+            e?.flags = [.maskControl, .maskAlternate]
+            e?.post(tap: .cghidEventTap)
+            usleep(30_000)
+        }
+    }
+
     private static func shoot<V: View>(_ view: V, size: NSSize, to url: URL) async {
         let w = NSWindow(contentRect: NSRect(origin: NSPoint(x: 80, y: 80), size: size),
                          styleMask: [.borderless], backing: .buffered, defer: false)
@@ -128,6 +139,55 @@ enum SelfTest {
                     print("MINI \(Int(window.frame.width))x\(Int(window.frame.height))")
                 }
                 print("WINDOW state \(Updater.shared.state)"); fflush(stdout)
+            }
+        }
+        // --selftest-track <dir>: the track panel, the tracks window, category chips and the
+        // hotkey's window toggle, photographed from the app's own windows only.
+        if let k = args.firstIndex(of: "--selftest-track"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task {
+                func say(_ s: String) { print("TRACKUI " + s); fflush(stdout) }
+                TrackState.shared.refresh()
+                say("track \(TrackState.shared.track ?? "none"): \(TrackState.shared.plugins.map(\.name))")
+                let model = PickerModel()
+                await shoot(TrackPanel(model: model) {}, size: NSSize(width: 380, height: 560), to: dir.appendingPathComponent("track-panel.png"))
+                model.replaceTarget = TrackState.shared.plugins.last
+                await shoot(ReplaceBanner(model: model).frame(width: 900), size: NSSize(width: 900, height: 40), to: dir.appendingPathComponent("replace-banner.png"))
+                let view = ViewSettings.shared
+                let oldRow = view.chipRow
+                for row in [ViewSettings.ChipRow.categories, .both] {
+                    view.chipRow = row
+                    await shoot(CollectionBar(model: PickerModel()).frame(width: 1100), size: NSSize(width: 1100, height: 44),
+                                to: dir.appendingPathComponent("chips-\(row.rawValue).png"))
+                }
+                let m2 = PickerModel()
+                m2.category = "Reverb"
+                say("category Reverb: \(m2.results.count) plugins, all reverb: \(m2.results.allSatisfy { $0.displayCategory == "Reverb" })")
+                view.chipRow = oldRow
+                if let p = PluginStore.shared.plugins.first(where: { $0.name == "ChromaVerb" }) {
+                    TracksWindow.shared.show(.find(p))
+                    try? await Task.sleep(for: .seconds(4))
+                    if let w = NSApp.windows.first(where: { $0.isVisible && ($0.contentView as? NSHostingView<TracksView>) != nil }) {
+                        await capture(w, to: dir.appendingPathComponent("tracks-find.png"))
+                        w.orderOut(nil)
+                    }
+                }
+                // Control Option P: brings the main window up, then puts it away.
+                say("windows: " + NSApp.windows.map { "\($0.identifier?.rawValue ?? "nil")/\(type(of: $0))/vis=\($0.isVisible)" }.joined(separator: ", ") + " opener=\(LibraryWindow.opener != nil)")
+                LibraryWindow.window?.orderOut(nil)
+                LogicInserter.shared.logicApp?.activate()
+                try? await Task.sleep(for: .milliseconds(800))
+                pressHotKey()
+                try? await Task.sleep(for: .milliseconds(1000))
+                say("after first press: " + NSApp.windows.filter(\.isVisible).map { "\($0.identifier?.rawValue ?? "nil") key=\($0.isKeyWindow)" }.joined(separator: ", ") + " active=\(NSApp.isActive)")
+                let shown = LibraryWindow.window.map { $0.isVisible && $0.isKeyWindow } ?? false
+                say("picker instead: \(PickerPanelController.shared.isVisible)")
+                PickerPanelController.shared.hide()
+                pressHotKey()
+                try? await Task.sleep(for: .milliseconds(500))
+                let hidden = !(LibraryWindow.window?.isVisible ?? false)
+                say("hotkey shows library: \(shown), second press hides it: \(hidden)")
+                say("done")
             }
         }
         if let k = args.firstIndex(of: "--selftest-features"), k + 1 < args.count {

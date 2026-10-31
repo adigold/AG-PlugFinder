@@ -23,45 +23,89 @@ enum NamePrompt {
 
 // MARK: - Collections bar (BL-29) and track suggestions (BL-33)
 
-/// Chips above the grid: All, then each collection. Shown once a collection exists.
+/// Chips above the grid: All, then each collection and, when Settings says so, each category
+/// (BL-46). Shown once there is something to show.
 struct CollectionBar: View {
     @Bindable var model: PickerModel
     var library = UserLibrary.shared
+    var view = ViewSettings.shared
+
+    private var categories: [String] {
+        let store = PluginStore.shared
+        let counts = Dictionary(grouping: store.plugins.filter(store.isVisible), by: \.displayCategory).mapValues(\.count)
+        return counts.filter { !$0.key.isEmpty }.sorted { $0.value == $1.value ? $0.key < $1.key : $0.value > $1.value }.map(\.key)
+    }
 
     var body: some View {
-        if !library.collections.isEmpty || model.suggestion != nil {
+        let showCollections = view.chipRow.showsCollections && !library.collections.isEmpty
+        let showCategories = view.chipRow.showsCategories
+        if showCollections || showCategories || model.suggestion != nil {
             HStack(spacing: 8) {
-                if !library.collections.isEmpty {
-                    Chip(title: "All", on: model.collectionID == nil) { model.collectionID = nil }
-                    ForEach(library.collections) { c in
-                        Chip(title: "\(c.name)  \(c.pluginIDs.count)", on: model.collectionID == c.id) {
-                            model.collectionID = model.collectionID == c.id ? nil : c.id
-                        }
-                        .contextMenu {
-                            Button("Rename…") {
-                                if let n = NamePrompt.ask("Rename collection", placeholder: "Name", initial: c.name),
-                                   let i = library.collections.firstIndex(where: { $0.id == c.id }) {
-                                    library.collections[i].name = n
-                                }
-                            }
-                            Button("Delete Collection") {
-                                if model.collectionID == c.id { model.collectionID = nil }
-                                library.collections.removeAll { $0.id == c.id }
-                            }
-                        }
+                if showCollections || showCategories {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) { chips(showCollections, showCategories) }
                     }
+                    .layoutPriority(1)
                 }
                 Spacer(minLength: 8)
-                if let s = model.suggestion, model.query.isEmpty, model.collectionID == nil {
-                    HStack(spacing: 7) {
-                        Circle().fill(Theme.accent).frame(width: 6, height: 6)
-                        Text("Suggested for “\(s.track)” shown first")
-                            .font(.system(size: 12)).foregroundStyle(Theme.muted).lineLimit(1)
-                    }
-                    .help("Plugins that fit the selected Logic track come first while the search is empty")
-                }
+                suggestionNote
             }
             .padding(.horizontal, 18).frame(height: 44)
+            .onChange(of: view.chipRow) { _, row in
+                if !row.showsCategories { model.category = nil }
+                if !row.showsCollections { model.collectionID = nil }
+            }
+        }
+    }
+
+    @ViewBuilder private func chips(_ showCollections: Bool, _ showCategories: Bool) -> some View {
+        Chip(title: "All", on: model.collectionID == nil && model.category == nil) {
+            model.collectionID = nil; model.category = nil
+        }
+        if showCollections { collectionChips }
+        if showCollections && showCategories {
+            Rectangle().fill(Theme.raised).frame(width: 1, height: 18).padding(.horizontal, 2)
+        }
+        if showCategories {
+            ForEach(categories, id: \.self) { c in
+                Chip(title: c, on: model.category == c) {
+                    model.category = model.category == c ? nil : c
+                    model.collectionID = nil
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private var suggestionNote: some View {
+        if let s = model.suggestion, model.query.isEmpty, model.collectionID == nil, model.category == nil {
+            HStack(spacing: 7) {
+                Circle().fill(Theme.accent).frame(width: 6, height: 6)
+                Text("Suggested for “\(s.track)” shown first")
+                    .font(.system(size: 12)).foregroundStyle(Theme.muted).lineLimit(1)
+            }
+            .fixedSize()
+            .help("Plugins that fit the selected Logic track come first while the search is empty")
+        }
+    }
+
+    @ViewBuilder private var collectionChips: some View {
+        ForEach(library.collections) { c in
+            Chip(title: "\(c.name)  \(c.pluginIDs.count)", on: model.collectionID == c.id) {
+                model.collectionID = model.collectionID == c.id ? nil : c.id
+                model.category = nil
+            }
+            .contextMenu {
+                Button("Rename…") {
+                    if let n = NamePrompt.ask("Rename collection", placeholder: "Name", initial: c.name),
+                       let i = library.collections.firstIndex(where: { $0.id == c.id }) {
+                        library.collections[i].name = n
+                    }
+                }
+                Button("Delete Collection") {
+                    if model.collectionID == c.id { model.collectionID = nil }
+                    library.collections.removeAll { $0.id == c.id }
+                }
+            }
         }
     }
 }
@@ -118,6 +162,7 @@ struct PluginExtras: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             usage
+            logicRow
             pinRow
             collectionsRow
             chainRow
@@ -139,6 +184,27 @@ struct PluginExtras: View {
             Text(n == 0 ? "Not used yet" : "Used \(n) time\(n == 1 ? "" : "s")"
                  + (PluginStore.shared.lastUsed[plugin.id].map { " · last \($0.formatted(.relative(presentation: .named)))" } ?? ""))
                 .font(.system(size: 12)).foregroundStyle(Theme.muted)
+        }
+    }
+
+    /// One-step Logic actions for this plugin (BL-40 to BL-43).
+    private var logicRow: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            label("In Logic")
+            FlowRow(spacing: 6) {
+                if plugin.slotKind == .audioFX {
+                    Chip(title: "As a send", systemImage: "arrow.turn.down.right", on: false) { TrackActions.addAsSend(plugin) }
+                }
+                if plugin.slotKind == .instrument {
+                    Chip(title: "New track", systemImage: "plus", on: false) { TrackActions.newTrack(plugin) }
+                }
+                Chip(title: "Several tracks", systemImage: "square.stack", on: false) {
+                    TracksWindow.shared.show(.add([plugin], plugin.name))
+                }
+                Chip(title: "Find on tracks", systemImage: "magnifyingglass", on: false) {
+                    TracksWindow.shared.show(.find(plugin))
+                }
+            }
         }
     }
 
@@ -377,6 +443,10 @@ struct ChainsPanel: View {
                 }
             }
             HStack {
+                Button("Add to several tracks…") {
+                    close(); TracksWindow.shared.show(.add(plugins, chain.name))
+                }
+                .disabled(plugins.isEmpty)
                 Button("Rename") {
                     if let n = NamePrompt.ask("Rename chain", placeholder: "Name", initial: chain.name),
                        let i = library.chains.firstIndex(where: { $0.id == chain.id }) { library.chains[i].name = n }

@@ -1,7 +1,7 @@
 import Carbon.HIToolbox
 
 /// System-wide hotkeys, through the Carbon hotkey API, which needs no permission:
-/// Ctrl+Option+P opens the picker, Ctrl+Option+1…9 insert what is pinned to that number (BL-26).
+/// Ctrl+Option+P opens the main window, Ctrl+Option+1…9 insert what is pinned to that number (BL-26).
 final class HotKey {
     static let shared = HotKey()
     private var refs: [UInt32: EventHotKeyRef] = [:]
@@ -9,6 +9,8 @@ final class HotKey {
     fileprivate var actions: [UInt32: () -> Void] = [:]
 
     static let display = "⌃⌥P"
+    static let openAllDisplay = "⌃⌥O"
+    static let closeAllDisplay = "⌃⌥W"
     static func pinDisplay(_ n: Int) -> String { "⌃⌥\(n)" }
 
     private static let digitKeys: [Int: Int] = [
@@ -19,6 +21,13 @@ final class HotKey {
     func register(_ action: @escaping () -> Void) {
         installHandler()
         set(id: 1, key: kVK_ANSI_P, action: action)
+    }
+
+    /// Ctrl+Option+O opens the track's plugins side by side, Ctrl+Option+W closes plugin windows (BL-44).
+    func registerWindowKeys(openAll: @escaping () -> Void, closeAll: @escaping () -> Void) {
+        installHandler()
+        set(id: 2, key: kVK_ANSI_O, action: openAll)
+        set(id: 3, key: kVK_ANSI_W, action: closeAll)
     }
 
     /// Registers Ctrl+Option+n only for the numbers that have something pinned.

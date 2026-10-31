@@ -320,7 +320,7 @@ final class LogicInserter {
 
     // MARK: The plug-in menu
 
-    private func openMenu(on slot: AXNode, app: AXNode, legacy: Bool = false) async -> AXNode? {
+    func openMenu(on slot: AXNode, app: AXNode, legacy: Bool = false) async -> AXNode? {
         let actions = slot.actions
         // Logic's own second action on a slot (its Option-click) lists the legacy plug-ins too.
         if legacy, let withLegacy = actions.first(where: { $0.contains("legacy plug-ins") }) {
@@ -351,7 +351,7 @@ final class LogicInserter {
         return nil
     }
 
-    private func chooseBySearch(_ plugin: Plugin, menu: AXNode, app: AXNode, pid: pid_t) async -> Bool {
+    func chooseBySearch(_ plugin: Plugin, menu: AXNode, app: AXNode, pid: pid_t) async -> Bool {
         guard let field = menu.first(maxNodes: 300, where: {
             [AXRole.textField, "AXSearchField"].contains($0.role) || $0.subrole == "AXSearchField"
                 || $0.placeholder.localizedCaseInsensitiveContains("Search")
@@ -369,7 +369,7 @@ final class LogicInserter {
     }
 
     /// The slot menu's Legacy submenu: Legacy → group (Delay, EQ …) → plug-in.
-    private func chooseLegacy(_ plugin: Plugin, menu: AXNode, app: AXNode) async -> Bool {
+    func chooseLegacy(_ plugin: Plugin, menu: AXNode, app: AXNode) async -> Bool {
         var groups = menu
         if let legacy = menuItems(menu).first(where: { $0.title == "Legacy" }),
            let sub = await submenu(of: legacy) { groups = sub }
@@ -389,7 +389,7 @@ final class LogicInserter {
         menuItems(menu).first { $0.isEnabled && $0.title.localizedCaseInsensitiveCompare(plugin.name) == .orderedSame }
     }
 
-    private func chooseByBrowsing(_ plugin: Plugin, menu: AXNode, app: AXNode) async -> Bool {
+    func chooseByBrowsing(_ plugin: Plugin, menu: AXNode, app: AXNode) async -> Bool {
         if plugin.isLogic {
             // Top level first (Drum Machine Designer, recent items), then Logic's groups.
             if let item = menuItems(menu).first(where: {
@@ -428,7 +428,7 @@ final class LogicInserter {
     }
 
     /// Presses the item; when it opens a channel-format submenu (Mono / Stereo …) picks Stereo.
-    private func pick(_ item: AXNode, app: AXNode) async -> Bool {
+    func pick(_ item: AXNode, app: AXNode) async -> Bool {
         if let formats = await submenu(of: item, pressIfNeeded: false) {
             let items = menuItems(formats).filter(\.isEnabled)
             guard let choice = items.first(where: { $0.title == "Stereo" }) ?? items.first
@@ -438,11 +438,11 @@ final class LogicInserter {
         return item.perform(kAXPressAction)
     }
 
-    private func menuItems(_ menu: AXNode) -> [AXNode] {
+    func menuItems(_ menu: AXNode) -> [AXNode] {
         menu.children.filter { $0.role == AXRole.menuItem }
     }
 
-    private func submenu(of item: AXNode, pressIfNeeded: Bool = true) async -> AXNode? {
+    func submenu(of item: AXNode, pressIfNeeded: Bool = true) async -> AXNode? {
         if let m = item.children.first(where: { $0.role == AXRole.menu }), !m.children.isEmpty {
             return m
         }
@@ -508,7 +508,8 @@ final class LogicInserter {
 
     func projectWindow(_ app: AXNode) -> AXUIElement? {
         let windows = app.children.filter { $0.role == kAXWindowRole as String }
-        if let tracks = windows.first(where: { $0.title.hasSuffix("- Tracks") || $0.title.contains(" - ") }) {
+        if let tracks = windows.first(where: { $0.title.hasSuffix("- Tracks") })
+            ?? windows.first(where: { $0.title.contains(" - ") && !$0.title.contains(" - Mixer") }) {
             return tracks.el
         }
         return windows.max { a, b in
@@ -737,6 +738,76 @@ enum LogicProbe {
             // --track-name: logs the selected track's name (read only).
             if args.contains("--track-name") {
                 inserter.log("TRACK \(inserter.selectedTrackName() ?? "none") trusted=\(AXAccess.isTrusted)")
+            }
+            // --track <action> [args]: the track features, one at a time, for live checks.
+            if let i = args.firstIndex(of: "--track"), i + 1 < args.count {
+                let t = LogicTrack.shared
+                let rest = Array(args[(i + 2)...])
+                @MainActor func plugin(_ n: String) -> Plugin? { PluginStore.shared.plugins.first { $0.name == n } }
+                @MainActor func slot(_ n: String) -> StripPlugin? { t.read()?.plugins.first { $0.name == n } }
+                @MainActor func dump(_ tag: String) {
+                    let r = t.read()
+                    inserter.log("TRACKTEST \(tag): \(r?.track ?? "none") = " +
+                                 (r?.plugins.map { "\($0.name)[\($0.kind.rawValue) on=\($0.isOn.map(String.init) ?? "?")]" }.joined(separator: " | ") ?? ""))
+                }
+                dump("before")
+                var result = "ok"
+                switch args[i + 1] {
+                case "toggle": if let s = slot(rest[0]) { t.toggle(s) }
+                case "remove-last": result = await t.removeLastAdded() ?? "nothing"
+                case "clear": result = "\(await t.clearEffects())"
+                case "open-all": result = "\(await t.openAll())"
+                case "close-all": await t.closeAll()
+                case "close-mixer": t.closeMixer()
+                case "open-mixer": await t.showMixer()
+                case "tile":
+                    if let (_, app) = t.logic() {
+                        t.tilePluginWindows(app)
+                        for ms in [100, 400, 1000, 2000] {
+                            try? await Task.sleep(for: .milliseconds(ms))
+                            inserter.log("TRACK after \(ms)ms: " + app.children.filter { !$0.title.contains(" - ") }.map { "\(Int($0.frame.minX))" }.joined(separator: ","))
+                        }
+                    }
+                case "sendup":
+                    if let (_, app) = t.logic(), let strip = t.leftStrip(app),
+                       let k = strip.findAll(maxNodes: 300, where: { $0.desc == "send knob" }).first {
+                        var steps: [String] = []
+                        for _ in 0..<Int(rest[0])! {
+                            k.perform(kAXIncrementAction)
+                            try? await Task.sleep(for: .milliseconds(60))
+                            let v: AnyObject? = k.attr(kAXValueAttribute)
+                            let d: AnyObject? = k.attr("AXValueDescription")
+                            steps.append("\(v.map { "\($0)" } ?? "?")=\(d.map { "\($0)" } ?? "?")")
+                        }
+                        result = steps.joined(separator: " ")
+                    }
+                case "sendlevel":
+                    if let (_, app) = t.logic(), let strip = t.leftStrip(app) {
+                        result = strip.findAll(maxNodes: 300) { $0.desc == "send knob" }.map { k in
+                            let v: AnyObject? = k.attr(kAXValueAttribute)
+                            let d: AnyObject? = k.attr("AXValueDescription")
+                            return "\(String(describing: v)) / \(String(describing: d))"
+                        }.joined(separator: ", ")
+                    }
+                case "replace": if let s = slot(rest[0]), let p = plugin(rest[1]) { result = await t.replace(s, with: p) ?? "ok" }
+                case "before", "after":
+                    if let s = slot(rest[0]), let p = plugin(rest[1]) {
+                        result = await t.insert(p, before: args[i + 1] == "before", s) ?? "ok"
+                    }
+                case "send": if let p = plugin(rest[0]) { result = await t.addAsSend(p) ?? "ok" }
+                case "newtrack": if let p = plugin(rest[0]) { result = await t.newInstrumentTrack(p) ?? "ok" }
+                case "scan": result = (await t.scanProject())?.map { "\($0.name): \($0.plugins)" }.joined(separator: " ; ") ?? "nil"
+                case "goto":
+                    if let tr = await t.scanProject()?.first(where: { $0.name == rest[0] }) { result = "\(await t.goTo(tr))" }
+                case "add":
+                    if let p = plugin(rest[0]), let all = await t.scanProject() {
+                        result = await t.add([p], to: all.filter { rest.dropFirst().contains($0.name) })
+                    }
+                default: result = "unknown action"
+                }
+                try? await Task.sleep(for: .milliseconds(800))
+                inserter.log("TRACKTEST result: \(result)")
+                dump("after")
             }
             // --close-logic-windows: closes every open plug-in window in Logic.
             if args.contains("--close-logic-windows"), let logic = inserter.logicApp {

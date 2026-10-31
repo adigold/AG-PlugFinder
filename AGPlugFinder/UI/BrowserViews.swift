@@ -675,6 +675,8 @@ struct PluginContextMenu: View {
             store.toggleFavorite(plugin.id)
         }
         Divider()
+        TrackMenuItems(plugin: plugin)
+        Divider()
         if !plugin.isLogic {
             Button(plugin.snapshotState == .done ? "Retake Screenshot" : "Take Screenshot") {
                 SnapshotQueue.shared.recapture(plugin.id)
