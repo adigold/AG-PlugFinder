@@ -64,7 +64,7 @@ PACK="$BUILD/pack" && rm -rf "$PACK" && mkdir -p "$PACK/screenshots"
 SHOTS="$HOME/Library/Application Support/AG PlugFinder/Screenshots"
 for f in "$SHOTS"/*.png; do
   [ -e "$f" ] || continue
-  case "$(basename "$f")" in logic-*) continue;; esac
+  case "$(basename "$f")" in logic-*|*.previous.png) continue;; esac
   sips -s format jpeg -s formatOptions 80 "$f" --out "$PACK/screenshots/$(basename "${f%.png}").jpg" >/dev/null
 done
 python3 - "$HOME/Library/Application Support/AG PlugFinder/catalog.json" > "$PACK/info.json" <<'PY2'

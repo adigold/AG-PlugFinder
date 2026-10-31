@@ -17,10 +17,46 @@ enum WebPicture {
         WebPictureWindow.shared.show(list)
     }
 
+    /// Where the picture before a change is kept, so it can be put back.
+    static func backupURL(_ id: String) -> URL {
+        PluginStore.shared.snapshotURL(for: id).deletingPathExtension().appendingPathExtension("previous.png")
+    }
+
+    static func backUp(_ id: String) {
+        let fm = FileManager.default
+        let current = PluginStore.shared.snapshotURL(for: id)
+        guard fm.fileExists(atPath: current.path) else { return }
+        try? fm.removeItem(at: backupURL(id))
+        try? fm.copyItem(at: current, to: backupURL(id))
+    }
+
+    /// Puts back the picture from before the last change.
+    static func undo(_ p: Plugin) {
+        let fm = FileManager.default
+        let backup = backupURL(p.id), current = PluginStore.shared.snapshotURL(for: p.id)
+        guard fm.fileExists(atPath: backup.path) else { return }
+        try? fm.removeItem(at: current)
+        try? fm.moveItem(at: backup, to: current)
+        PluginStore.shared.update(p.id) { $0.snapshotState = .done; $0.snapshotError = nil }
+        PluginStore.shared.snapshotChanged()
+        Toast.show("Picture changed back")
+    }
+
+    /// The picture other users shared for this plugin (the community database).
+    static func useCommunity(_ p: Plugin) {
+        Task {
+            backUp(p.id)
+            let got = await PlugDB.fetchApproved([p.id])
+            Toast.show(got.isEmpty ? "No community picture for \(p.name) yet." : "Using the community picture for \(p.name)",
+                       warning: got.isEmpty)
+        }
+    }
+
     static func save(_ data: Data, for p: Plugin) -> Bool {
         guard let rep = NSBitmapImageRep(data: data), rep.pixelsWide >= 200, rep.pixelsHigh >= 120,
               let png = rep.representation(using: .png, properties: [:]) else { return false }
         let store = PluginStore.shared
+        backUp(p.id)
         guard (try? png.write(to: store.snapshotURL(for: p.id))) != nil else { return false }
         store.update(p.id) { $0.snapshotState = .done; $0.snapshotError = nil }
         store.snapshotChanged()
@@ -209,12 +245,34 @@ enum WebPicture {
                 }
             }
         }
-        grab(#"<meta[^>]+(?:property|name)=["'](?:og:image(?::secure_url)?|twitter:image)["'][^>]+content=["']([^"']+)["']|<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:image|twitter:image)["']"#, limit: 2)
-        let words = p.name.lowercased().split(whereSeparator: { !$0.isLetter && !$0.isNumber }).map(String.init).filter { $0.count >= 3 }
-        grab(#"<img[^>]+(?:src|data-src)=["']([^"']+\.(?:png|jpe?g|webp)[^"']*)["']"#, limit: 5) { src in
-            !src.contains("logo") && !src.contains("icon") && words.contains(where: { src.contains($0) })
+        // Only pictures whose address names the plugin: a site's own banner (the same picture on
+        // every page, like "Developer Documentation") never does.
+        let words = nameWords(p.name)
+        let generic = ["logo", "icon", "avatar", "sprite", "banner", "placeholder", "default", "social", "favicon", "share-image"]
+        let fits: (String) -> Bool = { src in
+            let s = src.removingPercentEncoding?.lowercased() ?? src
+            return !generic.contains(where: s.contains) && words.contains(where: { s.contains($0) })
         }
+        grab(#"<meta[^>]+(?:property|name)=["'](?:og:image(?::secure_url)?|twitter:image)["'][^>]+content=["']([^"']+)["']|<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:image|twitter:image)["']"#, limit: 2, filter: fits)
+        grab(#"<img[^>]+(?:src|data-src)=["']([^"']+\.(?:png|jpe?g|webp)[^"']*)["']"#, limit: 5, filter: fits)
         return out
+    }
+
+    /// The telling words of a plugin's name, also inside joined names: "AUParametricEQ" gives
+    /// "parametric"; "Neutron 4 Exciter" gives "neutron" and "exciter".
+    nonisolated static func nameWords(_ name: String) -> [String] {
+        var parts: [String] = []
+        var word = ""
+        var prev: Character?
+        for ch in name {
+            if !(ch.isLetter || ch.isNumber) { if !word.isEmpty { parts.append(word) }; word = ""; prev = nil; continue }
+            if let pr = prev, ch.isUppercase, pr.isLowercase { parts.append(word); word = "" }
+            word.append(ch); prev = ch
+        }
+        if !word.isEmpty { parts.append(word) }
+        let common: Set = ["plugin", "audio", "the", "pro", "free", "version", "stereo", "mono", "au", "vst"]
+        let whole = name.lowercased().filter { $0.isLetter || $0.isNumber }
+        return Array(Set(parts.map { $0.lowercased() }.filter { $0.count >= 4 && !common.contains($0) } + [whole]))
     }
 
     /// Only an https image of a sensible size.

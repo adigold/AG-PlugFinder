@@ -738,7 +738,10 @@ struct PluginContextMenu: View {
             Button("Clear Screenshot") { store.clearScreenshots([plugin.id]) }
                 .disabled(store.image(for: plugin.id) == nil)
             Button("Find Picture on the Web") { WebPicture.find([plugin]) }
-                .disabled(!WebPicture.available)
+            Button("Use the Community Picture") { WebPicture.useCommunity(plugin) }
+            if FileManager.default.fileExists(atPath: WebPicture.backupURL(plugin.id).path) {
+                Button("Undo Picture Change") { WebPicture.undo(plugin) }
+            }
         }
         Button(plugin.details == nil ? "Look Up Info" : "Look Up Info Again") {
             PluginInfoFetcher.shared.start(ids: [plugin.id])
