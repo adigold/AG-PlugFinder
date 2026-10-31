@@ -7,6 +7,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
+- [ ] **BL-71** `P2 · Medium` **Shared plugin database:** users can choose to share plugin pictures and info; Adi approves them; everyone downloads them so the same plugin is never scanned twice. Neon database (Adi's choice) behind a small API with auth; pictures in the database or blob storage. Adi, 2026-10-31.
 - [~] **BL-50** `P2 · Medium` **Free plugin info without an API key:** offer a free model for Look Up Info next to the paid one, ideally the Mac's own built-in model (no download), else a small downloadable one. Adi, 2026-10-31. Built-in model shipped in 0.7.0; the downloadable model is built behind the LOCAL_MODEL switch and waits for the Metal toolchain.
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
@@ -24,6 +25,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-72** `P1 · High` **Plugin popups during the picture scan:** a plugin's own popup ("Too many parameters in process", Absynth 5 MFX) is closed at once and noted; a plugin that failed is not tried again on every scan. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-63** `P2 · Low` **Menu bar icon:** the app's own three-bar mark instead of a generic puzzle piece. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-62** `P1 · Medium` **Install with Homebrew:** tap adigold/homebrew-tap with the ag-plugfinder cask, README steps, release.sh updates the cask on every release. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-61** `P2 · Medium` **Magnifier on the info panel picture:** a magnifier on hover; click opens the picture large, zoom with pinch or double-click, Esc or a click outside closes it. Adi, 2026-10-31. · done 2026-10-31

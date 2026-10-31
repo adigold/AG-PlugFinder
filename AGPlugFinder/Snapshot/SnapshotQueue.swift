@@ -51,10 +51,11 @@ final class SnapshotQueue {
                 if force { return true }
                 // Never re-capture a plugin whose picture is already on disk.
                 let hasImage = FileManager.default.fileExists(atPath: store.snapshotURL(for: p.id).path)
+                // A plugin that failed once is not tried again on every scan (it may show a popup
+                // each time); Retry or Retake Screenshot still try it on request.
                 switch p.snapshotState {
-                case .pending, .failed: return !hasImage
-                case .done: return !hasImage
-                case .noUI, .builtIn: return false
+                case .pending, .done: return !hasImage
+                case .failed, .noUI, .builtIn: return false
                 }
             }
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
@@ -113,7 +114,7 @@ final class SnapshotQueue {
     var missingCount: Int {
         let store = PluginStore.shared
         return store.plugins.filter { p in
-            !p.isLogic && (p.snapshotState == .pending || p.snapshotState == .failed || p.snapshotState == .done)
+            !p.isLogic && (p.snapshotState == .pending || p.snapshotState == .done)
                 && !FileManager.default.fileExists(atPath: store.snapshotURL(for: p.id).path)
         }.count
     }

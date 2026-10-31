@@ -21,13 +21,54 @@ enum SnapshotRenderer {
 
         let app = NSApplication.shared
         app.setActivationPolicy(.accessory)
+        dismissPluginAlerts()
+        #if DEBUG
+        if args.contains("--test-alert") {
+            DispatchQueue.main.async {
+                let a = NSAlert()
+                a.messageText = "Too many parameters in process"
+                a.runModal()
+            }
+        }
+        #endif
         Task { @MainActor in
-            let result = await render(type: type, sub: sub, manu: manu, isV3: isV3, output: output)
+            var result = await render(type: type, sub: sub, manu: manu, isV3: isV3, output: output)
+            if let said = alertText, result["status"] as? String == "failed" {
+                result["error"] = "the plugin said: \(said)"
+            }
             report(result)
             exit(result["status"] as? String == "failed" ? 1 : 0)
         }
         app.run()
         exit(0)
+    }
+
+    /// What a plugin showed in a popup of its own, if it did.
+    @MainActor private static var alertText: String?
+
+    /// Some plugins put up their own popup while loading ("Too many parameters in process").
+    /// In this helper nobody is there to answer it, so it is closed at once and its text kept
+    /// for the report. The plugin then goes on loading, or fails and is not tried again.
+    private static func dismissPluginAlerts() {
+        let timer = Timer(timeInterval: 0.25, repeats: true) { _ in
+            MainActor.assumeIsolated {
+                guard let w = NSApp.modalWindow ?? NSApp.windows.first(where: { $0.isVisible && $0.level == .modalPanel })
+                else { return }
+                let texts = (w.contentView.map(allText) ?? []).filter { !$0.isEmpty && $0 != "OK" }
+                alertText = texts.joined(separator: " ")
+                if NSApp.modalWindow != nil { NSApp.stopModal() }
+                w.orderOut(nil)
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        RunLoop.main.add(timer, forMode: .modalPanel)
+    }
+
+    @MainActor private static func allText(_ v: NSView) -> [String] {
+        var out: [String] = []
+        if let t = v as? NSTextField { out.append(t.stringValue) }
+        for sub in v.subviews { out += allText(sub) }
+        return out
     }
 
     private static func report(_ dict: [String: Any]) {
