@@ -843,6 +843,10 @@ enum LogicProbe {
                 var result = "ok"
                 switch args[i + 1] {
                 case "toggle": if let s = slot(rest[0]) { t.toggle(s) }
+                case "strip-buttons":
+                    if let (_, app) = t.logic(), let strip = t.leftStrip(app) {
+                        result = strip.findAll(maxNodes: 400) { ($0.desc + $0.title + $0.help).localizedCaseInsensitiveContains("setting") }.map { "\($0.role)|\($0.desc)|\($0.title)|\($0.help.prefix(60))|\($0.actions)" }.joined(separator: " ;; ")
+                    }
                 case "remove": if let s = slot(rest[0]) { result = "\(await t.remove(s))" }
                 case "remove-last": result = await t.removeLastAdded() ?? "nothing"
                 case "clear": result = "\(await t.clearEffects())"

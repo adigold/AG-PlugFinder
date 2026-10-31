@@ -126,8 +126,17 @@ struct TrackPanel: View {
                     state.run { _ = await LogicTrack.shared.removeLastAdded() }
                 }
                 ActionRow(icon: "trash", title: "Clear effects",
-                          detail: "Removes every audio effect from this track",
+                          detail: "Removes every effect from this track in one step",
                           disabled: state.effects.isEmpty || state.busy) { clearEffects() }
+                ActionRow(icon: "power", title: "Remove the ones turned off",
+                          detail: "Takes out every effect that is switched off",
+                          disabled: !state.plugins.contains { $0.isOn == false } || state.busy) {
+                    state.run { _ = await LogicTrack.shared.stripCommand("Remove Bypassed Plug-ins") }
+                }
+                ActionRow(icon: "arrow.turn.down.right", title: "Remove all sends",
+                          detail: "Takes every send off this track", disabled: state.busy) {
+                    state.run { _ = await LogicTrack.shared.stripCommand("Remove All Sends") }
+                }
                 ActionRow(icon: "rectangle.split.3x1", title: "Open all side by side",
                           detail: HotKey.openAllDisplay, disabled: state.plugins.isEmpty || state.busy) {
                     state.run { _ = await LogicTrack.shared.openAll() }
@@ -198,7 +207,7 @@ struct TrackPanel: View {
 
     private func clearEffects() {
         let alert = NSAlert()
-        alert.messageText = "Remove every audio effect from \(state.track ?? "this track")?"
+        alert.messageText = "Remove every effect from \(state.track ?? "this track")?"
         alert.informativeText = "\(state.effects.count) effects come off the track. You can undo it in Logic with Edit > Undo."
         alert.addButton(withTitle: "Remove")
         alert.addButton(withTitle: "Cancel")

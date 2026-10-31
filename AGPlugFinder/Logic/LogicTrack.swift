@@ -157,8 +157,40 @@ final class LogicTrack {
         return await removeSlot(s, logic: logic, app: app) ? s.name : nil
     }
 
-    /// Removes every audio effect from the selected track, bottom first. Returns how many.
+    /// One of Logic's own commands from the channel strip's Setting menu, such as Remove All
+    /// Effect Plug-ins (BL-70). Logic does it in one step, the way a person would.
+    func stripCommand(_ title: String) async -> Bool {
+        guard let (logic, app) = logic(), let strip = leftStrip(app),
+              let button = strip.first(maxNodes: 400, where: { $0.role == "AXButton" && $0.desc == "setting" })
+        else { return false }
+        await inserter.bringForward(logic)
+        button.perform(kAXPressAction)
+        guard let menu = await inserter.waitForMenu(app: app) else { return false }
+        guard let item = inserter.menuItems(menu).first(where: { $0.title == title }), item.isEnabled else {
+            menu.perform(kAXCancelAction)
+            inserter.log("TRACK strip command \(title): not available")
+            return false
+        }
+        inserter.log("TRACK strip command \(title)")
+        return item.perform(kAXPressAction)
+    }
+
+    /// Removes every effect from the selected track with Logic's Remove All Effect Plug-ins,
+    /// else one by one, bottom first. Returns how many came off.
     func clearEffects() async -> Int {
+        func count() -> Int {
+            guard let (_, app) = logic(), let strip = leftStrip(app) else { return 0 }
+            return slots(in: strip).filter { $0.kind != .instrument }.count
+        }
+        let before = count()
+        if await stripCommand("Remove All Effect Plug-ins") {
+            for _ in 0..<20 {
+                try? await Task.sleep(for: .milliseconds(50))
+                if count() < before { break }
+            }
+            let after = count()
+            if after == 0 || after < before { return before - after }
+        }
         var removed = 0
         for _ in 0..<20 {
             guard let (logic, app) = logic(), let strip = leftStrip(app),
