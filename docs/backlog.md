@@ -27,6 +27,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
+- [x] **BL-91** `P1 · High` **Licenses easy to find:** a credit card button in the top bar opens Licenses and subscriptions; the License section sits right under the usage line in the info panel. Adi couldn't find it, 2026-10-31. · done 2026-10-31
 - [x] **BL-90** `P3 · Low` **Track suggestion note on its own row:** "Suggested for X shown first" moves under the category pills so the pills get the full width. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-89** `P2 · Medium` **Licenses, subscriptions and collection value:** the user records each plugin's license (owned, subscription, trial, free, bundle; price, date, store, account, notes) and subscriptions or bundles that cover many plugins (cost, monthly or yearly, next renewal). Reminders before a renewal or trial end with the amount; totals: collection value, paid, subscriptions per month and year. All kept on the Mac only. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-88** `P2 · Medium` **Find newly installed plugins:** while the app is open, macOS tells it when plugins are installed or removed; it rescans by itself, shows "Found N new plugins" and takes their pictures. Plus a Rescan Plugins button in Settings, Plugin List tab. Adi, 2026-10-31. · done 2026-10-31

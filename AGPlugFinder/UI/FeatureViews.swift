@@ -204,11 +204,11 @@ struct PluginExtras: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             usage
+            if !plugin.isLogic { LicenseSection(plugin: plugin).id(plugin.id) }
             logicRow
             pinRow
             collectionsRow
             chainRow
-            if !plugin.isLogic { LicenseSection(plugin: plugin).id(plugin.id) }
             notes
             similar
         }

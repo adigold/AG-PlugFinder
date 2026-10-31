@@ -140,6 +140,7 @@ struct LibraryView: View {
                 }
                 .popover(isPresented: $showChains, arrowEdge: .bottom) { ChainsPanel { showChains = false } }
                 ViewControls(model: model)
+                BarIconButton(systemImage: "creditcard", help: "Licenses and subscriptions") { LicensesWindow.shared.show() }
                 BarIconButton(systemImage: "ellipsis", help: "Plugins, screenshots and info", active: showActions) {
                     showActions.toggle()
                 }
