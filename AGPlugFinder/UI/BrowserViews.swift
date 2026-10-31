@@ -47,6 +47,7 @@ struct ViewControls: View {
 
     var body: some View {
         HStack(spacing: 2) {
+            BarIconButton(systemImage: "plus.rectangle.on.rectangle", help: "New collection") { newCollection() }
             BarIconButton(systemImage: view.favoritesOnly ? "star.fill" : "star",
                           help: "Favorites only (⌘F)", active: view.favoritesOnly,
                           activeTint: Theme.accent) {
@@ -61,6 +62,17 @@ struct ViewControls: View {
                 ViewOptions(model: model)
             }
         }
+    }
+}
+
+extension ViewControls {
+    /// Makes an empty collection and shows it, so plugins can be dragged onto its chip.
+    func newCollection() {
+        guard let name = NamePrompt.ask("New collection", placeholder: "For example Mix bus") else { return }
+        let c = UserLibrary.Collection(name: name, pluginIDs: [])
+        UserLibrary.shared.collections.append(c)
+        if !view.chipRow.showsCollections { view.chipRow = .both }
+        Toast.show("Made \(name). Drag plugins onto it at the top to add them.")
     }
 }
 
