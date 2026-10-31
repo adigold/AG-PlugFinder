@@ -847,9 +847,28 @@ enum LogicProbe {
                     if let (_, app) = t.logic(), let strip = t.leftStrip(app) {
                         result = strip.findAll(maxNodes: 400) { ($0.desc + $0.title + $0.help).localizedCaseInsensitiveContains("setting") }.map { "\($0.role)|\($0.desc)|\($0.title)|\($0.help.prefix(60))|\($0.actions)" }.joined(separator: " ;; ")
                     }
+                case "undo-plugins":
+                    // Undoes up to N plug-in removals, only while Logic's Undo names a plug-in step.
+                    if let (logic, app) = t.logic() {
+                        await inserter.bringForward(logic)
+                        var steps: [String] = []
+                        for _ in 0..<Int(rest[0])! {
+                            guard let bar: AXUIElement = app.attr(kAXMenuBarAttribute),
+                                  let edit = AXNode(el: bar).children.first(where: { $0.title == "Edit" }),
+                                  let menu = edit.children.first(where: { $0.role == AXRole.menu }),
+                                  let undo = menu.children.first(where: { $0.identifier == "undo:" }), undo.isEnabled
+                            else { steps.append("no undo"); break }
+                            steps.append(undo.title)
+                            guard undo.title.localizedCaseInsensitiveContains("plug") else { break }
+                            undo.perform(kAXPressAction)
+                            try? await Task.sleep(for: .milliseconds(500))
+                        }
+                        result = steps.joined(separator: " / ")
+                    }
+                case "strip-command": result = "\(await t.stripCommand(rest[0]))"
                 case "remove": if let s = slot(rest[0]) { result = "\(await t.remove(s))" }
                 case "remove-last": result = await t.removeLastAdded() ?? "nothing"
-                case "clear": result = "\(await t.clearEffects())"
+                case "clear": result = "\(String(describing: await t.clearEffects()))"
                 case "open-all": result = "\(await t.openAll())"
                 case "close-all": await t.closeAll()
                 case "close-mixer": t.closeMixer()

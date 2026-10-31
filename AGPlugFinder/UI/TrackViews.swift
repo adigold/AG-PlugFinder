@@ -213,8 +213,11 @@ struct TrackPanel: View {
         alert.addButton(withTitle: "Cancel")
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         state.run {
-            let n = await LogicTrack.shared.clearEffects()
-            Toast.show("Removed \(n) effect\(n == 1 ? "" : "s")")
+            if let n = await LogicTrack.shared.clearEffects() {
+                Toast.show("Removed \(n) effect\(n == 1 ? "" : "s")")
+            } else {
+                Toast.show("Logic's Remove All Effect Plug-ins wasn't available. Show the Inspector (I) and try again.", warning: true)
+            }
         }
     }
 }

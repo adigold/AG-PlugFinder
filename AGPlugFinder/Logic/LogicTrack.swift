@@ -161,44 +161,39 @@ final class LogicTrack {
     /// Effect Plug-ins (BL-70). Logic does it in one step, the way a person would.
     func stripCommand(_ title: String) async -> Bool {
         guard let (logic, app) = logic(), let strip = leftStrip(app),
-              let button = strip.first(maxNodes: 400, where: { $0.role == "AXButton" && $0.desc == "setting" })
-        else { return false }
+              let button = strip.first(maxNodes: 3000, where: { $0.help.localizedCaseInsensitiveContains("Setting button") || $0.desc == "setting" })
+        else { inserter.log("TRACK strip command \(title): no Setting button"); return false }
         await inserter.bringForward(logic)
         button.perform(kAXPressAction)
-        guard let menu = await inserter.waitForMenu(app: app) else { return false }
+        guard let menu = await inserter.waitForMenu(app: app) else {
+            inserter.log("TRACK strip command \(title): the Setting menu did not open")
+            return false
+        }
         guard let item = inserter.menuItems(menu).first(where: { $0.title == title }), item.isEnabled else {
+            inserter.log("TRACK strip command \(title): not available in " +
+                         inserter.menuItems(menu).prefix(20).map(\.title).joined(separator: " | "))
             menu.perform(kAXCancelAction)
-            inserter.log("TRACK strip command \(title): not available")
             return false
         }
         inserter.log("TRACK strip command \(title)")
         return item.perform(kAXPressAction)
     }
 
-    /// Removes every effect from the selected track with Logic's Remove All Effect Plug-ins,
-    /// else one by one, bottom first. Returns how many came off.
-    func clearEffects() async -> Int {
+    /// Removes every effect from the selected track in one step with Logic's own Remove All
+    /// Effect Plug-ins (Setting menu). Nothing is removed one by one. Returns how many came off,
+    /// nil when Logic's command could not be used.
+    func clearEffects() async -> Int? {
         func count() -> Int {
             guard let (_, app) = logic(), let strip = leftStrip(app) else { return 0 }
             return slots(in: strip).filter { $0.kind != .instrument }.count
         }
         let before = count()
-        if await stripCommand("Remove All Effect Plug-ins") {
-            for _ in 0..<20 {
-                try? await Task.sleep(for: .milliseconds(50))
-                if count() < before { break }
-            }
-            let after = count()
-            if after == 0 || after < before { return before - after }
-        }
-        var removed = 0
+        guard await stripCommand("Remove All Effect Plug-ins") else { return nil }
         for _ in 0..<20 {
-            guard let (logic, app) = logic(), let strip = leftStrip(app),
-                  let s = slots(in: strip).last(where: { $0.kind == .audioFX }),
-                  await removeSlot(s, logic: logic, app: app) else { break }
-            removed += 1
+            try? await Task.sleep(for: .milliseconds(50))
+            if count() < before { break }
         }
-        return removed
+        return before - count()
     }
 
     /// Opens every plugin on the track and lays the windows out side by side.
