@@ -5,7 +5,8 @@ import { writeFileSync, mkdirSync } from "node:fs";
 //   npm run review                 list what is waiting, save the pictures to review/ to look at
 //   npm run review approve 12 15   approve those submissions (the newest per plugin wins)
 //   npm run review approve-all     approve everything waiting
-//   npm run review reject 13       reject one
+//   npm run review reject 13       reject one (it also stops being given to users)
+// New uploads are approved automatically when the plugin has no picture yet.
 const sql = neon(process.env.DATABASE_URL!);
 const [cmd, ...ids] = process.argv.slice(2);
 
@@ -29,8 +30,10 @@ async function approve(where: string, params: unknown[]) {
 if (cmd === "approve") await approve("id = any($1)", [ids.map(Number)]);
 else if (cmd === "approve-all") await approve("true", []);
 else if (cmd === "reject") {
+  // A rejected picture also stops being given to users.
   const rows = await sql.query(`update submissions set status = 'rejected' where id = any($1) returning id`, [ids.map(Number)]);
-  console.log(`rejected ${rows.length}`);
+  const gone = await sql.query(`delete from plugins where submission_id = any($1) returning plugin_id`, [ids.map(Number)]);
+  console.log(`rejected ${rows.length}, removed ${gone.length} from what users get`);
 } else {
   const rows = await sql`select id, plugin_id, name, manufacturer, version, picture, picture_type, created_at
                          from submissions where status = 'waiting' order by plugin_id, created_at desc`;

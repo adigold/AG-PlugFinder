@@ -63,6 +63,17 @@ app.post("/v1/pictures", async (c) => {
        where submissions.status <> 'approved'`,
     [pluginId, name, manufacturer, text("version", 40), text("category", 60), picture, type,
      installId, ipHash, text("appVersion", 20)]);
+  // Auto-approve (Adi, 2026-10-31): a plugin with no picture yet gets this one straight away.
+  // An approved picture is never replaced by an upload; Adi can still reject any picture.
+  await pool.query(
+    `with s as (select * from submissions where plugin_id = $1 and install_id = $2),
+     put as (
+       insert into plugins (plugin_id, name, manufacturer, version, category, picture, picture_type, submission_id)
+       select plugin_id, name, manufacturer, version, category, picture, picture_type, id from s
+       on conflict (plugin_id) do nothing
+       returning submission_id)
+     update submissions set status = 'approved' where id in (select submission_id from put)`,
+    [pluginId, installId]);
   return c.json({ ok: true }, 201);
 });
 
