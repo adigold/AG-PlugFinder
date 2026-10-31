@@ -253,6 +253,45 @@ final class LogicTrack {
         return await inserter.chooseByBrowsing(plugin, menu: menu, app: app)
     }
 
+    // MARK: Reorder (BL-56)
+
+    /// Moves an audio effect to another place among the track's effects by dragging its slot
+    /// onto the insert bar at the new place, as you would in Logic. The pointer goes back.
+    func move(_ p: StripPlugin, toEffect dest: Int) async -> Bool {
+        guard p.kind == .audioFX, let (logic, app) = logic() else { return false }
+        logic.activate()
+        await LogicCapture.closePluginWindows(app, pid: logic.processIdentifier)
+        // Let Logic settle, and read the strip twice so the positions are current.
+        try? await Task.sleep(for: .milliseconds(700))
+        _ = leftStrip(app).map { slots(in: $0) }
+        try? await Task.sleep(for: .milliseconds(150))
+        guard let strip = leftStrip(app) else { return false }
+        let audio = slots(in: strip).filter { $0.kind == .audioFX }
+        inserter.log("TRACK move frames: " + audio.map { "\($0.name)@\(Int($0.frame.minY))" }.joined(separator: " "))
+        guard let from = audio.firstIndex(where: { $0.name == p.name }), from != dest,
+              audio.indices.contains(dest), let grab = audio[from].child("open")?.frame else { return false }
+        // Dropping on the bar above a slot puts the plugin there; moving down, the bar above the
+        // slot after the destination.
+        let bars = strip.children.filter { $0.desc == "insert bar" }
+        let below: CGRect? = dest > from ? (audio.indices.contains(dest + 1) ? audio[dest + 1].frame : nil) : audio[dest].frame
+        let targetY: CGFloat
+        if let below, let bar = bars.min(by: { abs($0.frame.maxY - below.minY) < abs($1.frame.maxY - below.minY) }) {
+            targetY = bar.frame.midY
+        } else if let empty = strip.children.first(where: { $0.role == "AXButton" && $0.help.hasPrefix("Audio Effect slot") }) {
+            targetY = empty.frame.minY + 2
+        } else {
+            targetY = audio[dest].frame.maxY - 2
+        }
+        let saved = Mouse.location
+        Mouse.drag(from: CGPoint(x: grab.midX, y: grab.midY), to: CGPoint(x: grab.midX, y: targetY), steps: 16, hold: 250_000)
+        Mouse.restore(saved)
+        try? await Task.sleep(for: .milliseconds(500))
+        await LogicCapture.closePluginWindows(app, pid: logic.processIdentifier)
+        let order = read()?.plugins.filter { $0.kind == .audioFX }.map(\.name) ?? []
+        inserter.log("TRACK move \(p.name) \(from)→\(dest), grab y=\(Int(grab.midY)) drop y=\(Int(targetY)); now \(order.joined(separator: " | "))")
+        return order.firstIndex(of: p.name) == dest
+    }
+
     // MARK: Insert before or after (BL-39)
 
     /// Logic puts a thin "insert bar" above every audio effect slot; choosing a plug-in from its
@@ -585,16 +624,29 @@ enum Mouse {
         if let saved { CGWarpMouseCursorPosition(saved) }
     }
 
-    static func drag(from a: CGPoint, to b: CGPoint, steps: Int = 8) {
-        post(.mouseMoved, a); usleep(30_000)
-        post(.leftMouseDown, a); usleep(60_000)
+    /// A hand-like drag: press, hold, move in small steps (with the movement deltas apps read),
+    /// pause over the target, release.
+    static func drag(from a: CGPoint, to b: CGPoint, steps: Int = 8, hold: useconds_t = 60_000) {
+        func event(_ type: CGEventType, _ p: CGPoint, _ last: CGPoint) {
+            let e = CGEvent(mouseEventSource: CGEventSource(stateID: .hidSystemState), mouseType: type,
+                            mouseCursorPosition: p, mouseButton: .left)
+            e?.setIntegerValueField(.mouseEventClickState, value: 1)
+            e?.setIntegerValueField(.mouseEventDeltaX, value: Int64(p.x - last.x))
+            e?.setIntegerValueField(.mouseEventDeltaY, value: Int64(p.y - last.y))
+            e?.post(tap: .cghidEventTap)
+        }
+        event(.mouseMoved, a, a); usleep(30_000)
+        event(.leftMouseDown, a, a); usleep(hold)
+        var last = a
         for i in 1...steps {
             let t = CGFloat(i) / CGFloat(steps)
-            post(.leftMouseDragged, CGPoint(x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t))
-            usleep(16_000)
+            let p = CGPoint(x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t)
+            event(.leftMouseDragged, p, last)
+            last = p
+            usleep(hold > 60_000 ? 35_000 : 16_000)
         }
-        usleep(40_000)
-        post(.leftMouseUp, b); usleep(50_000)
+        usleep(hold > 60_000 ? 250_000 : 40_000)
+        event(.leftMouseUp, b, b); usleep(50_000)
     }
 
     static var location: CGPoint? { CGEvent(source: nil)?.location }

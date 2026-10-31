@@ -771,6 +771,7 @@ enum LogicProbe {
                 case "open-all": result = "\(await t.openAll())"
                 case "close-all": await t.closeAll()
                 case "close-mixer": t.closeMixer()
+                case "move": if let s = slot(rest[0]) { result = "\(await t.move(s, toEffect: Int(rest[1])!))" }
                 case "open-mixer": await t.showMixer()
                 case "tile":
                     if let (_, app) = t.logic() {

@@ -58,6 +58,26 @@ struct TrackPanel: View {
     @Bindable var model: PickerModel
     var close: () -> Void
     var state = TrackState.shared
+    /// Drag to reorder (BL-56): the effect being dragged and where the line shows.
+    @State fileprivate var dragging: StripPlugin?
+    @State fileprivate var dropTarget: Int?
+    @State fileprivate var dropAbove = true
+
+    /// Moves the dragged effect in Logic to the place it was dropped.
+    fileprivate func drop(on target: StripPlugin) {
+        defer { dragging = nil; dropTarget = nil }
+        guard let moving = dragging, moving.kind == .audioFX, target.kind == .audioFX, moving != target else { return }
+        let effects = state.effects
+        guard let from = effects.firstIndex(of: moving), let t = effects.firstIndex(of: target) else { return }
+        var dest = dropAbove ? t : t + 1
+        if dest > from { dest -= 1 }
+        guard dest != from else { return }
+        state.run {
+            if !(await LogicTrack.shared.move(moving, toEffect: dest)) {
+                Toast.show("Logic didn't move \(moving.name). Drag it in Logic's channel strip instead.", warning: true)
+            }
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -81,7 +101,19 @@ struct TrackPanel: View {
                 Text("No plugins on this track yet.").font(.system(size: 12)).foregroundStyle(Theme.muted)
             } else {
                 VStack(spacing: 4) {
-                    ForEach(state.plugins) { p in row(p) }
+                    ForEach(state.plugins) { p in
+                        row(p)
+                            .overlay(alignment: dropAbove ? .top : .bottom) {
+                                if dropTarget == p.id {
+                                    Capsule().fill(Theme.accent).frame(height: 3).offset(y: dropAbove ? -3 : 3)
+                                }
+                            }
+                            .onDrag {
+                                dragging = p
+                                return NSItemProvider(object: p.name as NSString)
+                            }
+                            .onDrop(of: [.text], delegate: EffectDrop(target: p, panel: self))
+                    }
                 }
             }
             Rectangle().fill(Theme.rule).frame(height: 1)
@@ -119,7 +151,9 @@ struct TrackPanel: View {
 
     private func row(_ p: StripPlugin) -> some View {
         HStack(spacing: 10) {
-            Image(systemName: icon(p.kind)).font(.system(size: 11)).foregroundStyle(Theme.faint).frame(width: 16)
+            Image(systemName: p.kind == .audioFX ? "line.3.horizontal" : icon(p.kind))
+                .font(.system(size: 11)).foregroundStyle(Theme.faint).frame(width: 16)
+                .help(p.kind == .audioFX ? "Drag to change the order in Logic" : "")
             Text(p.name).font(.system(size: 13, weight: .medium))
                 .foregroundStyle(p.isOn == false ? Theme.faint : Theme.text).lineLimit(1)
                 .strikethrough(p.isOn == false, color: Theme.faint)
@@ -173,6 +207,31 @@ struct TrackPanel: View {
             let n = await LogicTrack.shared.clearEffects()
             Toast.show("Removed \(n) effect\(n == 1 ? "" : "s")")
         }
+    }
+}
+
+/// Where a dragged effect lands: above or below the row under the pointer.
+private struct EffectDrop: DropDelegate {
+    let target: StripPlugin
+    let panel: TrackPanel
+
+    func validateDrop(info: DropInfo) -> Bool {
+        target.kind == .audioFX && panel.dragging?.kind == .audioFX
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        panel.dropAbove = info.location.y < 18
+        panel.dropTarget = target.id
+        return DropProposal(operation: .move)
+    }
+
+    func dropExited(info: DropInfo) {
+        if panel.dropTarget == target.id { panel.dropTarget = nil }
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        panel.drop(on: target)
+        return true
     }
 }
 
