@@ -23,6 +23,7 @@
 		450CA6479EE050AEE218A77A /* UpdateViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F023E1377B6D025990A4AD1D /* UpdateViews.swift */; };
 		48B6DCB114257559637BA3E5 /* Share in Resources */ = {isa = PBXBuildFile; fileRef = B65B4103D33CABD66BA2B1EA /* Share */; };
 		509183AB719247230E945953 /* PointerSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAEE35F63AB0E34FFC94CEBE /* PointerSlot.swift */; };
+		53482286D36A660C86C491A7 /* PluginCategories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11AFBF5BCA998F73C82D5114 /* PluginCategories.swift */; };
 		55042213A5FBB48BD7609817 /* LogicInserter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE2A7565B4582595AC03716 /* LogicInserter.swift */; };
 		5DCD29A96935375138A77B64 /* ShortcutSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55FD3617B4BC576C117D7A0D /* ShortcutSettings.swift */; };
 		614EE6DB31B4D355967EE472 /* LogicCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79020B749BE713B285FFCF69 /* LogicCatalog.swift */; };
@@ -61,6 +62,7 @@
 		0135B483A0FBDF4DAD8DCC91 /* CrashReports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReports.swift; sourceTree = "<group>"; };
 		04543FB792952D69782A9314 /* Shortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shortcuts.swift; sourceTree = "<group>"; };
 		0A06B5A571B3FD73B01B759C /* HotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKey.swift; sourceTree = "<group>"; };
+		11AFBF5BCA998F73C82D5114 /* PluginCategories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginCategories.swift; sourceTree = "<group>"; };
 		1211458E32500BCFB817B799 /* UserLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserLibrary.swift; sourceTree = "<group>"; };
 		196B1A3B9E2A22D37513FD3C /* TrackViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackViews.swift; sourceTree = "<group>"; };
 		1AE2A7565B4582595AC03716 /* LogicInserter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicInserter.swift; sourceTree = "<group>"; };
@@ -158,6 +160,7 @@
 				79020B749BE713B285FFCF69 /* LogicCatalog.swift */,
 				BB8400D6D1B92CAB96090263 /* PlugDB.swift */,
 				B431D534CB99B5A459D3517F /* Plugin.swift */,
+				11AFBF5BCA998F73C82D5114 /* PluginCategories.swift */,
 				D71657EEC5ED1CB8747992C3 /* PluginPack.swift */,
 				1F96300B45F6AC9AB4D9D915 /* PluginScanner.swift */,
 				5FD7E657F3026F318121A9D6 /* PluginStore.swift */,
@@ -338,6 +341,7 @@
 				F03AC7DB259F432CAD156DC2 /* PickerView.swift in Sources */,
 				F0139F7726A197C0F1D334FD /* PlugDB.swift in Sources */,
 				7CA982ACA4D63FEE79A2B743 /* Plugin.swift in Sources */,
+				53482286D36A660C86C491A7 /* PluginCategories.swift in Sources */,
 				0475C34975ACC0546A86129F /* PluginInfoFetcher.swift in Sources */,
 				BBBBCD96B562310ED1BA33DC /* PluginListEditor.swift in Sources */,
 				2B1238F5A1C0E4FEA95749AF /* PluginPack.swift in Sources */,

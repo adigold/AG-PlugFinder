@@ -17,6 +17,9 @@ final class PickerModel {
     var category: String? { didSet { if category != oldValue { selection = 0 } } }
     /// Set from "Replace" on the track panel: the next plugin chosen takes this slot (BL-36).
     var replaceTarget: StripPlugin?
+    /// Set from the pointer shortcut: the slot under the pointer in Logic (BL-65). Only plugins
+    /// that fit it are listed, and the chosen one goes exactly there.
+    var pointerTarget: PointerTarget?
     /// Plugins that fit the selected Logic track, shown first while the search is empty (BL-33).
     var suggestion: (track: String, ids: [String])?
 
@@ -33,6 +36,7 @@ final class PickerModel {
         var list = PluginStore.shared.filtered(query: query, sort: sort,
                                                favoritesOnly: ViewSettings.shared.favoritesOnly, only: only)
         if let category { list = list.filter { $0.displayCategory == category } }
+        if let t = pointerTarget { list = list.filter { $0.slotKind == t.kind } }
         guard query.isEmpty, collectionID == nil, category == nil, let s = suggestion, !s.ids.isEmpty else { return list }
         let rank = Dictionary(uniqueKeysWithValues: s.ids.enumerated().map { ($1, $0) })
         let first = list.filter { rank[$0.id] != nil }.sorted { rank[$0.id]! < rank[$1.id]! }
@@ -77,6 +81,7 @@ final class PickerModel {
         slotChoices = nil
         message = nil
         showAccessibilityButton = false
+        pointerTarget = nil
     }
 
     func move(_ delta: Int) {
@@ -99,6 +104,24 @@ final class PickerModel {
         guard let plugin = selected, !isBusy else { return }
         if let target = replaceTarget, slot == nil {
             replace(target, with: plugin, onHide: onHide, onShow: onShow)
+            return
+        }
+        if let target = pointerTarget, slot == nil {
+            isBusy = true
+            message = nil
+            onHide()
+            Task {
+                let problem = await LogicTrack.shared.insert(plugin, at: target)
+                isBusy = false
+                if let problem {
+                    message = problem
+                    onShow()
+                } else {
+                    PluginStore.shared.markUsed(plugin.id)
+                    Toast.show(target.occupant.map { "Replaced \($0) with \(plugin.name)" } ?? "Added \(plugin.name)")
+                    TrackState.shared.refreshSoon()
+                }
+            }
             return
         }
         isBusy = true

@@ -15,6 +15,7 @@ struct PickerView: View {
             }
             .padding(.horizontal, 18).padding(.top, 16).padding(.bottom, 12)
             Rectangle().fill(Theme.edge).frame(height: 1)
+            PointerBanner(model: model)
             HStack(spacing: 0) {
                 PluginGrid(model: model) { controller.insert() }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -26,6 +26,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-77** `P1 · High` **Categories for every maker's plugins:** third-party plugins go into the same categories as Logic's (wideners and imagers into Imaging, meters into Metering, drum and piano instruments into Drums and Keys); looked-up categories are matched to the app's own. From a user's report. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-76** `P2 · Low` **New collection from the top bar:** a + button next to the star makes a collection and shows the collections row so plugins can be dragged onto it. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-75** `P2 · Medium` **Star on every card:** a quiet gray star on each card adds the plugin to Favorites in one click; removing asks first in a themed Remove from Favorites window (also for the info panel star, ⌘D and the right-click menu). Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-74** `P2 · Medium` **Shortcuts for the track panel actions:** Save as chain, Remove all effects, Remove the ones turned off and Remove all sends can each get a key in Settings > Shortcuts. Adi, 2026-10-31. · done 2026-10-31

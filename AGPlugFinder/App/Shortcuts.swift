@@ -6,6 +6,7 @@ import Observation
 enum ShortcutAction: String, CaseIterable, Identifiable, Codable {
     case openLibrary, quickPicker, miniWindow, trackPanel, openAll, closeAll, removeLast
     case saveChain, removeAllEffects, removeTurnedOff, removeAllSends
+    case pointerInsert, pointerRemove, pointerToggle
     case pin1, pin2, pin3, pin4, pin5, pin6, pin7, pin8, pin9
 
     var id: String { rawValue }
@@ -29,6 +30,9 @@ enum ShortcutAction: String, CaseIterable, Identifiable, Codable {
         case .removeAllEffects: return "Remove all effects"
         case .removeTurnedOff: return "Remove the effects turned off"
         case .removeAllSends: return "Remove all sends"
+        case .pointerInsert: return "Add or replace in the slot under the pointer"
+        case .pointerRemove: return "Remove the plugin under the pointer"
+        case .pointerToggle: return "Turn the plugin under the pointer on or off"
         default: return "Insert what is pinned to \(pinNumber ?? 0)"
         }
     }
@@ -38,6 +42,7 @@ enum ShortcutAction: String, CaseIterable, Identifiable, Codable {
         case .openLibrary, .quickPicker, .miniWindow: return "Windows"
         case .trackPanel, .openAll, .closeAll, .removeLast, .saveChain, .removeAllEffects, .removeTurnedOff,
              .removeAllSends: return "The selected track"
+        case .pointerInsert, .pointerRemove, .pointerToggle: return "Under the pointer in Logic"
         default: return "Number keys"
         }
     }
@@ -50,9 +55,10 @@ enum ShortcutAction: String, CaseIterable, Identifiable, Codable {
         switch self {
         case .openLibrary: return KeyCombo(keyCode: UInt32(kVK_ANSI_P), mods: co, key: "P")
         case .openAll: return KeyCombo(keyCode: UInt32(kVK_ANSI_O), mods: co, key: "O")
+        case .pointerInsert: return KeyCombo(keyCode: UInt32(kVK_ANSI_I), mods: co, key: "I")
         case .closeAll: return KeyCombo(keyCode: UInt32(kVK_ANSI_W), mods: co, key: "W")
         case .quickPicker, .miniWindow, .trackPanel, .removeLast, .saveChain, .removeAllEffects, .removeTurnedOff,
-             .removeAllSends: return nil
+             .removeAllSends, .pointerRemove, .pointerToggle: return nil
         default:
             let digits = [kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5,
                           kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9]
@@ -226,6 +232,28 @@ final class Shortcuts {
                 Toast.show(ok ? "Removed all sends." : "No sends on the selected track.", warning: !ok)
                 TrackState.shared.refreshSoon()
             }
+        case .pointerInsert:
+            guard let t = PointerSlot.target() else {
+                Toast.show("Point at a plugin slot in Logic's Inspector or Mixer, then press the key.", warning: true); return
+            }
+            PickerPanelController.shared.show(for: t)
+        case .pointerRemove:
+            guard let t = PointerSlot.target(), t.occupant != nil else {
+                Toast.show("Point at a plugin in Logic, then press the key.", warning: true); return
+            }
+            SlotHighlight.show(t.frame)
+            Task {
+                let problem = await LogicTrack.shared.remove(at: t)
+                SlotHighlight.hide()
+                Toast.show(problem ?? "Removed \(t.occupant ?? "it")", warning: problem != nil)
+                TrackState.shared.refreshSoon()
+            }
+        case .pointerToggle:
+            guard let t = PointerSlot.target(), let bypass = t.bypass else {
+                Toast.show("Point at a plugin in Logic, then press the key.", warning: true); return
+            }
+            bypass.perform(kAXPressAction)
+            TrackState.shared.refreshSoon()
         default:
             guard let n = a.pinNumber else { return }
             if let target = UserLibrary.shared.pinTarget(n) { InsertRunner.run(target) }

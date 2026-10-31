@@ -43,36 +43,7 @@ enum PluginScanner {
         return Array(result.values)
     }
 
-    private static let keywordCategories: [(String, [String])] = [
-        ("Reverb", ["reverb", "verb", "room", "hall", "plate", "space"]),
-        ("Delay", ["delay", "echo", "tape"]),
-        ("EQ", ["eq", "equal", "shelf", "bandpass", "hipass", "lowpass", "graphic"]),
-        ("Dynamics", ["comp", "limit", "dynamics", "gate", "expander", "transient", "clip"]),
-        ("Distortion", ["dist", "satur", "drive", "fuzz", "crush", "amplifier"]),
-        ("Modulation", ["chorus", "flang", "phase", "tremolo", "vibrato", "ensemble", "rotary"]),
-        ("Pitch", ["pitch", "tune", "harmon", "formant"]),
-        ("Filter", ["filter", "wah"]),
-        ("Utility", ["meter", "analy", "scope", "gain", "utility", "netsend", "aac"]),
-    ]
-
     static func guessCategory(name: String, tags: [String], type: OSType) -> String {
-        let known = Set(keywordCategories.map(\.0))
-        if let tag = tags.first(where: { known.contains($0) }) { return tag }
-        let lower = name.lowercased()
-        if type == kAudioUnitType_MusicDevice {
-            if lower.contains("sampl") { return "Sampler" }
-            if lower.contains("drum") { return "Drums" }
-            return tags.first ?? "Instrument"
-        }
-        for (category, words) in keywordCategories where words.contains(where: { lower.contains($0) }) {
-            return category
-        }
-        if let tag = tags.first { return tag }
-        switch type {
-        case kAudioUnitType_MusicDevice: return "Instrument"
-        case kAudioUnitType_MIDIProcessor: return "MIDI FX"
-        case kAudioUnitType_MusicEffect: return "Music Effect"
-        default: return "Effect"
-        }
+        PluginCategories.guess(name: name, tags: tags, type: type)
     }
 }

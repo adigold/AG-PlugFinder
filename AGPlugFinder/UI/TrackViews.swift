@@ -280,6 +280,24 @@ struct ReplaceBanner: View {
     }
 }
 
+/// "Into the slot under the pointer" above the grid while the pointer shortcut is in use (BL-65).
+struct PointerBanner: View {
+    @Bindable var model: PickerModel
+    var body: some View {
+        if let t = model.pointerTarget {
+            HStack(spacing: 10) {
+                Image(systemName: "cursorarrow.rays").foregroundStyle(Theme.accent)
+                Text(t.occupant.map { "Choose a plugin to take the place of \($0), then press Return" }
+                     ?? "Choose \(t.kind == .instrument ? "an instrument" : t.kind == .midiFX ? "a MIDI effect" : "an effect") for the outlined slot, then press Return")
+                    .font(.system(size: 12, weight: .medium)).foregroundStyle(Theme.text)
+                Spacer()
+            }
+            .padding(.horizontal, 18).frame(height: 36)
+            .background(Theme.warningGround)
+        }
+    }
+}
+
 // MARK: - Project tracks: find where a plugin is used (BL-40), add to several (BL-41)
 
 @MainActor

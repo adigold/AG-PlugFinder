@@ -61,7 +61,16 @@ final class PickerPanelController {
         installKeys()
     }
 
+    /// Opens the picker for the slot under the pointer in Logic, with that slot outlined (BL-65).
+    func show(for target: PointerTarget) {
+        model.reset()
+        model.pointerTarget = target
+        SlotHighlight.show(target.frame)
+        present()
+    }
+
     func hide() {
+        SlotHighlight.hide()
         panel.orderOut(nil)
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
         keyMonitor = nil

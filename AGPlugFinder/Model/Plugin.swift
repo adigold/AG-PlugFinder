@@ -82,7 +82,8 @@ struct Plugin: Identifiable, Codable, Hashable {
     /// Category shown in the UI: the looked-up one wins over our guess.
     var displayCategory: String {
         if isLogic { return category } // Logic's own menu category
-        if let c = details?.category, !c.isEmpty { return c }
+        // A looked-up category counts only when it is one of the app's own (BL-77).
+        if let c = details?.category, let known = PluginCategories.normalize(c) { return known }
         return category
     }
 
