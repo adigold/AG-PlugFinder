@@ -545,9 +545,16 @@ final class LogicInserter {
                            "track (and show the Inspector with I) to add \(plugin.name).")
         }
         log("  instrument slot: \(slot.current ?? "empty") actions=\(slot.press.actions)")
-        // A track has one instrument; replacing it is always the user's choice.
-        if let current = slot.current, !confirmedReplace {
-            return .allFull([SlotChoice(id: 0, name: current)])
+        // A track has one instrument. Choosing another one makes a new instrument track for it
+        // (Adi, 2026-10-31); replacing is chosen on purpose from the track panel.
+        if slot.current != nil, !confirmedReplace {
+            if !makingTrack {
+                log("  track already has \(slot.current ?? "an instrument"): making a new instrument track")
+                makingTrack = true
+                defer { makingTrack = false }
+                if let problem = await LogicTrack.shared.newInstrumentTrack(plugin) { return .failed(problem) }
+                return .inserted
+            }
         }
         let pid = logic.processIdentifier
         let normal = slot.press.actions.first { $0.localizedCaseInsensitiveContains("Open plug-in menu") &&
@@ -771,6 +778,7 @@ enum LogicProbe {
                 case "open-all": result = "\(await t.openAll())"
                 case "close-all": await t.closeAll()
                 case "close-mixer": t.closeMixer()
+                case "rename": if let (_, app) = t.logic() { await t.rename(to: rest[0], app: app) }
                 case "move": if let s = slot(rest[0]) { result = "\(await t.move(s, toEffect: Int(rest[1])!))" }
                 case "open-mixer": await t.showMixer()
                 case "tile":

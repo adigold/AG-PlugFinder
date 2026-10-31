@@ -17,6 +17,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-58** `P1 · High` **Instrument on a track that has one:** choosing an instrument while the selected track already has one makes a new instrument track named after it, for Logic's own instruments and any other instrument (tested with DLSMusicDevice). Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-57** `P1 · Medium` **Check for updates when the app opens:** check a few seconds after opening and when coming back to the app (at most hourly); a new version opens its What's New window with Install and Restart, once per version. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-56** `P1 · Medium` **Drag to reorder the track's effects:** drag effects in the track panel and the order changes in Logic too. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-55** `P1 · Medium` **Share AG PlugFinder:** a designed share window (not the generic Mac one) with one-click X, WhatsApp, Messages, Instagram, Telegram, Facebook, LinkedIn, Email and Copy link, plus a social preview image so shared GitHub links show a nice card. Adi, 2026-10-31. · done 2026-10-31

@@ -401,8 +401,57 @@ final class LogicTrack {
         try? await Task.sleep(for: .milliseconds(1400))
         // The new track is selected; whatever Logic loaded by default is replaced.
         let outcome = await inserter.insert(plugin, replacing: 0)
-        if case .inserted = outcome { lastAdded = plugin.name; return nil }
-        return message(outcome, plugin)
+        guard case .inserted = outcome else { return message(outcome, plugin) }
+        lastAdded = plugin.name
+        try? await Task.sleep(for: .milliseconds(600))
+        await rename(to: plugin.name, app: app)
+        return nil
+    }
+
+    /// Names the selected track after its instrument; Logic names a new track after its default
+    /// sound ("Deluxe Classic"), which says nothing about what is on it. Uses Track > Rename
+    /// Track, and types only into the name field Logic opens for it.
+    func rename(to name: String, app: AXNode) async {
+        guard let logic = inserter.logicApp else { return }
+        logic.activate()
+        try? await Task.sleep(for: .milliseconds(250))
+        guard pressMenu(app, ["Track", "Rename Track"]) else { return }
+        var field: AXNode?
+        for _ in 0..<15 {
+            try? await Task.sleep(for: .milliseconds(80))
+            if let f: AXUIElement = app.attr(kAXFocusedUIElementAttribute), AXNode(el: f).role == AXRole.textField {
+                field = AXNode(el: f); break
+            }
+        }
+        guard let field else { inserter.log("TRACK rename: no name field opened"); return }
+        inserter.log("TRACK rename field: desc=\(field.desc) help=\(field.help.prefix(40)) value=\(field.stringValue) frame=\(field.frame)")
+        // Only the track's own name field: it holds the current track name.
+        guard field.stringValue == (leftStrip(app)?.desc ?? "") || field.help.localizedCaseInsensitiveContains("name") else {
+            inserter.log("TRACK rename: focused field is not the track name, left alone")
+            return
+        }
+        // Select what is there and type over it, inside the open name field only, as a person would.
+        var all = CFRange(location: 0, length: field.stringValue.utf16.count)
+        if let range = AXValueCreate(.cfRange, &all) {
+            AXUIElementSetAttributeValue(field.el, kAXSelectedTextRangeAttribute as CFString, range)
+        }
+        // Logic in front and its name field focused, or nothing is typed.
+        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == logic.processIdentifier,
+              let focused: AXUIElement = app.attr(kAXFocusedUIElementAttribute), CFEqual(focused, field.el) else {
+            inserter.log("TRACK rename: Logic or its name field lost focus, nothing typed")
+            return
+        }
+        Keyboard.typeToFront(name)
+        try? await Task.sleep(for: .milliseconds(200))
+        inserter.log("TRACK rename typed: field now \(field.stringValue) actions=\(field.actions)")
+        // Confirm: the field's own confirm action, else Return while the field still has focus.
+        if field.actions.contains("AXConfirm") {
+            field.perform("AXConfirm")
+        } else if let f: AXUIElement = app.attr(kAXFocusedUIElementAttribute), AXNode(el: f).role == AXRole.textField {
+            Keyboard.press(36, pid: logic.processIdentifier)
+        }
+        try? await Task.sleep(for: .milliseconds(300))
+        inserter.log("TRACK renamed to \(name)")
     }
 
     // MARK: The Mixer (BL-40, BL-41, BL-42)

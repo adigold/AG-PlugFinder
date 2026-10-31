@@ -122,6 +122,21 @@ enum Keyboard {
     /// pop-up buttons look like open menus to Accessibility. Menus close by themselves.
     static func escapeIfOpen(pid: pid_t) {}
 
+    /// Types through the keyboard path to the frontmost app. Only call it while a text field in
+    /// that app has focus (the caller checks), since Logic treats other typing as key commands.
+    static func typeToFront(_ text: String) {
+        let source = CGEventSource(stateID: .hidSystemState)
+        for ch in text.utf16 {
+            var c = ch
+            for down in [true, false] {
+                guard let e = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: down) else { continue }
+                e.keyboardSetUnicodeString(stringLength: 1, unicodeString: &c)
+                e.post(tap: .cghidEventTap)
+            }
+            usleep(8_000)
+        }
+    }
+
     static func optionClick(at point: CGPoint) {
         let source = CGEventSource(stateID: .hidSystemState)
         for type in [CGEventType.leftMouseDown, .leftMouseUp] {
