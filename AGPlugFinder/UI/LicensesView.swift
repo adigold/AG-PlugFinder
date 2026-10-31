@@ -52,19 +52,109 @@ struct OptionalDate: View {
     let title: String
     @Binding var date: Date?
     var start: () -> Date = { Calendar.current.startOfDay(for: Date()) }
+    @State private var open = false
 
     var body: some View {
-        if let d = date {
-            HStack(spacing: 6) {
-                DatePicker("", selection: Binding(get: { d }, set: { date = $0 }), displayedComponents: .date)
-                    .labelsHidden().datePickerStyle(.field).frame(width: 120)
+        HStack(spacing: 6) {
+            Chip(title: date.map { $0.formatted(.dateTime.day().month(.abbreviated).year().locale(Locale(identifier: "en_GB"))) } ?? title,
+                 systemImage: "calendar", on: false) { open.toggle() }
+                .popover(isPresented: $open, arrowEdge: .bottom) {
+                    CalendarPicker(date: Binding(get: { date ?? start() }, set: { date = $0 })) { open = false }
+                }
+            if date != nil {
                 Button { date = nil } label: {
                     Image(systemName: "xmark.circle.fill").font(.system(size: 13)).foregroundStyle(Theme.faint)
                 }
                 .buttonStyle(.plain).help("Clear the date")
             }
+        }
+    }
+}
+
+/// A month calendar in the app's style (BL-93): white for the chosen day, an amber ring on
+/// today, arrows for the month and quick choices underneath.
+struct CalendarPicker: View {
+    @Binding var date: Date
+    var done: () -> Void
+    @State private var month = Date()
+    private var cal: Calendar { var c = Calendar.current; c.locale = Locale(identifier: "en_US"); return c }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Text(month.formatted(.dateTime.month(.wide).year().locale(Locale(identifier: "en_US"))))
+                    .font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
+                Spacer()
+                BarIconButton(systemImage: "chevron.left", help: "Previous month") { step(-1) }
+                BarIconButton(systemImage: "chevron.right", help: "Next month") { step(1) }
+            }
+            let names = weekdayNames
+            HStack(spacing: 0) {
+                ForEach(names.indices, id: \.self) { i in
+                    Text(names[i]).font(.system(size: 11, weight: .medium)).foregroundStyle(Theme.faint).frame(maxWidth: .infinity)
+                }
+            }
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 4) {
+                ForEach(days, id: \.self) { d in dayCell(d) }
+            }
+            HStack(spacing: 6) {
+                quick("Today", 0, .day)
+                quick("In 1 month", 1, .month)
+                quick("In 1 year", 1, .year)
+            }
+        }
+        .padding(14)
+        .frame(width: 300)
+        .background(Theme.surface)
+        .preferredColorScheme(.dark)
+        .onAppear { month = firstOfMonth(date) }
+    }
+
+    private var weekdayNames: [String] {
+        let s = cal.veryShortStandaloneWeekdaySymbols
+        let f = cal.firstWeekday - 1
+        return Array(s[f...] + s[..<f])
+    }
+
+    private func firstOfMonth(_ d: Date) -> Date {
+        cal.date(from: cal.dateComponents([.year, .month], from: d)) ?? d
+    }
+
+    /// The month's days, with the days before the first one shown as blanks (distantPast).
+    private var days: [Date] {
+        guard let range = cal.range(of: .day, in: .month, for: month) else { return [] }
+        let lead = (cal.component(.weekday, from: month) - cal.firstWeekday + 7) % 7
+        let blanks = (0..<lead).map { Date.distantPast.addingTimeInterval(Double($0)) }
+        return blanks + range.compactMap { cal.date(byAdding: .day, value: $0 - 1, to: month) }
+    }
+
+    @ViewBuilder private func dayCell(_ d: Date) -> some View {
+        if d < Date.distantPast.addingTimeInterval(10) {
+            Color.clear.frame(height: 32)
         } else {
-            Chip(title: title, systemImage: "calendar", on: false) { date = start() }
+            let chosen = cal.isDate(d, inSameDayAs: date)
+            let today = cal.isDateInToday(d)
+            Button { date = d; done() } label: {
+                Text("\(cal.component(.day, from: d))")
+                    .font(.system(size: 13, weight: chosen ? .bold : .regular)).monospacedDigit()
+                    .foregroundStyle(chosen ? Color.black : Theme.text)
+                    .frame(maxWidth: .infinity).frame(height: 32)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(chosen ? Color.white : Theme.raised.opacity(0.55)))
+                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.accent, lineWidth: today && !chosen ? 1.5 : 0))
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(PressScale())
+        }
+    }
+
+    private func step(_ n: Int) {
+        if let m = cal.date(byAdding: .month, value: n, to: month) { withAnimation(.easeOut(duration: 0.15)) { month = m } }
+    }
+
+    private func quick(_ title: String, _ n: Int, _ unit: Calendar.Component) -> some View {
+        Chip(title: title, on: false) {
+            let base = cal.startOfDay(for: Date())
+            if let d = cal.date(byAdding: unit, value: n, to: base) { date = d; month = firstOfMonth(d); done() }
         }
     }
 }
@@ -461,7 +551,10 @@ struct LicensesView: View {
                                          trial = "Trial", free = "Free", none = "Not entered" }
     var lic = Licenses.shared
     var store = PluginStore.shared
+    /// The window leaves room for its hidden title bar; the Settings tab needs less.
+    var topPadding: CGFloat = 40
     @State private var filter: Filter = .all
+    @State private var choosePlugin = false
     @State private var search = ""
 
     var body: some View {
@@ -473,7 +566,7 @@ struct LicensesView: View {
                 plansSection
                 pluginsSection
             }
-            .padding(.horizontal, 26).padding(.top, 40).padding(.bottom, 26)
+            .padding(.horizontal, 26).padding(.top, topPadding).padding(.bottom, 26)
         }
         .frame(minWidth: 640, minHeight: 480)
         .background(Theme.ground)
@@ -488,9 +581,7 @@ struct LicensesView: View {
                     .font(.system(size: 12)).foregroundStyle(Theme.faint)
             }
             Spacer()
-            HStack(spacing: 4) {
-                ForEach(Licenses.currencies, id: \.self) { c in Chip(title: c, on: lic.currency == c) { lic.currency = c } }
-            }
+            CurrencyButton()
             QuietPill(title: "Export", systemImage: "square.and.arrow.up", height: 28) { lic.exportCSV() }
         }
     }
@@ -558,6 +649,14 @@ struct LicensesView: View {
             HStack {
                 sectionTitle("Subscriptions and bundles")
                 Spacer()
+                QuietPill(title: "Single License", systemImage: "plus", height: 26) { choosePlugin = true }
+                    .popover(isPresented: $choosePlugin, arrowEdge: .bottom) {
+                        PluginChooser { p in
+                            choosePlugin = false
+                            if lic.licenses[p.id]?.status == nil { var l = lic.license(p.id); l.status = .owned; lic.set(l, for: p.id) }
+                            PluginLicenseWindow.show(p)
+                        }
+                    }
                 QuietPill(title: "Subscription", systemImage: "plus", height: 26) {
                     if let p = lic.newPlan(.subscription) { PlanWindow.show(p.id) }
                 }
@@ -687,5 +786,102 @@ struct LicenseMenu: View {
             Divider()
             Button("Licenses and Subscriptions…") { LicensesWindow.shared.show() }
         }
+    }
+}
+
+// MARK: - Currency (BL-92)
+
+/// The chosen currency; opens a searchable list in the app's own style.
+struct CurrencyButton: View {
+    var lic = Licenses.shared
+    @State private var open = false
+
+    var body: some View {
+        QuietPill(title: "\(lic.symbol)  \(lic.currency)", systemImage: "chevron.down", height: 28) { open.toggle() }
+            .help("Currency")
+            .popover(isPresented: $open, arrowEdge: .bottom) { CurrencyList { open = false } }
+    }
+}
+
+struct CurrencyList: View {
+    var lic = Licenses.shared
+    var done: () -> Void
+    @State private var search = ""
+
+    private var list: [String] {
+        let w = search.lowercased().trimmingCharacters(in: .whitespaces)
+        guard !w.isEmpty else { return Licenses.currencies }
+        return Licenses.currencies.filter { $0.lowercased().contains(w) || Licenses.currencyName($0).lowercased().contains(w) }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            LicenseTextField(placeholder: "Search currencies", text: $search)
+            ScrollView {
+                VStack(spacing: 2) {
+                    ForEach(list, id: \.self) { c in
+                        Button { lic.currency = c; done() } label: {
+                            HStack(spacing: 10) {
+                                Text(c).font(.system(size: 12, weight: .semibold)).monospaced().frame(width: 36, alignment: .leading)
+                                Text(Licenses.currencyName(c)).font(.system(size: 13)).lineLimit(1)
+                                Spacer()
+                                if lic.currency == c { Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)) }
+                            }
+                            .foregroundStyle(lic.currency == c ? Color.black : Theme.text)
+                            .padding(.horizontal, 10).frame(height: 30)
+                            .background(RoundedRectangle(cornerRadius: 7).fill(lic.currency == c ? Color.white : Color.clear))
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+        .padding(10)
+        .frame(width: 280, height: 360)
+        .background(Theme.surface)
+        .preferredColorScheme(.dark)
+    }
+}
+
+/// Pick one plugin to record a single license for (BL-94).
+struct PluginChooser: View {
+    var pick: (Plugin) -> Void
+    @State private var search = ""
+
+    private var list: [Plugin] {
+        let words = search.lowercased().split(separator: " ").map(String.init)
+        return PluginStore.shared.plugins.filter { !$0.isLogic }
+            .filter { p in let hay = "\(p.name) \(p.manufacturer)".lowercased(); return words.allSatisfy { hay.contains($0) } }
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            LicenseTextField(placeholder: "Which plugin?", text: $search)
+            ScrollView {
+                LazyVStack(spacing: 2) {
+                    ForEach(list) { p in
+                        Button { pick(p) } label: {
+                            HStack {
+                                Text(p.name).font(.system(size: 13)).foregroundStyle(Theme.text).lineLimit(1)
+                                Text(p.manufacturer).font(.system(size: 11)).foregroundStyle(Theme.faint).lineLimit(1)
+                                Spacer()
+                                if let s = Licenses.shared.licenses[p.id]?.status {
+                                    Text(s.title).font(.system(size: 10, weight: .medium)).foregroundStyle(Theme.muted)
+                                }
+                            }
+                            .padding(.horizontal, 10).frame(height: 30)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+        .padding(10)
+        .frame(width: 320, height: 380)
+        .background(Theme.surface)
+        .preferredColorScheme(.dark)
     }
 }

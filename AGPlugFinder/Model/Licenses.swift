@@ -80,7 +80,15 @@ final class Licenses {
         didSet { UserDefaults.standard.set(currency, forKey: "licenses.currency") }
     }
 
-    static let currencies = ["USD", "EUR", "GBP", "ILS"]
+    /// The currencies offered in the chooser, most used first (BL-92).
+    static let currencies = ["USD", "EUR", "GBP", "ILS", "CAD", "AUD", "NZD", "CHF", "JPY", "SEK", "NOK", "DKK",
+                             "PLN", "CZK", "HUF", "RON", "TRY", "BRL", "MXN", "ARS", "CLP", "COP", "INR", "CNY",
+                             "HKD", "SGD", "KRW", "TWD", "THB", "IDR", "MYR", "PHP", "VND", "ZAR", "AED", "SAR",
+                             "EGP", "NGN", "KES", "UAH", "ISK"]
+
+    static func currencyName(_ code: String) -> String {
+        Locale(identifier: "en_US").localizedString(forCurrencyCode: code) ?? code
+    }
     private let fileURL: URL
     private var loading = false
 
@@ -96,7 +104,7 @@ final class Licenses {
         fileURL = Self.testMode ? FileManager.default.temporaryDirectory.appendingPathComponent("licenses-test.json")
                                 : PluginStore.shared.supportDir.appendingPathComponent("licenses.json")
         let local = Locale.current.currency?.identifier ?? "USD"
-        currency = UserDefaults.standard.string(forKey: "licenses.currency")
+        currency = UserDefaults.standard.string(forKey: "licenses.currency").flatMap { Self.currencies.contains($0) ? $0 : nil }
             ?? (Self.currencies.contains(local) ? local : "USD")
         load()
     }

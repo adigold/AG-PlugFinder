@@ -9,6 +9,8 @@ struct SettingsView: View {
                 .tabItem { Label("Shortcuts", systemImage: "keyboard") }
             PluginListEditor()
                 .tabItem { Label("Plugin List", systemImage: "list.bullet.rectangle") }
+            LicensesView(topPadding: 22)
+                .tabItem { Label("Licenses", systemImage: "creditcard") }
             UpdateSettings()
                 .tabItem { Label("Updates", systemImage: "arrow.down.circle") }
         }

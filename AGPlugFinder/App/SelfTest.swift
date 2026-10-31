@@ -454,6 +454,10 @@ enum SelfTest {
                         .background(Theme.ground), size: NSSize(width: 420, height: 520),
                                 to: dir.appendingPathComponent("section.png"))
                 }
+                await shoot(CalendarPicker(date: .constant(cal.date(byAdding: .day, value: 12, to: today)!)) {},
+                            size: NSSize(width: 300, height: 380), to: dir.appendingPathComponent("calendar.png"))
+                await shoot(CurrencyList {}, size: NSSize(width: 280, height: 360), to: dir.appendingPathComponent("currency.png"))
+                await shoot(LicensesView(topPadding: 22), size: NSSize(width: 780, height: 300), to: dir.appendingPathComponent("tab.png"))
                 print("LICENSES ok \(lic.money(lic.collectionValue)) \(lic.money(lic.perMonth))"); fflush(stdout)
             }
         }
