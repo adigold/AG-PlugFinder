@@ -125,7 +125,7 @@ struct TrackPanel: View {
                           disabled: state.plugins.isEmpty || state.busy) {
                     state.run { _ = await LogicTrack.shared.removeLastAdded() }
                 }
-                ActionRow(icon: "trash", title: "Clear effects",
+                ActionRow(icon: "trash", title: "Remove all effects",
                           detail: "Removes every effect from this track in one step",
                           disabled: state.effects.isEmpty || state.busy) { clearEffects() }
                 ActionRow(icon: "power", title: "Remove the ones turned off",
