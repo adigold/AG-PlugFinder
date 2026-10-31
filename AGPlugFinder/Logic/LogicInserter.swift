@@ -380,15 +380,15 @@ final class LogicInserter {
             guard changed else { continue }
             let items = current.findAll(maxNodes: 600) { $0.role == AXRole.menuItem && $0.isEnabled }
             if let item = items.first(where: { $0.title.localizedCaseInsensitiveCompare(plugin.name) == .orderedSame }) {
-                return await pick(item, app: app)
+                return await pick(item, app: app, for: plugin)
             }
             if Date() >= settled, let item = bestItem(for: plugin, in: current) {
-                return await pick(item, app: app)
+                return await pick(item, app: app, for: plugin)
             }
         }
         let current = await waitForMenu(app: app, timeout: 0.3) ?? menu
         guard let item = bestItem(for: plugin, in: current) else { return false }
-        return await pick(item, app: app)
+        return await pick(item, app: app, for: plugin)
     }
 
     /// The slot menu's Legacy submenu: Legacy → group (Delay, EQ …) → plug-in.
@@ -396,12 +396,12 @@ final class LogicInserter {
         var groups = menu
         if let legacy = menuItems(menu).first(where: { $0.title == "Legacy" }),
            let sub = await submenu(of: legacy) { groups = sub }
-        if let item = bestLegacyItem(plugin, in: groups) { return await pick(item, app: app) }
+        if let item = bestLegacyItem(plugin, in: groups) { return await pick(item, app: app, for: plugin) }
         for group in menuItems(groups) {
             guard let list = await submenu(of: group) else { continue }
             if let item = bestLegacyItem(plugin, in: list) {
                 log("  legacy group: \(group.title)")
-                return await pick(item, app: app)
+                return await pick(item, app: app, for: plugin)
             }
         }
         log("  legacy groups: " + menuItems(groups).map(\.title).joined(separator: " | "))
@@ -417,7 +417,7 @@ final class LogicInserter {
             // Top level first (Drum Machine Designer, recent items), then Logic's groups.
             if let item = menuItems(menu).first(where: {
                 $0.title.localizedCaseInsensitiveCompare(plugin.name) == .orderedSame
-            }) { return await pick(item, app: app) }
+            }) { return await pick(item, app: app, for: plugin) }
             let groups = plugin.slotKind == .instrument
                 ? ["Synthesizer", "Sampler", "Studio Instruments", "Vintage Keys", "Drums", "Utility"]
                 : [plugin.category]
@@ -428,7 +428,7 @@ final class LogicInserter {
                       let list = await submenu(of: group) else { continue }
                 if let item = bestItem(for: plugin, in: list, maxNodes: 2000) {
                     UserDefaults.standard.set(title, forKey: "menuGroup." + plugin.name)
-                    return await pick(item, app: app)
+                    return await pick(item, app: app, for: plugin)
                 }
             }
             return false
@@ -448,7 +448,7 @@ final class LogicInserter {
               let list = await submenu(of: maker),
               let item = bestItem(for: plugin, in: list, maxNodes: 2000)
         else { return false }
-        return await pick(item, app: app)
+        return await pick(item, app: app, for: plugin)
     }
 
     /// The quickest way to the plugin in an open slot menu (BL-68): straight down its path in
@@ -465,7 +465,7 @@ final class LogicInserter {
         if !plugin.isLogic { return await chooseByBrowsing(plugin, menu: menu, app: app) }
         if let item = menuItems(menu).first(where: {
             $0.isEnabled && $0.title.localizedCaseInsensitiveCompare(plugin.name) == .orderedSame
-        }) { return await pick(item, app: app) }
+        }) { return await pick(item, app: app, for: plugin) }
         // The group Logic listed it under last time, else its own category.
         let key = "menuGroup." + plugin.name
         let groups = [UserDefaults.standard.string(forKey: key), plugin.category].compactMap { $0 }
@@ -478,7 +478,7 @@ final class LogicInserter {
                       $0.isEnabled && $0.title.localizedCaseInsensitiveCompare(plugin.name) == .orderedSame
                   })
             else { continue }
-            return await pick(item, app: app)
+            return await pick(item, app: app, for: plugin)
         }
         return false
     }
@@ -491,13 +491,24 @@ final class LogicInserter {
         }
     }
 
-    /// Presses the item; when it opens a channel-format submenu (Mono / Stereo …) picks Stereo.
-    func pick(_ item: AXNode, app: AXNode) async -> Bool {
+    /// Presses the item. When Logic offers the plugin in several formats (Mono, Stereo,
+    /// Mono→Stereo …) the format follows the Channel format setting or the plugin's own (BL-69).
+    func pick(_ item: AXNode, app: AXNode, for plugin: Plugin? = nil) async -> Bool {
         if let formats = await submenu(of: item, pressIfNeeded: false) {
             let items = menuItems(formats).filter(\.isEnabled)
-            guard let choice = items.first(where: { $0.title == "Stereo" }) ?? items.first
-            else { return false }
-            return choice.perform(kAXPressAction)
+            let titles = items.map(\.title)
+            let wanted = ChannelFormats.shared.choice(for: plugin?.id)
+            log("  formats: \(titles.joined(separator: " | ")) · \(wanted.rawValue)")
+            if wanted == .ask {
+                // Leave Logic's own format menu open for the user to choose.
+                item.perform(kAXPressAction)
+                return true
+            }
+            let index = ChannelFormat.fixed.contains(wanted)
+                ? (titles.firstIndex(where: wanted.matches) ?? ChannelFormat.autoChoice(titles))
+                : ChannelFormat.autoChoice(titles)
+            guard let index else { return false }
+            return items[index].perform(kAXPressAction)
         }
         return item.perform(kAXPressAction)
     }
@@ -832,6 +843,7 @@ enum LogicProbe {
                 var result = "ok"
                 switch args[i + 1] {
                 case "toggle": if let s = slot(rest[0]) { t.toggle(s) }
+                case "remove": if let s = slot(rest[0]) { result = "\(await t.remove(s))" }
                 case "remove-last": result = await t.removeLastAdded() ?? "nothing"
                 case "clear": result = "\(await t.clearEffects())"
                 case "open-all": result = "\(await t.openAll())"

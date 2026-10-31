@@ -241,7 +241,28 @@ struct PluginExtras: View {
                     TracksWindow.shared.show(.find(plugin))
                 }
             }
+            if plugin.slotKind != .midiFX { formatRow }
         }
+    }
+
+    /// This plugin's own channel format (BL-69); the first chip follows Settings.
+    private var formatRow: some View {
+        let formats = ChannelFormats.shared
+        let own = formats.own(plugin.id)
+        return VStack(alignment: .leading, spacing: 6) {
+            label("Channel format")
+            FlowRow(spacing: 6) {
+                Chip(title: "As in Settings (\(formats.mode.title))", systemImage: nil, on: own == nil) {
+                    formats.set(nil, for: plugin.id)
+                }
+                ForEach([ChannelFormat.ask] + ChannelFormat.fixed) { f in
+                    Chip(title: f.title, systemImage: nil, on: own == f) {
+                        formats.set(own == f ? nil : f, for: plugin.id)
+                    }
+                }
+            }
+        }
+        .padding(.top, 4)
     }
 
     private var pinRow: some View {

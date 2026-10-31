@@ -62,6 +62,13 @@ struct GeneralSettings: View {
                 }
                 Text("Needed to place plugins in Logic's insert slots. Nothing else is controlled.")
                     .font(.caption).foregroundStyle(.secondary)
+                Picker("Channel format", selection: Bindable(ChannelFormats.shared).mode) {
+                    Text("Auto").tag(ChannelFormat.auto)
+                    Text("Ask me").tag(ChannelFormat.ask)
+                }
+                .pickerStyle(.segmented)
+                Text("When Logic has a plugin in several versions (Mono, Stereo, Mono to Stereo), Auto picks the one that fits the track and Ask me shows Logic's choice. A plugin can have its own choice in its info panel.")
+                    .font(.caption).foregroundStyle(.secondary)
                 HStack {
                     Button("Save Logic Interface Report") {
                         if let url = LogicInserter.shared.dumpDiagnostics() {
