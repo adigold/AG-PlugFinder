@@ -7,6 +7,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
+- [ ] **BL-50** `P2 · Medium` **Free plugin info without an API key:** offer a free model for Look Up Info next to the paid one, ideally the Mac's own built-in model (no download), else a small downloadable one. Adi, 2026-10-31.
 - [ ] **BL-49** `P1 · High` **A designed What's New window:** replace the plain list of release notes with a window of cards (icon, title, detail), a New badge on update announcements, and the same design after an update. Categories become the default chip row. Adi, 2026-10-31.
 - [ ] **BL-48** `P1 · Medium` **Screenshot size slider:** a slider on the right, under the top bar, that sets how big the plugin pictures are, any size between small and extra large. Adi, 2026-10-31.
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
