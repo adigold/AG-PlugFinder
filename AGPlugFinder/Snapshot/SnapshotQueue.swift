@@ -41,7 +41,8 @@ final class SnapshotQueue {
     }
 
     /// Captures every plugin that has no screenshot yet (or all of them when `force` is true).
-    func start(force: Bool = false, only ids: Set<String>? = nil) {
+    /// `retryFailed`: also plugins whose picture failed before (when the user asks for it).
+    func start(force: Bool = false, only ids: Set<String>? = nil, retryFailed: Bool = false) {
         guard !isRunning else { return }
         let store = PluginStore.shared
         let todo = store.plugins
@@ -55,7 +56,8 @@ final class SnapshotQueue {
                 // each time); Retry or Retake Screenshot still try it on request.
                 switch p.snapshotState {
                 case .pending, .done: return !hasImage
-                case .failed, .noUI, .builtIn: return false
+                case .failed: return retryFailed && !hasImage
+                case .noUI, .builtIn: return false
                 }
             }
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
@@ -124,7 +126,7 @@ final class SnapshotQueue {
     var missingCount: Int {
         let store = PluginStore.shared
         return store.plugins.filter { p in
-            !p.isLogic && (p.snapshotState == .pending || p.snapshotState == .done)
+            !p.isLogic && (p.snapshotState == .pending || p.snapshotState == .done || p.snapshotState == .failed)
                 && !FileManager.default.fileExists(atPath: store.snapshotURL(for: p.id).path)
         }.count
     }

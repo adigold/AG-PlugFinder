@@ -7,6 +7,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
+- [ ] **BL-80** `P2 · Medium` **Find a plugin's picture on the web when taking it fails:** look up the maker's own product image, Adi approves before it is shared. Ariel's and Adi's idea, 2026-10-31.
 - [~] **BL-50** `P2 · Medium` **Free plugin info without an API key:** offer a free model for Look Up Info next to the paid one, ideally the Mac's own built-in model (no download), else a small downloadable one. Adi, 2026-10-31. Built-in model shipped in 0.7.0; the downloadable model is built behind the LOCAL_MODEL switch and waits for the Metal toolchain.
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
@@ -25,6 +26,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-79** `P1 · Medium` **Select several plugins with ⌘-click:** take pictures of all of them at once (Ariel's request), plus add them to Favorites or a collection. Adi, 2026-10-31. Also: Take missing pictures now retries the failed ones (Ariel: refresh). · done 2026-10-31
 - [x] **BL-78** `P3 · Low` **Plugin count label:** smaller, and reads "141 plugins found" so it isn't mistaken for the version. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-65** `P1 · Medium` **Point at a slot and press a key:** with the pointer over a slot in Logic, a key inserts, replaces or removes right there, with a highlight on the slot. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-77** `P1 · High` **Categories for every maker's plugins:** third-party plugins go into the same categories as Logic's (wideners and imagers into Imaging, meters into Metering, drum and piano instruments into Drums and Keys); looked-up categories are matched to the app's own. From a user's report. Adi, 2026-10-31. · done 2026-10-31

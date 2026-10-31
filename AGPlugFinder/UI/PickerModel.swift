@@ -20,6 +20,23 @@ final class PickerModel {
     /// Set from the pointer shortcut: the slot under the pointer in Logic (BL-65). Only plugins
     /// that fit it are listed, and the chosen one goes exactly there.
     var pointerTarget: PointerTarget?
+    /// Plugins picked with ⌘-click or ⇧-click, to act on together (BL-79).
+    var picked: Set<String> = []
+
+    /// ⌘-click adds or removes one plugin; ⇧-click picks everything from the selected one to it.
+    func pick(_ index: Int, range: Bool) {
+        let list = results
+        guard list.indices.contains(index) else { return }
+        if picked.isEmpty, let current = selected { picked.insert(current.id) }
+        if range, list.indices.contains(selection) {
+            for i in min(selection, index)...max(selection, index) { picked.insert(list[i].id) }
+        } else if picked.contains(list[index].id) {
+            picked.remove(list[index].id)
+        } else {
+            picked.insert(list[index].id)
+        }
+        selection = index
+    }
     /// Plugins that fit the selected Logic track, shown first while the search is empty (BL-33).
     var suggestion: (track: String, ids: [String])?
 

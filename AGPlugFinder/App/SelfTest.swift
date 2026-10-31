@@ -293,6 +293,17 @@ enum SelfTest {
                 print("ZOOM done"); fflush(stdout)
             }
         }
+        // --selftest-picked <png>: the grid with three plugins picked and the bar at the bottom.
+        if let k = args.firstIndex(of: "--selftest-picked"), k + 1 < args.count {
+            let out = URL(fileURLWithPath: args[k + 1])
+            Task {
+                let model = PickerModel()
+                model.picked = Set(model.results.prefix(3).map(\.id))
+                await shoot(PluginGrid(model: model) {}.background(Theme.ground), size: NSSize(width: 900, height: 560), to: out)
+                print("PICKED done"); fflush(stdout)
+                exit(0)
+            }
+        }
         // --selftest-favorites <dir>: cards with their stars, then the Remove from Favorites
         // confirmation (answered Keep, so nothing changes).
         if let k = args.firstIndex(of: "--selftest-favorites"), k + 1 < args.count {

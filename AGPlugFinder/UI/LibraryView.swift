@@ -285,6 +285,7 @@ struct LibraryView: View {
             case 36, 76: insert(); return nil                     // Return
             case 53:                                               // Esc
                 if model.replaceTarget != nil { model.replaceTarget = nil; return nil }
+                if !model.picked.isEmpty { model.picked = []; return nil }
                 if !model.query.isEmpty { model.query = "" } else { model.message = nil }
                 return nil
             default: break
@@ -319,10 +320,10 @@ struct LibraryActions: View {
             action("arrow.clockwise", "Rescan installed plugins", detail: "Finds what you installed since") {
                 store.rescan(); snapshots.start()
             }
-            action("camera", "Take missing screenshots",
-                   detail: snapshots.missingCount == 0 ? "Every plugin has one" : "\(snapshots.missingCount) without a picture",
+            action("camera", "Take missing pictures",
+                   detail: snapshots.missingCount == 0 ? "Every plugin has one" : "\(snapshots.missingCount) without a picture, failed ones tried again",
                    disabled: snapshots.isRunning || snapshots.missingCount == 0) {
-                snapshots.start()
+                snapshots.start(retryFailed: true)
             }
             action("sparkles", "Look up plugin info",
                    detail: fetcher.missingCount() == 0 ? "Every plugin has a description" : "\(fetcher.missingCount()) without a description",

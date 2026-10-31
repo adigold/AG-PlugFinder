@@ -417,6 +417,8 @@ struct PluginGrid: View {
             .overlay {
                 if results.isEmpty { emptyState }
             }
+            .overlay(alignment: .bottom) { PickedBar(model: model) }
+            .animation(.easeOut(duration: 0.18), value: model.picked.count > 1)
         }
     }
 
@@ -446,9 +448,35 @@ struct PluginGrid: View {
                 .transition(.asymmetric(
                     insertion: .opacity.combined(with: .scale(scale: 0.94)),
                     removal: .opacity.combined(with: .scale(scale: 0.88))))
+                .overlay {
+                    if model.picked.contains(plugin.id) {
+                        RoundedRectangle(cornerRadius: Theme.radiusCard, style: .continuous)
+                            .strokeBorder(Theme.accent, lineWidth: 2)
+                            .overlay(alignment: .topLeading) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 16)).foregroundStyle(Color.black, Theme.accent)
+                                    .padding(8)
+                            }
+                            .allowsHitTesting(false)
+                    }
+                }
                 .onTapGesture(count: 2) { model.selection = i; onActivate() }
-                .onTapGesture { model.selection = i }
-                .contextMenu { PluginContextMenu(plugin: plugin, select: { model.selection = i }, insert: onActivate) }
+                .onTapGesture {
+                    let mods = NSEvent.modifierFlags
+                    if mods.contains(.command) || mods.contains(.shift) {
+                        model.pick(i, range: mods.contains(.shift))
+                    } else {
+                        model.picked = []
+                        model.selection = i
+                    }
+                }
+                .contextMenu {
+                    if model.picked.count > 1, model.picked.contains(plugin.id) {
+                        PickedMenu(model: model)
+                    } else {
+                        PluginContextMenu(plugin: plugin, select: { model.selection = i }, insert: onActivate)
+                    }
+                }
                 // Drag onto a collection chip to add it there (BL-60).
                 .draggable(PluginDrag.prefix + plugin.id) {
                     HStack(spacing: 8) {
@@ -939,6 +967,91 @@ struct UnfavoriteConfirm: View {
                 .shadow(color: .black.opacity(0.5), radius: 30, y: 10)
             }
             .transition(.opacity)
+        }
+    }
+}
+
+
+// MARK: - Several plugins at once (BL-79)
+
+/// What can be done to every picked plugin together.
+@MainActor
+enum PickedActions {
+    static func plugins(_ model: PickerModel) -> [Plugin] {
+        PluginStore.shared.plugins.filter { model.picked.contains($0.id) }
+    }
+
+    static func takePictures(_ model: PickerModel) {
+        let ids = Set(plugins(model).filter { !$0.isLogic }.map(\.id))
+        guard !ids.isEmpty else { Toast.show("Logic's own plugins already have their pictures.", warning: true); return }
+        guard !SnapshotQueue.shared.isRunning else { Toast.show("Pictures are already being taken. Try again when it finishes.", warning: true); return }
+        SnapshotQueue.shared.start(only: ids)
+    }
+
+    static func favorite(_ model: PickerModel) {
+        let ids = plugins(model).map(\.id)
+        PluginStore.shared.favorites.formUnion(ids)
+        Toast.show("Added \(ids.count) to Favorites")
+    }
+
+    static func addToCollection(_ model: PickerModel, _ id: String?) {
+        let ids = plugins(model).map(\.id)
+        let lib = UserLibrary.shared
+        if let id, let i = lib.collections.firstIndex(where: { $0.id == id }) {
+            for p in ids where !lib.collections[i].pluginIDs.contains(p) { lib.collections[i].pluginIDs.append(p) }
+            Toast.show("Added \(ids.count) to \(lib.collections[i].name)")
+        } else if let name = NamePrompt.ask("New collection", placeholder: "For example Mix bus") {
+            lib.collections.append(.init(name: name, pluginIDs: ids))
+            Toast.show("Made \(name) with \(ids.count) plugins")
+        }
+    }
+}
+
+struct PickedMenu: View {
+    @Bindable var model: PickerModel
+
+    var body: some View {
+        let n = model.picked.count
+        Button("Take Pictures of \(n) Plugins") { PickedActions.takePictures(model) }
+        Button("Clear \(n) Pictures") { PluginStore.shared.clearScreenshots(Array(model.picked)) }
+        Divider()
+        Button("Add \(n) to Favorites") { PickedActions.favorite(model) }
+        Menu("Add \(n) to Collection") {
+            ForEach(UserLibrary.shared.collections) { c in
+                Button(c.name) { PickedActions.addToCollection(model, c.id) }
+            }
+            if !UserLibrary.shared.collections.isEmpty { Divider() }
+            Button("New Collection…") { PickedActions.addToCollection(model, nil) }
+        }
+        Button("Look Up Info for \(n)") { PluginInfoFetcher.shared.start(ids: Array(model.picked)) }
+            .disabled(PluginInfoFetcher.shared.isRunning || !PluginInfoFetcher.shared.canLookUp)
+        Divider()
+        Button("Deselect All") { model.picked = [] }
+    }
+}
+
+/// The bar at the bottom of the grid while several plugins are picked.
+struct PickedBar: View {
+    @Bindable var model: PickerModel
+
+    var body: some View {
+        if model.picked.count > 1 {
+            HStack(spacing: 8) {
+                Text("\(model.picked.count) selected").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.text)
+                    .padding(.horizontal, 6)
+                QuietPill(title: "Take Pictures", systemImage: "camera", height: 28) { PickedActions.takePictures(model) }
+                QuietPill(title: "Favorites", systemImage: "star", height: 28) { PickedActions.favorite(model) }
+                QuietPill(title: "Collection", systemImage: "plus.rectangle.on.rectangle", height: 28) {
+                    PickedActions.addToCollection(model, nil)
+                }
+                QuietPill(title: "Done", height: 28) { model.picked = [] }
+            }
+            .padding(8)
+            .background(Capsule().fill(Theme.raised))
+            .overlay(Capsule().strokeBorder(Theme.rule, lineWidth: 1))
+            .shadow(color: .black.opacity(0.45), radius: 18, y: 6)
+            .padding(.bottom, 16)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
 }
