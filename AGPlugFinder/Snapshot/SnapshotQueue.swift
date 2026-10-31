@@ -158,7 +158,8 @@ final class SnapshotQueue {
                     return
                 }
                 // Hard time limit so a hanging plugin can never block the queue.
-                let deadline = DispatchTime.now() + .seconds(25)
+                // Some makers (iZotope) check their licence while loading and take long.
+                let deadline = DispatchTime.now() + .seconds(40)
                 let timer = DispatchWorkItem { if process.isRunning { process.terminate() } }
                 DispatchQueue.global().asyncAfter(deadline: deadline, execute: timer)
                 process.waitUntilExit()

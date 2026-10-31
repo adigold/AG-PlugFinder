@@ -77,7 +77,13 @@ enum CrashReports {
         guard let base = PlugDB.base, let key = PlugDB.key else { return false }
         let logURL = PluginStore.shared.supportDir.appendingPathComponent("Insert log.txt")
         let log = (try? String(contentsOf: logURL, encoding: .utf8)).map { $0.split(separator: "\n").suffix(300).joined(separator: "\n") } ?? ""
-        let report = crash.flatMap { try? String(contentsOf: $0, encoding: .utf8) }.map { String($0.prefix(1_500_000)) }
+        var report = crash.flatMap { try? String(contentsOf: $0, encoding: .utf8) }.map { String($0.prefix(1_500_000)) }
+        // Plugins whose picture failed, and why, so a report says which makers have trouble.
+        let failed = PluginStore.shared.plugins.filter { $0.snapshotState == .failed }
+        if !failed.isEmpty {
+            let lines = failed.prefix(400).map { "\($0.manufacturer) · \($0.name) [\($0.id)\($0.isV3 ? " v3" : "")]: \($0.snapshotError ?? "?")" }
+            report = (report.map { $0 + "\n\n" } ?? "") + "=== Pictures that failed (\(failed.count)) ===\n" + lines.joined(separator: "\n")
+        }
         let info = ProcessInfo.processInfo
         let body: [String: Any] = [
             "installId": PlugDB.installID,

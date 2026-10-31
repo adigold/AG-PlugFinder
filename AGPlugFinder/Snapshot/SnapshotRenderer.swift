@@ -129,6 +129,14 @@ enum SnapshotRenderer {
         if image == nil || isBlank(image!) {
             image = captureFromView(controller.view) ?? image
         }
+        // Some interfaces (iZotope and others drawn on the graphics card) appear late: keep
+        // looking for up to about 6 more seconds while the window is still blank.
+        var tries = 0
+        while (image == nil || isBlank(image!)), tries < 8 {
+            try? await Task.sleep(for: .milliseconds(750))
+            image = await captureWithScreenCaptureKit(window: window) ?? captureFromView(controller.view)
+            tries += 1
+        }
         window.orderOut(nil)
 
         guard let image, !isBlank(image) else {
