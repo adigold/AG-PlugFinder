@@ -66,7 +66,7 @@ struct LibraryView: View {
             UpdateBanner()
             activityStrip
             ReplaceBanner(model: model)
-            CollectionBar(model: model)
+            CollectionBar(model: model, showSizeSlider: true)
             HStack(spacing: 0) {
                 PluginGrid(model: model) { insert() }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

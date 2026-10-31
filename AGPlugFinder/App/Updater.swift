@@ -277,7 +277,9 @@ final class Updater {
         if version == currentVersion {
             whatsNew = (version, notes)
             // The new version opens on a "You're updated" window with what is new.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { UpdateWindow.shared.show() }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                WhatsNewWindow.shared.show(version: version, notes: notes, justUpdated: true)
+            }
         }
     }
 

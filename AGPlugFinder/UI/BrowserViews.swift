@@ -315,8 +315,8 @@ struct PluginRow: View {
     var body: some View {
         HStack(spacing: 14) {
             PluginThumbnail(plugin: plugin, radius: compact ? 8 : 10)
-                .frame(width: compact ? 64 : view.size.tileWidth * 0.55,
-                       height: compact ? 40 : view.size.tileWidth * 0.34)
+                .frame(width: compact ? 64 : view.tileWidth * 0.55,
+                       height: compact ? 40 : view.tileWidth * 0.34)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
                     Text(plugin.name)
@@ -369,7 +369,7 @@ struct PluginGrid: View {
             let inset: CGFloat = compact ? 8 : 18
             let asList = compact || view.layout == .list
             let columns = asList ? 1
-                : max(1, Int((geo.size.width - inset * 2 + spacing) / (view.size.tileWidth + spacing)))
+                : max(1, Int((geo.size.width - inset * 2 + spacing) / (view.tileWidth + spacing)))
             ScrollViewReader { proxy in
                 ScrollView {
                     Group {

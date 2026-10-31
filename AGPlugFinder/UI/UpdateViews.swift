@@ -6,7 +6,8 @@ struct UpdateBanner: View {
 
     var body: some View {
         if let r = updater.available {
-            strip(dot: Theme.accent, title: "A new update is available: version \(r.version)", notes: r.notes) {
+            strip(dot: Theme.accent, title: "A new update is available: version \(r.version)", notes: r.notes, badge: true) {
+                QuietPill(title: "What's New") { WhatsNewWindow.shared.show(version: r.version, notes: r.notes) }
                 PrimaryPill(title: "Install and Restart", height: 30) { updater.install() }
             }
         } else if updater.busy {
@@ -18,20 +19,23 @@ struct UpdateBanner: View {
                 QuietPill(title: "Try Again") { Task { await updater.check(userInitiated: true) } }
             }
         } else if let w = updater.whatsNew {
-            strip(dot: Theme.accent, title: "What's new in \(w.version)", notes: w.notes) {
+            strip(dot: Theme.accent, title: "You're updated to \(w.version)", notes: w.notes, badge: true) {
+                QuietPill(title: "What's New") { WhatsNewWindow.shared.show(version: w.version, notes: w.notes, justUpdated: true) }
                 QuietPill(title: "Got It") { updater.whatsNew = nil }
             }
         }
     }
 
-    private func strip<A: View>(dot: Color, title: String, notes: [String], @ViewBuilder action: () -> A) -> some View {
+    private func strip<A: View>(dot: Color, title: String, notes: [String], badge: Bool = false,
+                                @ViewBuilder action: () -> A) -> some View {
         HStack(alignment: .center, spacing: 14) {
-            Circle().fill(dot).frame(width: 8, height: 8)
+            if badge { NewBadge() } else { Circle().fill(dot).frame(width: 8, height: 8) }
             VStack(alignment: .leading, spacing: 3) {
                 Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text)
                 if !notes.isEmpty {
-                    Text(notes.prefix(3).joined(separator: "  ·  "))
-                        .font(.system(size: 12)).foregroundStyle(Theme.muted).lineLimit(2)
+                    Text(badge ? ReleaseNote.parse(notes).prefix(4).map(\.title).joined(separator: "  ·  ")
+                               : notes.prefix(3).joined(separator: "  ·  "))
+                        .font(.system(size: 12)).foregroundStyle(Theme.muted).lineLimit(1)
                 }
             }
             Spacer()
@@ -100,7 +104,7 @@ struct VersionBadge: View {
         Button { showVersions.toggle() } label: {
             HStack(spacing: 7) {
                 if updater.available != nil {
-                    Circle().fill(Theme.accent).frame(width: 7, height: 7)
+                    NewBadge()
                 } else if updater.state == .checking {
                     ProgressView().controlSize(.mini)
                 } else {
@@ -154,12 +158,24 @@ struct VersionsPanel: View {
                 }
             }
             if let r = updater.available, !r.notes.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("What's new").font(.system(size: 12)).foregroundStyle(Theme.faint)
-                    ForEach(r.notes, id: \.self) { n in
-                        Text(n).font(.system(size: 13)).foregroundStyle(Theme.muted)
-                            .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 8) {
+                        Text("What's new in \(r.version)").font(.system(size: 12)).foregroundStyle(Theme.faint)
+                        NewBadge()
                     }
+                    ForEach(ReleaseNote.parse(r.notes).prefix(3)) { n in
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: n.icon).font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Theme.accent).frame(width: 18)
+                            Text(n.title).font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.text)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    Button { WhatsNewWindow.shared.show(version: r.version, notes: r.notes) } label: {
+                        Text("See all \(r.notes.count) changes").font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Theme.accent)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             HStack(spacing: 8) {

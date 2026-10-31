@@ -190,6 +190,20 @@ enum SelfTest {
                 say("done")
             }
         }
+        // --selftest-whatsnew-window <png>: the What's New window with this version's notes.
+        if let k = args.firstIndex(of: "--selftest-whatsnew-window"), k + 1 < args.count {
+            let out = URL(fileURLWithPath: args[k + 1])
+            Task {
+                let lines = (try? String(contentsOfFile: args[k + 2], encoding: .utf8))?
+                    .split(separator: "\n").map { String($0.dropFirst(2)) } ?? []
+                WhatsNewWindow.shared.show(version: "0.5.0", notes: lines, justUpdated: args.contains("--updated"))
+                try? await Task.sleep(for: .milliseconds(1200))
+                if let w = NSApp.windows.first(where: { $0.isVisible && ($0.contentView as? NSHostingView<WhatsNewView>) != nil }) {
+                    await capture(w, to: out)
+                }
+                print("WHATSNEW done"); fflush(stdout)
+            }
+        }
         if let k = args.firstIndex(of: "--selftest-features"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])
             Task { await features(dir); fflush(stdout) }

@@ -16,6 +16,7 @@
 		29635C0C264E29F51E293901 /* HotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A06B5A571B3FD73B01B759C /* HotKey.swift */; };
 		2A1392243813F1CFAF3CA9CC /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0F37A30464EBB4764438A /* Updater.swift */; };
 		2B1238F5A1C0E4FEA95749AF /* PluginPack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D71657EEC5ED1CB8747992C3 /* PluginPack.swift */; };
+		2CDDD895CD2750912DB73AFC /* WhatsNewWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C0948383AEB9D0BE90BBA8 /* WhatsNewWindow.swift */; };
 		2E95C518E15D9AE1CE0BD68C /* PluginStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FD7E657F3026F318121A9D6 /* PluginStore.swift */; };
 		3BBC1A8A91E10880B239C18D /* AX.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFBFF2C38A98C6768DF05100 /* AX.swift */; };
 		450CA6479EE050AEE218A77A /* UpdateViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F023E1377B6D025990A4AD1D /* UpdateViews.swift */; };
@@ -69,6 +70,7 @@
 		597B1DCFC14B2876ADEF60AA /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		5FD7E657F3026F318121A9D6 /* PluginStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginStore.swift; sourceTree = "<group>"; };
 		65D1DB32E57A0017C2D34478 /* FeatureViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureViews.swift; sourceTree = "<group>"; };
+		68C0948383AEB9D0BE90BBA8 /* WhatsNewWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewWindow.swift; sourceTree = "<group>"; };
 		79020B749BE713B285FFCF69 /* LogicCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicCatalog.swift; sourceTree = "<group>"; };
 		81B74FA4A5CFB65E2CFEDE04 /* AGPlugFinder.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AGPlugFinder.entitlements; sourceTree = "<group>"; };
 		88B603335B7ED50468B310DE /* PickerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerModel.swift; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 				F023E1377B6D025990A4AD1D /* UpdateViews.swift */,
 				9F81E8A2D388B60472551735 /* UpdateWindow.swift */,
 				B8EBF150252A9B6AF992139C /* ViewSettings.swift */,
+				68C0948383AEB9D0BE90BBA8 /* WhatsNewWindow.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -315,6 +318,7 @@
 				2A1392243813F1CFAF3CA9CC /* Updater.swift in Sources */,
 				EF653A7BEB1F498F492ABA1E /* UserLibrary.swift in Sources */,
 				ABF6017627F4BF04469803C6 /* ViewSettings.swift in Sources */,
+				2CDDD895CD2750912DB73AFC /* WhatsNewWindow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -29,6 +29,8 @@ struct CollectionBar: View {
     @Bindable var model: PickerModel
     var library = UserLibrary.shared
     var view = ViewSettings.shared
+    /// The library window shows the picture size slider at the right of this row (BL-48).
+    var showSizeSlider = false
 
     private var categories: [String] {
         let store = PluginStore.shared
@@ -39,7 +41,7 @@ struct CollectionBar: View {
     var body: some View {
         let showCollections = view.chipRow.showsCollections && !library.collections.isEmpty
         let showCategories = view.chipRow.showsCategories
-        if showCollections || showCategories || model.suggestion != nil {
+        if showCollections || showCategories || model.suggestion != nil || showSizeSlider {
             HStack(spacing: 8) {
                 if showCollections || showCategories {
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -49,6 +51,7 @@ struct CollectionBar: View {
                 }
                 Spacer(minLength: 8)
                 suggestionNote
+                if showSizeSlider { SizeSlider().padding(.leading, 10) }
             }
             .padding(.horizontal, 18).frame(height: 44)
             .onChange(of: view.chipRow) { _, row in
@@ -107,6 +110,23 @@ struct CollectionBar: View {
                 }
             }
         }
+    }
+}
+
+/// Picture size: small picture, slider, large picture (BL-48).
+struct SizeSlider: View {
+    var view = ViewSettings.shared
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "photo").font(.system(size: 10)).foregroundStyle(Theme.faint)
+            Slider(value: Binding(get: { view.tileWidth }, set: { view.setTileWidth($0) }), in: ViewSettings.tileRange)
+                .controlSize(.small)
+                .tint(Theme.accent)
+                .frame(width: 130)
+            Image(systemName: "photo").font(.system(size: 15)).foregroundStyle(Theme.faint)
+        }
+        .help("Picture size")
+        .disabled(view.layout == .list)
     }
 }
 

@@ -183,11 +183,17 @@ struct UpdateProgressView: View {
             Text("What's new").font(.system(size: 12)).foregroundStyle(Theme.faint)
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
-                    ForEach(notes, id: \.self) { n in
-                        HStack(alignment: .firstTextBaseline, spacing: 10) {
-                            Circle().fill(Theme.accent).frame(width: 5, height: 5).offset(y: -2)
-                            Text(n).font(.system(size: 13)).foregroundStyle(Theme.muted)
-                                .fixedSize(horizontal: false, vertical: true)
+                    ForEach(ReleaseNote.parse(notes)) { n in
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: n.icon).font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(n.kind == .new ? Theme.accent : Theme.muted).frame(width: 18)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(n.title).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text)
+                                if !n.detail.isEmpty {
+                                    Text(n.detail).font(.system(size: 12)).foregroundStyle(Theme.muted)
+                                }
+                            }
+                            .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
