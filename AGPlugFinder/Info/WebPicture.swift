@@ -1,49 +1,25 @@
 import AppKit
+import SwiftUI
 
-/// Finds a plugin's picture on the web when taking it failed (BL-80): the official product
-/// image from the maker's own site, found with the online look-up (the user's own API key).
-/// The picture is checked to be a real image before it is saved, and then shared like one the
-/// app took.
+/// Finds a plugin's picture on the web when taking it failed (BL-80). Several candidates are
+/// collected (the maker's product page, shops, the pages the search found) and shown side by
+/// side; the user clicks the right one. Uses the online look-up's web search (the user's own
+/// API key). A chosen picture is saved and shared like one the app took.
 @MainActor
 enum WebPicture {
-    private(set) static var running = 0
-
     static var available: Bool { PluginInfoFetcher.shared.hasKey }
 
-    /// Looks up each plugin in turn and reports how many pictures it found.
+    /// Opens the chooser for each plugin in turn.
     static func find(_ plugins: [Plugin]) {
         let list = plugins.filter { !$0.isLogic }
         guard !list.isEmpty else { return }
-        guard let key = Keychain.read() else {
+        guard Keychain.read() != nil else {
             Toast.show("Add your API key in Settings > Plugin info to find pictures on the web.", warning: true); return
         }
-        let model = PluginInfoFetcher.shared.model
-        running += list.count
-        Toast.show("Looking for \(list.count == 1 ? list[0].name : "\(list.count) plugins") on the web…", busy: true)
-        Task {
-            var found = 0
-            for p in list {
-                if let data = await search(p, key: key, model: model), save(data, for: p) { found += 1 }
-                running -= 1
-            }
-            Toast.show(found == 0 ? "No picture found on the web." :
-                        "Found \(found) of \(list.count) picture\(list.count == 1 ? "" : "s") on the web.",
-                       warning: found == 0)
-        }
+        WebPictureWindow.shared.show(list)
     }
 
-    #if DEBUG
-    /// Looks one plugin up and reports the picture's size, without saving or sharing it.
-    static func probe(_ p: Plugin, to url: URL) async -> String {
-        guard let key = Keychain.read() else { return "no API key" }
-        guard let data = await search(p, key: key, model: PluginInfoFetcher.shared.model) else { return "nothing found" }
-        try? data.write(to: url)
-        let rep = NSBitmapImageRep(data: data)
-        return "\(data.count) bytes, \(rep?.pixelsWide ?? 0)x\(rep?.pixelsHigh ?? 0)"
-    }
-    #endif
-
-    private static func save(_ data: Data, for p: Plugin) -> Bool {
+    static func save(_ data: Data, for p: Plugin) -> Bool {
         guard let rep = NSBitmapImageRep(data: data), rep.pixelsWide >= 200, rep.pixelsHigh >= 120,
               let png = rep.representation(using: .png, properties: [:]) else { return false }
         let store = PluginStore.shared
@@ -55,23 +31,26 @@ enum WebPicture {
     }
 
     private static let system = """
-    You find the official product page of an audio plugin. Use web search to find the page on the \
-    maker's own website (or a large shop like Plugin Boutique when the maker has none) for this \
-    exact plugin. Answer with one JSON object and nothing else: {"page": the product page URL, \
-    "image": a direct URL of the plugin's interface screenshot if the search results show one, \
-    else ""}. Give "page": "" only if no page for this plugin exists.
+    You help find pictures of an audio plugin's interface. Use web search to find pages about this \
+    exact plugin: the maker's own product page first, then large shops (Plugin Boutique, Sweetwater, \
+    Thomann, KVR) and reviews. Answer with one JSON object and nothing else: {"pages": up to 5 page \
+    URLs about this plugin, "images": up to 6 direct image URLs that show the plugin's interface}. \
+    Use empty lists when you find nothing.
     """
 
-    nonisolated private static func search(_ p: Plugin, key: String, model: PluginInfoFetcher.Model) async -> Data? {
+    /// Up to 9 different pictures of the plugin from the web, best first.
+    nonisolated static func candidates(_ p: Plugin, key: String, model: PluginInfoFetcher.Model) async -> [Data] {
+        var images: [URL] = []
+        var pages: [URL] = []
         var messages: [[String: Any]] = [[
             "role": "user",
             "content": "Audio plugin \"\(p.name)\" by \(p.manufacturer), \(p.typeName), version \(p.version).",
         ]]
         for _ in 0..<4 {
             let body: [String: Any] = [
-                "model": model.rawValue, "max_tokens": 2000, "system": system,
+                "model": model.rawValue, "max_tokens": 3000, "system": system,
                 "output_config": ["effort": "low"], "fallbacks": "default",
-                "tools": [["type": "web_search_20260209", "name": "web_search", "max_uses": 3]],
+                "tools": [["type": "web_search_20260209", "name": "web_search", "max_uses": 4]],
                 "messages": messages,
             ]
             var request = URLRequest(url: URL(string: "https://api.anthropic.com/v1/messages")!)
@@ -82,54 +61,49 @@ enum WebPicture {
             request.setValue("server-side-fallback-2026-07-01", forHTTPHeaderField: "anthropic-beta")
             request.setValue("application/json", forHTTPHeaderField: "content-type")
             request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-            guard let (data, response) = try? await URLSession.shared.data(for: request) else { note("no answer"); return nil }
+            guard let (data, response) = try? await URLSession.shared.data(for: request) else { note("no answer"); break }
             let status = (response as? HTTPURLResponse)?.statusCode ?? 0
             guard status == 200, let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else {
-                note("status \(status): \(String(data: data.prefix(300), encoding: .utf8) ?? "")"); return nil
+                note("status \(status): \(String(data: data.prefix(300), encoding: .utf8) ?? "")"); break
             }
             let content = json["content"] as? [[String: Any]] ?? []
+            pages += resultPages(content, p)
             if json["stop_reason"] as? String == "pause_turn" {
                 messages.append(["role": "assistant", "content": content]); continue
             }
             let text = content.filter { $0["type"] as? String == "text" }.compactMap { $0["text"] as? String }.joined()
-            note("answer: \(text.suffix(200))")
-            if let b = content.first(where: { $0["type"] as? String == "web_search_tool_result" }),
-               let items = b["content"] as? [[String: Any]] {
-                note("result items: " + items.prefix(6).map { "\($0["title"] ?? "-") | \($0["url"] ?? "-")" }.joined(separator: " || "))
+            note("answer: \(text.suffix(300))")
+            if let start = text.firstIndex(of: "{"), let end = text.lastIndex(of: "}"),
+               let obj = (try? JSONSerialization.jsonObject(with: Data(text[start...end].utf8))) as? [String: Any] {
+                images += (obj["images"] as? [String] ?? []).compactMap(URL.init(string:))
+                pages = (obj["pages"] as? [String] ?? []).compactMap(URL.init(string:)) + pages
             }
-            let obj = text.firstIndex(of: "{").flatMap { start in text.lastIndex(of: "}").flatMap { end in
-                (try? JSONSerialization.jsonObject(with: Data(text[start...end].utf8))) as? [String: Any] } } ?? [:]
-            // The product page's own preview image (og:image) first: the maker picked it.
-            if let page = (obj["page"] as? String).flatMap(URL.init(string:)), let img = await ogImage(page),
-               let d = await download(img) { return d }
-            if let img = (obj["image"] as? String).flatMap(URL.init(string:)), let d = await download(img) { return d }
-            // Else the search results themselves: pages whose title names the plugin, the maker's own first.
-            for page in resultPages(content, p).prefix(4) {
-                note("trying \(page)")
-                if let img = await ogImage(page), let d = await download(img) { return d }
-            }
-            return nil
+            break
         }
-        return nil
-    }
-
-    nonisolated private static func resultPages(_ content: [[String: Any]], _ p: Plugin) -> [URL] {
-        let name = p.name.lowercased().replacingOccurrences(of: " ", with: "")
-        let maker = p.manufacturer.lowercased().replacingOccurrences(of: " ", with: "")
-        var found: [(URL, Int)] = []
-        for block in content where block["type"] as? String == "web_search_tool_result" {
-            for r in block["content"] as? [[String: Any]] ?? [] {
-                guard let s = r["url"] as? String, let url = URL(string: s), url.scheme == "https" else { continue }
-                let title = (r["title"] as? String ?? "").lowercased().replacingOccurrences(of: " ", with: "")
-                let host = url.host?.lowercased() ?? ""
-                guard title.contains(name) || url.path.lowercased().replacingOccurrences(of: "-", with: "").contains(name) else { continue }
-                // The maker's own site first, then shops, never video or forum sites.
-                if ["youtube", "reddit", "facebook", "instagram", "gearspace", "kvr"].contains(where: host.contains) { continue }
-                let score = (host.replacingOccurrences(of: "-", with: "").contains(maker.prefix(6)) ? 0 : 1)
-                if !found.contains(where: { $0.0 == url }) { found.append((url, score)) }
-            }
+        // Each page's own pictures: its preview image and big pictures that name the plugin.
+        var seenPages: Set<String> = []
+        let uniquePages = pages.filter { $0.scheme == "https" && seenPages.insert($0.absoluteString).inserted }.prefix(6)
+        let fromPages = await withTaskGroup(of: (Int, [URL]).self) { group in
+            for (i, page) in uniquePages.enumerated() { group.addTask { (i, await pageImages(page, p)) } }
+            var all: [(Int, [URL])] = []
+            for await r in group { all.append(r) }
+            return all.sorted { $0.0 < $1.0 }.flatMap(\.1)
         }
-        return found.sorted { $0.1 < $1.1 }.map(\.0)
+        var seen: Set<String> = []
+        let urls = (fromPages + images).filter { $0.scheme == "https" && seen.insert($0.absoluteString).inserted }.prefix(16)
+        note("candidate links: \(urls.count) from \(uniquePages.count) pages")
+        let downloaded = await withTaskGroup(of: (Int, Data?).self) { group in
+            for (i, url) in urls.enumerated() { group.addTask { (i, await download(url)) } }
+            var all: [(Int, Data)] = []
+            for await (i, d) in group { if let d { all.append((i, d)) } }
+            return all.sorted { $0.0 < $1.0 }.map(\.1)
+        }
+        // Real pictures only, big enough to show a plugin, each once.
+        var sizes: Set<String> = []
+        return Array(downloaded.filter { d in
+            guard let rep = NSBitmapImageRep(data: d), rep.pixelsWide >= 300, rep.pixelsHigh >= 150 else { return false }
+            return sizes.insert("\(rep.pixelsWide)x\(rep.pixelsHigh)-\(d.count / 1000)").inserted
+        }.prefix(9))
     }
 
     nonisolated private static func note(_ s: String) {
@@ -138,35 +112,196 @@ enum WebPicture {
         #endif
     }
 
+    /// Pages from the search results whose title or address names the plugin.
+    nonisolated private static func resultPages(_ content: [[String: Any]], _ p: Plugin) -> [URL] {
+        let name = p.name.lowercased().replacingOccurrences(of: " ", with: "")
+        var out: [URL] = []
+        for block in content where block["type"] as? String == "web_search_tool_result" {
+            for r in block["content"] as? [[String: Any]] ?? [] {
+                guard let s = r["url"] as? String, let url = URL(string: s), url.scheme == "https" else { continue }
+                let title = (r["title"] as? String ?? "").lowercased().replacingOccurrences(of: " ", with: "")
+                let host = url.host?.lowercased() ?? ""
+                if ["youtube", "reddit", "facebook", "instagram", "gearspace", "tiktok"].contains(where: host.contains) { continue }
+                if title.contains(name) || url.path.lowercased().replacingOccurrences(of: "-", with: "").contains(name) {
+                    out.append(url)
+                }
+            }
+        }
+        return out
+    }
+
+    /// A page's preview images (og:image, twitter:image) and pictures whose address or caption
+    /// names the plugin.
+    nonisolated private static func pageImages(_ page: URL, _ p: Plugin) async -> [URL] {
+        var r = URLRequest(url: page)
+        r.timeoutInterval = 20
+        r.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/605.1.15 Safari/605.1.15", forHTTPHeaderField: "User-Agent")
+        guard let (data, _) = try? await URLSession.shared.data(for: r),
+              let html = String(data: data.prefix(600_000), encoding: .utf8) ?? String(data: data.prefix(600_000), encoding: .isoLatin1)
+        else { return [] }
+        var out: [URL] = []
+        func grab(_ pattern: String, limit: Int, filter: ((String) -> Bool)? = nil) {
+            guard let re = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return }
+            for m in re.matches(in: html, range: NSRange(html.startIndex..., in: html)) {
+                for i in 1..<m.numberOfRanges {
+                    guard let range = Range(m.range(at: i), in: html) else { continue }
+                    let raw = String(html[range]).replacingOccurrences(of: "&amp;", with: "&")
+                    if let f = filter, !f(raw.lowercased()) { continue }
+                    if let u = URL(string: raw, relativeTo: page)?.absoluteURL, !out.contains(u) { out.append(u) }
+                    if out.count >= limit { return }
+                }
+            }
+        }
+        grab(#"<meta[^>]+(?:property|name)=["'](?:og:image(?::secure_url)?|twitter:image)["'][^>]+content=["']([^"']+)["']|<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:image|twitter:image)["']"#, limit: 2)
+        let words = p.name.lowercased().split(whereSeparator: { !$0.isLetter && !$0.isNumber }).map(String.init).filter { $0.count >= 3 }
+        grab(#"<img[^>]+(?:src|data-src)=["']([^"']+\.(?:png|jpe?g|webp)[^"']*)["']"#, limit: 5) { src in
+            !src.contains("logo") && !src.contains("icon") && words.contains(where: { src.contains($0) })
+        }
+        return out
+    }
+
     /// Only an https image of a sensible size.
     nonisolated private static func download(_ url: URL) async -> Data? {
         guard url.scheme == "https" else { return nil }
         var r = URLRequest(url: url)
-        r.timeoutInterval = 30
-        r.setValue("Mozilla/5.0 (Macintosh) AG PlugFinder", forHTTPHeaderField: "User-Agent")
+        r.timeoutInterval = 20
+        r.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/605.1.15 Safari/605.1.15", forHTTPHeaderField: "User-Agent")
         guard let (data, response) = try? await URLSession.shared.data(for: r),
               let http = response as? HTTPURLResponse, http.statusCode == 200,
               (http.value(forHTTPHeaderField: "Content-Type") ?? "").hasPrefix("image/"),
-              data.count > 5_000, data.count < 15_000_000 else { note("image refused: \(url)"); return nil }
+              data.count > 5_000, data.count < 15_000_000 else { return nil }
         return data
     }
 
-    nonisolated private static func ogImage(_ page: URL) async -> URL? {
-        guard page.scheme == "https" else { return nil }
-        var r = URLRequest(url: page)
-        r.timeoutInterval = 30
-        r.setValue("Mozilla/5.0 (Macintosh) AG PlugFinder", forHTTPHeaderField: "User-Agent")
-        guard let (data, _) = try? await URLSession.shared.data(for: r),
-              let html = String(data: data.prefix(400_000), encoding: .utf8) ?? String(data: data.prefix(400_000), encoding: .isoLatin1)
-        else { return nil }
-        let pattern = #"<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']|<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']"#
-        guard let re = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
-              let m = re.firstMatch(in: html, range: NSRange(html.startIndex..., in: html)) else { return nil }
-        for i in 1...2 {
-            if let range = Range(m.range(at: i), in: html) {
-                return URL(string: String(html[range]).replacingOccurrences(of: "&amp;", with: "&"), relativeTo: page)?.absoluteURL
+    #if DEBUG
+    static func probe(_ p: Plugin, to url: URL) async -> String {
+        guard let key = Keychain.read() else { return "no API key" }
+        let found = await candidates(p, key: key, model: PluginInfoFetcher.shared.model)
+        for (i, d) in found.enumerated() { try? d.write(to: url.appendingPathExtension("\(i)")) }
+        return "\(found.count) pictures: " + found.map { d in
+            let r = NSBitmapImageRep(data: d); return "\(r?.pixelsWide ?? 0)x\(r?.pixelsHigh ?? 0)"
+        }.joined(separator: ", ")
+    }
+    #endif
+}
+
+/// "Choose a picture for X": the web's candidates side by side; a click saves one.
+@MainActor
+final class WebPictureWindow {
+    static let shared = WebPictureWindow()
+    private var window: NSWindow?
+    private let state = WebPictureState()
+
+    func show(_ plugins: [Plugin]) {
+        state.queue += plugins
+        let w = window ?? {
+            let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 760, height: 620),
+                             styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: false)
+            w.titlebarAppearsTransparent = true
+            w.titleVisibility = .hidden
+            w.isMovableByWindowBackground = true
+            w.isReleasedWhenClosed = false
+            w.backgroundColor = .black
+            w.appearance = NSAppearance(named: .darkAqua)
+            w.contentView = NSHostingView(rootView: WebPictureView(state: state) { [weak self] in self?.window?.close() })
+            w.center()
+            window = w
+            return w
+        }()
+        w.makeKeyAndOrderFront(nil)
+        NSApp.activate()
+        if state.current == nil { state.next() }
+    }
+}
+
+@MainActor
+@Observable
+final class WebPictureState {
+    var queue: [Plugin] = []
+    var current: Plugin?
+    var pictures: [Data] = []
+    var searching = false
+
+    func next() {
+        guard !queue.isEmpty else { current = nil; pictures = []; return }
+        let p = queue.removeFirst()
+        current = p
+        pictures = []
+        searching = true
+        guard let key = Keychain.read() else { searching = false; return }
+        let model = PluginInfoFetcher.shared.model
+        Task {
+            let found = await WebPicture.candidates(p, key: key, model: model)
+            guard current?.id == p.id else { return }
+            pictures = found
+            searching = false
+        }
+    }
+}
+
+struct WebPictureView: View {
+    var state: WebPictureState
+    var close: () -> Void
+    @State private var hovered: Int?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            if let p = state.current {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Choose a picture for \(p.name)").font(.system(size: 18, weight: .bold)).foregroundStyle(Theme.text)
+                    Text(p.manufacturer + (state.queue.isEmpty ? "" : " · \(state.queue.count) more after this"))
+                        .font(.system(size: 12)).foregroundStyle(Theme.muted)
+                }
+                .padding(.top, 18)
+                if state.searching {
+                    VStack(spacing: 10) {
+                        ProgressView().controlSize(.regular)
+                        Text("Looking on the web. This takes about half a minute.")
+                            .font(.system(size: 12)).foregroundStyle(Theme.muted)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if state.pictures.isEmpty {
+                    Text("No pictures of \(p.name) were found on the web.")
+                        .font(.system(size: 13)).foregroundStyle(Theme.muted)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3), spacing: 12) {
+                            ForEach(Array(state.pictures.enumerated()), id: \.offset) { i, data in
+                                if let image = NSImage(data: data) {
+                                    Button { choose(data, p) } label: {
+                                        Image(nsImage: image).resizable().scaledToFit()
+                                            .frame(maxWidth: .infinity).frame(height: 140)
+                                            .background(Color.black)
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            .overlay(RoundedRectangle(cornerRadius: 10)
+                                                .strokeBorder(hovered == i ? Theme.accent : Theme.rule, lineWidth: hovered == i ? 2 : 1))
+                                    }
+                                    .buttonStyle(.plain)
+                                    .onHover { hovered = $0 ? i : (hovered == i ? nil : hovered) }
+                                    .help("Use this picture")
+                                }
+                            }
+                        }
+                    }
+                    Text("Click the picture that shows the plugin.").font(.system(size: 12)).foregroundStyle(Theme.faint)
+                }
+                HStack {
+                    Spacer()
+                    QuietPill(title: state.queue.isEmpty ? "None of These" : "Skip, Next Plugin", height: 30) {
+                        if state.queue.isEmpty { state.current = nil; close() } else { state.next() }
+                    }
+                }
             }
         }
-        return nil
+        .padding(.horizontal, 24).padding(.bottom, 20)
+        .frame(width: 760, height: 620)
+        .background(Theme.ground)
+        .preferredColorScheme(.dark)
+    }
+
+    private func choose(_ data: Data, _ p: Plugin) {
+        if WebPicture.save(data, for: p) { Toast.show("Saved the picture for \(p.name)") }
+        if state.queue.isEmpty { state.current = nil; close() } else { state.next() }
     }
 }

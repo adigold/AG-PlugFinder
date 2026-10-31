@@ -28,6 +28,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-87** `P1 · High` **Picture scan: skip, counter, choose from the web:** a seconds counter for the plugin being opened, Skip This Plugin, a maker is skipped after its first 3 plugins all fail, and Find Picture on the Web now shows up to 9 candidates to choose from (also offered after a scan for failed and basic-controls plugins, e.g. iZotope). Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-86** `P2 · Medium` **English keyboard in search, English app:** the search field switches the Mac to an English keyboard while it has focus, Hebrew key presses are read as the English letters on the same keys, and the app's own language is English. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-80** `P2 · Medium` **Find a plugin's picture on the web when taking it fails:** look up the maker's own product image, right-click Find Picture on the Web (one or several), with the user's own API key; the product page's own picture is used and checked. Ariel's and Adi's idea, 2026-10-31. · done 2026-10-31
 - [x] **BL-82** `P1 · High` **Set a plugin's category yourself:** right-click a plugin (or several picked with ⌘-click) and choose its category; the user's choice always wins over the guess, and they can share it with the community (category_votes). From Ariel's report. Adi, 2026-10-31. · done 2026-10-31

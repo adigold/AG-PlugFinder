@@ -109,7 +109,12 @@ struct SnapshotProgressView: View {
                 } else if queue.isRunning {
                     VStack(spacing: 8) {
                         ProgressView().controlSize(.small)
-                        Text("Opening the plugin…").font(.system(size: 11)).foregroundStyle(Theme.faint)
+                        TimelineView(.periodic(from: .now, by: 1)) { ctx in
+                            let s = queue.currentStarted.map { Int(ctx.date.timeIntervalSince($0)) } ?? 0
+                            Text(s < 3 ? "Opening the plugin…" : "Opening the plugin… \(s)s")
+                                .font(.system(size: 11)).foregroundStyle(Theme.faint).monospacedDigit()
+                        }
+
                     }
                 }
             }
@@ -203,12 +208,25 @@ struct SnapshotProgressView: View {
         HStack {
             if queue.isRunning {
                 Button("Stop") { queue.cancel() }
+                Button("Skip This Plugin") { queue.skipCurrent() }
+                    .disabled(queue.currentID == nil)
                 Spacer()
                 Button("Hide, keep going") { SnapshotProgressWindow.shared.hide() }
                     .keyboardShortcut(.defaultAction)
             } else {
                 if queue.failed > 0 {
                     Button("Try Failed Again") { queue.retryFailed() }
+                }
+                // Plugins that failed or only showed their basic controls (iZotope and others):
+                // pick their real look from pictures on the web (BL-80).
+                let needLook = queue.items.filter {
+                    if case .failed = $0.status { return true }; return $0.status == .generic
+                }.compactMap { item in PluginStore.shared.plugin(item.id) }
+                if !needLook.isEmpty, WebPicture.available {
+                    Button("Find Real Pictures on the Web (\(needLook.count))") {
+                        SnapshotProgressWindow.shared.hide()
+                        WebPicture.find(needLook)
+                    }
                 }
                 Spacer()
                 Button("Done") { SnapshotProgressWindow.shared.hide() }

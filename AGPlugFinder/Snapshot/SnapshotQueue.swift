@@ -22,7 +22,21 @@ final class SnapshotQueue {
     private(set) var startedAt: Date?
     private(set) var finishedAt: Date?
     private(set) var currentID: String?
+    /// When the plugin being pictured now was opened, for the seconds counter.
+    private(set) var currentStarted: Date?
     private var cancelled = false
+    private var skipRequested = false
+
+    /// The helper picturing the plugin now, so Skip can close it.
+    nonisolated(unsafe) private static var running: Process?
+    private static let runningLock = NSLock()
+
+    /// Skip: closes the plugin being pictured now and goes on with the next one.
+    func skipCurrent() {
+        guard isRunning, currentID != nil else { return }
+        skipRequested = true
+        Self.runningLock.lock(); Self.running?.terminate(); Self.runningLock.unlock()
+    }
 
     var total: Int { items.count }
     var done: Int { items.filter { ![.waiting, .working].contains($0.status) }.count }
@@ -69,6 +83,9 @@ final class SnapshotQueue {
         items = todo.map { Item(id: $0.id, name: $0.name, maker: $0.manufacturer) }
         SnapshotProgressWindow.shared.show()
         Task {
+            // A maker whose first plugins all fail (some iZotope or Waves set-ups) is not tried
+            // for every one of its plugins: after 3 failures and no success the rest are skipped.
+            var makerFailed: [String: Int] = [:], makerWorked: Set<String> = []
             // Pictures other users already shared (and Adi approved) come down first, so those
             // plugins don't need to be opened at all (BL-71).
             let shared = await PlugDB.fetchApproved(todo.map(\.id))
@@ -81,15 +98,31 @@ final class SnapshotQueue {
                     items[i].status = .done
                     continue
                 }
+                if (makerFailed[plugin.manufacturer] ?? 0) >= 3, !makerWorked.contains(plugin.manufacturer) {
+                    let why = "Skipped: other \(plugin.manufacturer) plugins couldn't be pictured. Try Find Picture on the Web."
+                    store.update(plugin.id) { $0.snapshotState = .failed; $0.snapshotError = why }
+                    items[i].status = .failed(why)
+                    continue
+                }
                 currentID = plugin.id
+                currentStarted = Date()
+                skipRequested = false
                 items[i].status = .working
                 let began = Date()
                 var result = await Self.capture(plugin, to: store.snapshotURL(for: plugin.id))
                 // A plugin that crashes inside the helper (some iZotope and Waves plugins) gets one
                 // more try loaded in its own macOS process, the way Logic keeps plugins apart.
-                if result.state == .failed, !plugin.isV3,
+                if !skipRequested, result.state == .failed, !plugin.isV3,
                    let why = result.error, why.contains("crashed") || why.contains("no answer") {
                     result = await Self.capture(plugin, to: store.snapshotURL(for: plugin.id), separateProcess: true)
+                }
+                if skipRequested {
+                    result = Result(state: .failed, error: "Skipped by you")
+                    skipRequested = false
+                } else if result.state == .failed {
+                    makerFailed[plugin.manufacturer, default: 0] += 1
+                } else {
+                    makerWorked.insert(plugin.manufacturer)
                 }
                 store.update(plugin.id) {
                     $0.snapshotState = result.state
@@ -109,6 +142,7 @@ final class SnapshotQueue {
             }
             isRunning = false
             currentID = nil
+            currentStarted = nil
             finishedAt = Date()
         }
     }
@@ -163,6 +197,8 @@ final class SnapshotQueue {
                     cont.resume(returning: Result(state: .failed, error: "could not start helper"))
                     return
                 }
+                runningLock.lock(); running = process; runningLock.unlock()
+                defer { runningLock.lock(); if running === process { running = nil }; runningLock.unlock() }
                 // Hard time limit so a hanging plugin can never block the queue.
                 // Some makers (iZotope) check their licence while loading and take long.
                 let deadline = DispatchTime.now() + .seconds(40)
