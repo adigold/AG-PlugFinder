@@ -58,7 +58,7 @@ enum PlugDB {
         guard let base, let key, !plugins.isEmpty else { return }
         let body: [String: Any] = [
             "installId": installID, "category": category,
-            "plugins": plugins.filter { !$0.isLogic }.prefix(500).map {
+            "plugins": plugins.prefix(500).map {
                 ["pluginId": $0.id, "name": $0.name, "manufacturer": $0.manufacturer]
             },
         ]
@@ -69,6 +69,51 @@ enum PlugDB {
         request.setValue(key, forHTTPHeaderField: "X-AGPF-Key")
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         Task { _ = try? await URLSession.shared.data(for: request) }
+    }
+
+    /// Downloads the community's categories and applies them (BL-104). The user's own choice
+    /// always wins; silent on any failure.
+    static func applyCommunityCategories() async {
+        guard let base, let key else { return }
+        let store = PluginStore.shared
+        let ids = store.plugins.map(\.id)
+        guard !ids.isEmpty else { return }
+        var request = URLRequest(url: base.appendingPathComponent("v1/categories/agreed"))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(key, forHTTPHeaderField: "X-AGPF-Key")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: ["ids": ids])
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              (response as? HTTPURLResponse)?.statusCode == 200,
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let rows = json["categories"] as? [[String: Any]] else { return }
+        let agreed = Dictionary(rows.compactMap { r -> (String, String)? in
+            guard let id = r["plugin_id"] as? String, let c = r["category"] as? String,
+                  PluginCategories.all.contains(c) else { return nil }
+            return (id, c)
+        }, uniquingKeysWith: { a, _ in a })
+        store.setCommunityCategories(agreed)
+    }
+
+    /// Once, after the update that made shared categories reach everyone: categories the user
+    /// changed before can be shared too, if they agree (BL-104).
+    static func offerEarlierCategories() {
+        let d = UserDefaults.standard
+        guard !d.bool(forKey: "share.categories.offered") else { return }
+        let mine = PluginStore.shared.plugins.filter { $0.userCategory != nil }
+        guard !mine.isEmpty else { d.set(true, forKey: "share.categories.offered"); return }
+        NSApp.activate()
+        let alert = NSAlert()
+        alert.messageText = "Share your \(mine.count) category change\(mine.count == 1 ? "" : "s") with everyone?"
+        alert.informativeText = "Other AG PlugFinder users will then see these plugins in the categories you chose. Only the plugin names and the categories are sent."
+        alert.addButton(withTitle: "Everyone")
+        alert.addButton(withTitle: "Only This Mac")
+        let answer = alert.runModal()
+        d.set(true, forKey: "share.categories.offered")
+        guard answer == .alertFirstButtonReturn else { return }
+        for (category, group) in Dictionary(grouping: mine, by: { $0.userCategory! }) { shareCategory(group, category) }
+        Toast.show("Shared \(mine.count) category change\(mine.count == 1 ? "" : "s"). Thank you!")
     }
 
     /// Downloads approved pictures for these plugins, saves them like a picture the app took,

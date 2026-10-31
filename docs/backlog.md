@@ -30,6 +30,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
+- [x] **BL-104** `P1 · High` **Shared categories reach every user:** categories users share (Everyone) are handed out by the server and applied in every app at launch; the user's own choice wins; one vote is enough, the majority wins on disagreement; after updating, the app offers once to share earlier category changes. Logic's own plugins can be shared too. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-99** `P1 · High` **Never used plugins:** a clear view of plugins installed but never inserted, with disk space and what was paid (from Licenses); hide them in one click or show them in Finder to uninstall. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-98** `P1 · High` **Smart search by sound:** search with words like "warm tape", "wide shimmer reverb", "punchy drums"; matches descriptions, kinds, categories and sound words, ranked, with a short "matched by sound" hint. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-103** `P2 · Medium` **Category change asks: everyone or only this Mac:** the question after changing a category now names the choice plainly (Everyone / Only This Mac / Cancel). Adi, 2026-10-31. · done 2026-10-31

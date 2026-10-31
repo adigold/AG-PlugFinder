@@ -206,6 +206,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             PluginWatcher.shared.start()
             Licenses.shared.refresh()
+            // Categories other users chose for their plugins (BL-104), then, once, the offer to
+            // share the user's own earlier changes.
+            Task { @MainActor in
+                await PlugDB.applyCommunityCategories()
+                try? await Task.sleep(for: .seconds(12))
+                if OnboardingWindow.isDone { PlugDB.offerEarlierCategories() }
+            }
             #if DEBUG
             SelfTest.runIfRequested()
             #endif

@@ -49,6 +49,7 @@ final class PluginStore {
             merged.details = prev.details
             merged.parameterCount = prev.parameterCount
             merged.userCategory = prev.userCategory
+            merged.communityCategory = prev.communityCategory
             if prev.version == p.version, !p.isLogic {
                 merged.snapshotState = prev.snapshotState
                 merged.snapshotError = prev.snapshotError
@@ -65,6 +66,19 @@ final class PluginStore {
     }
 
     func plugin(_ id: String) -> Plugin? { plugins.first { $0.id == id } }
+
+    /// The community's categories in one go (BL-104); returns whether anything changed.
+    @discardableResult
+    func setCommunityCategories(_ agreed: [String: String]) -> Bool {
+        var list = plugins
+        var changed = false
+        for i in list.indices where list[i].communityCategory != agreed[list[i].id] {
+            list[i].communityCategory = agreed[list[i].id]
+            changed = true
+        }
+        if changed { plugins = list; save() }
+        return changed
+    }
 
     // MARK: Screenshots
 

@@ -271,6 +271,21 @@ app.post("/telegram/hook", async (c) => {
   return c.text("ok");
 });
 
+// The community's category for each of these plugins (BL-104): the one most users chose; on a
+// tie, the most recent choice. One vote is enough while nobody disagrees.
+app.post("/v1/categories/agreed", async (c) => {
+  let ids: unknown;
+  try { ids = (await c.req.json()).ids; } catch { return c.json({ error: "bad json" }, 400); }
+  if (!Array.isArray(ids) || ids.length > 3000) return c.json({ error: "bad ids" }, 400);
+  const clean = ids.filter((i): i is string => typeof i === "string" && ID.test(i));
+  const { rows } = await pool.query(
+    `select distinct on (plugin_id) plugin_id, category
+       from (select plugin_id, category, count(*) as votes, max(created_at) as latest
+               from category_votes where plugin_id = any($1) group by plugin_id, category) t
+      order by plugin_id, votes desc, latest desc`, [clean]);
+  return c.json({ categories: rows });
+});
+
 // Which of these plugins already have an approved picture (so the app need not take one).
 app.post("/v1/lookup", async (c) => {
   let ids: unknown;

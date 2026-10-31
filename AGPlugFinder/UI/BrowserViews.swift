@@ -1243,7 +1243,7 @@ struct CategoryMenu: View {
         Toast.show(category.map { ids.count > 1 ? "\(ids.count) plugins moved to \($0)" : "Moved to \($0)" }
                    ?? "Back to the automatic category")
         guard let category else { return }
-        let plugins = ids.compactMap { id in store.plugins.first { $0.id == id } }.filter { !$0.isLogic }
+        let plugins = ids.compactMap { id in store.plugins.first { $0.id == id } }
         guard !plugins.isEmpty else { return }
         // Offer it to everyone: other users' apps can then sort these plugins the same way.
         let d = UserDefaults.standard
