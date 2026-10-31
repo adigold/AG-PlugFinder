@@ -263,20 +263,28 @@ struct PluginTile: View {
         VStack(alignment: .leading, spacing: 10) {
             PluginThumbnail(plugin: plugin)
                 .aspectRatio(1.6, contentMode: .fit)
-                .overlay(alignment: .topTrailing) { FavoriteStar(plugin: plugin, cardHovered: hovering) }
+
             if view.showName || view.showDetails {
-                VStack(alignment: .leading, spacing: 3) {
-                    if view.showName {
-                        Text(plugin.name)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(Theme.text)
-                            .lineLimit(1)
+                HStack(alignment: .bottom, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        if view.showName {
+                            Text(plugin.name)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(Theme.text)
+                                .lineLimit(1)
+                        }
+                        if view.showDetails {
+                            Text("\(plugin.manufacturer) · \(plugin.displayCategory)")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Theme.faint)
+                                .lineLimit(1)
+                        }
                     }
-                    if view.showDetails {
-                        Text("\(plugin.manufacturer) · \(plugin.displayCategory)")
-                            .font(.system(size: 12))
-                            .foregroundStyle(Theme.faint)
-                            .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    // The star sits in the bottom-right corner, beside the text; small cards
+                    // have no room for it (the info panel's star still works).
+                    if view.tileWidth >= 170 {
+                        FavoriteStar(plugin: plugin, cardHovered: hovering).padding(-6)
                     }
                 }
                 .padding(.horizontal, 4)
