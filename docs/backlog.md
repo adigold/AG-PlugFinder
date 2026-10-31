@@ -7,6 +7,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
+- [ ] **BL-83** `P2 · Medium` **Admin dashboard for the shared database:** one private page for Adi: how many Macs and versions, pictures in and approved (with a look at each and reject), crash reports and error logs, category votes and agreement, uploads per day. Signed-in only. Adi, 2026-10-31.
 - [ ] **BL-80** `P2 · Medium` **Find a plugin's picture on the web when taking it fails:** look up the maker's own product image, Adi approves before it is shared. Ariel's and Adi's idea, 2026-10-31.
 - [~] **BL-50** `P2 · Medium` **Free plugin info without an API key:** offer a free model for Look Up Info next to the paid one, ideally the Mac's own built-in model (no download), else a small downloadable one. Adi, 2026-10-31. Built-in model shipped in 0.7.0; the downloadable model is built behind the LOCAL_MODEL switch and waits for the Metal toolchain.
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
