@@ -239,6 +239,11 @@ enum SelfTest {
                 say("done")
             }
         }
+        if let k = args.firstIndex(of: "--readme-shots"), k + 2 < args.count {
+            let lines = (try? String(contentsOfFile: args[k + 2], encoding: .utf8))?
+                .split(separator: "\n").map { String($0.dropFirst(2)) } ?? []
+            Task { await readmeShots(URL(fileURLWithPath: args[k + 1]), notes: lines) }
+        }
         if let k = args.firstIndex(of: "--selftest-features"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])
             Task { await features(dir); fflush(stdout) }
@@ -321,13 +326,82 @@ enum SelfTest {
         await capture(window, to: url)
     }
 
-    private static func capture(_ window: NSWindow, to url: URL) async {
+    /// --readme-shots <dir>: pictures and GIF frames for the README, from the app's own windows.
+    static func readmeShots(_ dir: URL, notes: [String]) async {
+        func say(_ s: String) { print("README " + s); fflush(stdout) }
+        let fm = FileManager.default
+        try? fm.createDirectory(at: dir.appendingPathComponent("frames"), withIntermediateDirectories: true)
+        LibraryWindow.show()
+        try? await Task.sleep(for: .seconds(1.5))
+        guard let lib = LibraryWindow.window else { say("no library window"); return }
+        let oldFrame = lib.frame
+        lib.setFrame(NSRect(x: 60, y: 60, width: 1320, height: 820), display: true)
+        let post = { (name: Notification.Name, obj: String) in NotificationCenter.default.post(name: name, object: obj) }
+        post(.demoQuery, "")
+        post(.demoSelect, "ChromaVerb")
+        try? await Task.sleep(for: .seconds(1.2))
+        await capture(lib, to: dir.appendingPathComponent("library.png"))
+        say("library")
+
+        // GIF: typing a search, the rest fading away.
+        post(.demoQuery, "")
+        post(.demoSelect, "ChromaVerb")
+        try? await Task.sleep(for: .seconds(1))
+        var frame = 0
+        func grab(_ n: Int) async {
+            for _ in 0..<n {
+                await capture(lib, to: dir.appendingPathComponent(String(format: "frames/f%04d.png", frame)), scale: 1)
+                frame += 1
+            }
+        }
+        await grab(6)
+        for q in ["v", "ve", "ver", "verb"] { post(.demoQuery, q); await grab(5) }
+        await grab(10)
+        post(.demoQuery, "delay"); await grab(14)
+        post(.demoQuery, "warm tape"); await grab(16)
+        post(.demoQuery, ""); await grab(10)
+        say("frames \(frame)")
+
+        // The selected track's panel, on the track with the most plugins.
+        if let tracks = await LogicTrack.shared.scanProject(),
+           let busy = tracks.max(by: { $0.plugins.count < $1.plugins.count }) {
+            _ = await LogicTrack.shared.goTo(busy)
+            try? await Task.sleep(for: .seconds(1))
+        }
+        TrackState.shared.refresh()
+        await shoot(TrackPanel(model: PickerModel()) {}, size: NSSize(width: 380, height: 640), to: dir.appendingPathComponent("track-panel.png"))
+        say("track panel: \(TrackState.shared.track ?? "none")")
+
+        if let p = PluginStore.shared.plugins.first(where: { $0.name == "ChromaVerb" }) {
+            TracksWindow.shared.show(.find(p))
+            try? await Task.sleep(for: .seconds(4))
+            if let w = NSApp.windows.first(where: { $0.isVisible && ($0.contentView as? NSHostingView<TracksView>) != nil }) {
+                w.setContentSize(NSSize(width: 440, height: 380))
+                try? await Task.sleep(for: .milliseconds(400))
+                await capture(w, to: dir.appendingPathComponent("find-on-tracks.png"))
+                w.orderOut(nil)
+            }
+        }
+        WhatsNewWindow.shared.show(version: "0.5.0", notes: notes)
+        try? await Task.sleep(for: .seconds(1.2))
+        if let w = NSApp.windows.first(where: { $0.isVisible && ($0.contentView as? NSHostingView<WhatsNewView>) != nil }) {
+            await capture(w, to: dir.appendingPathComponent("whats-new.png"))
+            w.orderOut(nil)
+        }
+        await shoot(ShortcutSettings().frame(width: 700, height: 760), size: NSSize(width: 700, height: 760),
+                    to: dir.appendingPathComponent("shortcuts.png"))
+        lib.setFrame(oldFrame, display: true)
+        say("done")
+    }
+
+    private static func capture(_ window: NSWindow, to url: URL, scale: Int = 2) async {
         guard let content = try? await SCShareableContent.currentProcess,
               let sc = content.windows.first(where: { $0.windowID == CGWindowID(window.windowNumber) })
         else { print("SELFTEST no window"); return }
         let config = SCStreamConfiguration()
-        config.width = Int(sc.frame.width) * 2
-        config.height = Int(sc.frame.height) * 2
+        config.width = Int(sc.frame.width) * scale
+        config.height = Int(sc.frame.height) * scale
+        config.showsCursor = false
         guard let img = try? await SCScreenshotManager.captureImage(
             contentFilter: SCContentFilter(desktopIndependentWindow: sc), configuration: config),
               let data = NSBitmapImageRep(cgImage: img).representation(using: .png, properties: [:])

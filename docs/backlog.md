@@ -17,6 +17,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-53** `P1 · Medium` **A great GitHub README:** explain everything the app does and what is new, with a GIF and screenshots taken from the app's own windows, then push. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-52** `P1 · Medium` **Instrument on a track without one:** loading an instrument while an audio or aux track is selected makes a new instrument track and loads it there. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-51** `P1 · High` **Shortcuts in Settings:** map every action (open window, quick picker, mini window, track panel, open/close plugin windows, remove last, number keys) to your own key combos, including a Hyper key, with Caps Lock usable as Hyper. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-49** `P1 · High` **A designed What's New window:** replace the plain list of release notes with a window of cards (icon, title, detail), a New badge on update announcements, and the same design after an update. Categories become the default chip row. Adi, 2026-10-31. · done 2026-10-31

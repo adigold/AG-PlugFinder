@@ -46,6 +46,15 @@ struct LibraryView: View {
         }
         .onDisappear(perform: removeKeys)
         .onReceive(NotificationCenter.default.publisher(for: .toggleMiniMode)) { _ in toggleMini() }
+        #if DEBUG
+        // Self-test only: type a search or select a plugin, for the README pictures.
+        .onReceive(NotificationCenter.default.publisher(for: .demoQuery)) { n in
+            withAnimation { model.query = n.object as? String ?? "" }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .demoSelect)) { n in
+            if let name = n.object as? String, let p = store.plugins.first(where: { $0.name == name }) { model.reveal(p.id) }
+        }
+        #endif
         .onReceive(NotificationCenter.default.publisher(for: .showTrackPanel)) { _ in
             if mini { toggleMini() }
             showTrack = true
@@ -396,4 +405,6 @@ struct WindowAccessor: NSViewRepresentable {
 
 extension Notification.Name {
     static let toggleMiniMode = Notification.Name("AGPFToggleMiniMode")
+    static let demoQuery = Notification.Name("AGPFDemoQuery")
+    static let demoSelect = Notification.Name("AGPFDemoSelect")
 }
