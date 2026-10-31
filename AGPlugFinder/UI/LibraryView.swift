@@ -119,10 +119,10 @@ struct LibraryView: View {
             HStack(spacing: 9) {
                 BrandMark(size: 17)
                 Text("AG PlugFinder").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
-                Text("\(store.plugins.filter(store.isVisible).count)")
-                    .font(.system(size: 12, weight: .medium)).monospacedDigit()
+                Text("\(store.plugins.filter(store.isVisible).count) plugins found")
+                    .font(.system(size: 10, weight: .medium)).monospacedDigit()
                     .foregroundStyle(Theme.faint)
-                    .padding(.horizontal, 7).frame(height: 20)
+                    .padding(.horizontal, 7).frame(height: 18)
                     .background(Capsule().fill(Theme.surface))
                     .help("Plugins shown")
             }

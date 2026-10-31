@@ -13,7 +13,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 ## Now
 
 - [~] **BL-73** `P1 · High` **Crash reports to Goldi:** after AG PlugFinder closed unexpectedly, the next launch offers "Send the report to Goldi"; also a Send error log button any time. Reports go to the shared database for Adi to read. Adi, 2026-10-31.
-- [~] **BL-71** `P2 · Medium` **Shared plugin database:** users can choose to share plugin pictures and info; Adi approves them; everyone downloads them so the same plugin is never scanned twice. Neon database (Adi's choice) behind a small API with auth; pictures in the database or blob storage. Adi, 2026-10-31. Collecting shipped in 0.9.0 (upload on by default, approval with `npm run review`); downloading approved pictures still to build.
+- [~] **BL-71** `P2 · Medium` **Shared plugin database:** users can choose to share plugin pictures and info; Adi approves them; everyone downloads them so the same plugin is never scanned twice. Neon database (Adi's choice) behind a small API with auth; pictures in the database or blob storage. Adi, 2026-10-31. Collecting shipped in 0.9.0 (upload on by default, approval with `npm run review`); downloading approved pictures built (before taking pictures, the app fetches approved ones), not released yet.
 - [~] **BL-70** `P1 · Medium` **Clear a track with Logic's own command:** Remove All Effect Plug-ins from the channel strip's Setting menu in one step instead of one by one; also Bypass All, Remove Bypassed and Remove All Sends. Adi, 2026-10-31.
 - [~] **BL-69** `P1 · Medium` **Channel format, Auto or Ask me:** when Logic offers a plugin in several versions (Mono, Stereo, Mono to Stereo, Dual Mono), Auto picks the one that fits the track and Ask me leaves Logic's choice open; each plugin can have its own. Inspired by PlugSearch's Channel Mode. Adi, 2026-10-31.
 - [~] **BL-68** `P1 · High` **Faster inserting into Logic:** go straight down Logic's plug-in menu to the plugin (maker, then name) and remember the path, wait only as long as Logic needs instead of fixed pauses. Adi asked why PlugSearch is faster, 2026-10-31.
@@ -25,6 +25,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-78** `P3 · Low` **Plugin count label:** smaller, and reads "141 plugins found" so it isn't mistaken for the version. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-65** `P1 · Medium` **Point at a slot and press a key:** with the pointer over a slot in Logic, a key inserts, replaces or removes right there, with a highlight on the slot. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-77** `P1 · High` **Categories for every maker's plugins:** third-party plugins go into the same categories as Logic's (wideners and imagers into Imaging, meters into Metering, drum and piano instruments into Drums and Keys); looked-up categories are matched to the app's own. From a user's report. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-76** `P2 · Low` **New collection from the top bar:** a + button next to the star makes a collection and shows the collections row so plugins can be dragged onto it. Adi, 2026-10-31. · done 2026-10-31

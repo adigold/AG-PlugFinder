@@ -67,10 +67,17 @@ final class SnapshotQueue {
         items = todo.map { Item(id: $0.id, name: $0.name, maker: $0.manufacturer) }
         SnapshotProgressWindow.shared.show()
         Task {
+            // Pictures other users already shared (and Adi approved) come down first, so those
+            // plugins don't need to be opened at all (BL-71).
+            let shared = await PlugDB.fetchApproved(todo.map(\.id))
             for (i, plugin) in todo.enumerated() {
                 if cancelled {
                     for j in i..<items.count { items[j].status = .skipped }
                     break
+                }
+                if shared.contains(plugin.id) {
+                    items[i].status = .done
+                    continue
                 }
                 currentID = plugin.id
                 items[i].status = .working

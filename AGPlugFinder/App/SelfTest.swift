@@ -314,6 +314,18 @@ enum SelfTest {
                 print("FAV done"); fflush(stdout)
             }
         }
+        // --selftest-plugdb <id>: downloads that plugin's approved picture from the shared database.
+        if let k = args.firstIndex(of: "--selftest-plugdb"), k + 1 < args.count {
+            let id = args[k + 1]
+            Task {
+                let got = await PlugDB.fetchApproved([id])
+                let file = PluginStore.shared.snapshotURL(for: id)
+                let size = (try? FileManager.default.attributesOfItem(atPath: file.path)[.size] as? Int) ?? 0
+                print("PLUGDB got=\(got.sorted()) file=\(size) bytes"); fflush(stdout)
+                try? FileManager.default.removeItem(at: file)
+                exit(0)
+            }
+        }
         if let k = args.firstIndex(of: "--selftest-features"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])
             Task { await features(dir); fflush(stdout) }

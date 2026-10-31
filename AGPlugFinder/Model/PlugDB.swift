@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 
 /// The shared plugin database (BL-71). Pictures the app takes of third-party plugins are sent
 /// there, so other users won't have to take them. On unless the user turns it off in
@@ -51,6 +51,43 @@ enum PlugDB {
                 if await send(p) { try? await Task.sleep(for: .milliseconds(400)) }
             }
         }
+    }
+
+    /// Downloads approved pictures for these plugins, saves them like a picture the app took,
+    /// and returns the ids it got. Silent on any failure: the app then takes the pictures itself.
+    static func fetchApproved(_ ids: [String]) async -> Set<String> {
+        guard let base, let key, !ids.isEmpty else { return [] }
+        var request = URLRequest(url: base.appendingPathComponent("v1/lookup"))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 15
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(key, forHTTPHeaderField: "X-AGPF-Key")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: ["ids": Array(ids.prefix(2000))])
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              (response as? HTTPURLResponse)?.statusCode == 200,
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let available = json["available"] as? [[String: Any]] else { return [] }
+        let store = PluginStore.shared
+        var got: Set<String> = []
+        for entry in available {
+            guard let id = entry["plugin_id"] as? String, ids.contains(id) else { continue }
+            var get = URLRequest(url: base.appendingPathComponent("v1/pictures/\(id)"))
+            get.timeoutInterval = 20
+            get.setValue(key, forHTTPHeaderField: "X-AGPF-Key")
+            guard let (bytes, r) = try? await URLSession.shared.data(for: get),
+                  (r as? HTTPURLResponse)?.statusCode == 200, bytes.count > 200,
+                  NSImage(data: bytes) != nil else { continue }
+            let url = store.snapshotURL(for: id)
+            // Saved as PNG, like the pictures the app takes.
+            let png: Data? = bytes.starts(with: [0x89, 0x50, 0x4E, 0x47]) ? bytes
+                : NSImage(data: bytes).flatMap { $0.tiffRepresentation }.flatMap { NSBitmapImageRep(data: $0)?.representation(using: .png, properties: [:]) }
+            guard let png, (try? png.write(to: url)) != nil else { continue }
+            store.update(id) { $0.snapshotState = .done; $0.snapshotError = nil }
+            if let p = store.plugin(id) { sent[id] = p.version }   // came from the database: nothing to send back
+            got.insert(id)
+        }
+        if !got.isEmpty { store.snapshotChanged() }
+        return got
     }
 
     @discardableResult
