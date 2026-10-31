@@ -89,6 +89,13 @@ if [ -n "$PUBLISH" ]; then
   gh release create "v$VERSION" "$ZIP" dist/update.json dist/AG-PlugFinder.dmg dist/plugin-pack.zip \
     --repo "$REPO" --title "AG PlugFinder $VERSION" --notes-file "$NOTES" --latest
   echo "Published v$VERSION to https://github.com/$REPO/releases"
+  # Homebrew: point the cask in adigold/homebrew-tap at this version's installer.
+  DMG_SHA=$(shasum -a 256 dist/AG-PlugFinder.dmg | cut -d' ' -f1)
+  TAP_DIR=$(mktemp -d)
+  gh repo clone adigold/homebrew-tap "$TAP_DIR/tap" -- -q
+  sed -i '' -e "s/^  version \".*\"/  version \"$VERSION\"/" -e "s/^  sha256 \".*\"/  sha256 \"$DMG_SHA\"/" "$TAP_DIR/tap/Casks/ag-plugfinder.rb"
+  git -C "$TAP_DIR/tap" commit -qam "AG PlugFinder $VERSION" && git -C "$TAP_DIR/tap" push -q
+  echo "Homebrew cask updated to $VERSION"
 else
   echo "Built. Nothing uploaded. Run again with --publish to release v$VERSION."
 fi

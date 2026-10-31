@@ -15,6 +15,8 @@
   &nbsp;·&nbsp; macOS 15 or later &nbsp;·&nbsp; Logic Pro &nbsp;·&nbsp; Free
 </p>
 
+<p align="center">or with Homebrew: <code>brew tap adigold/tap && brew trust adigold/tap && brew install --cask ag-plugfinder</code></p>
+
 ---
 
 ## Why
@@ -90,7 +92,13 @@ Check for Update sits at the top right of the window. A new version downloads wi
 
 ## Get started
 
-1. [Download AG PlugFinder](https://github.com/adigold/AG-PlugFinder/releases/latest/download/AG-PlugFinder.dmg), open it and drag the app to Applications.
+1. [Download AG PlugFinder](https://github.com/adigold/AG-PlugFinder/releases/latest/download/AG-PlugFinder.dmg), open it and drag the app to Applications. Or install it with [Homebrew](https://brew.sh):
+
+   ```sh
+   brew tap adigold/tap
+   brew trust adigold/tap
+   brew install --cask ag-plugfinder
+   ```
 2. Open it. A short welcome tour asks for the one permission it needs: to work with Logic's plugin slots (System Settings > Privacy & Security). Nothing else in Logic is touched.
 3. It finds your plugins and gets their pictures. Download the free plugin pack from the ⋯ menu to get pictures and descriptions other users already have.
 4. In Logic, select a track, press ⌃⌥P, type, press Return.
