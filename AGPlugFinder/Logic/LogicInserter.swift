@@ -42,8 +42,11 @@ final class LogicInserter {
     /// be traced without guessing.
     func insert(_ plugin: Plugin, replacing slotIndex: Int? = nil) async -> InsertOutcome {
         log("— \(plugin.name) [\(plugin.slotKind.rawValue)] trusted=\(AXAccess.isTrusted) logic=\(logicApp != nil)")
+        let start = ContinuousClock.now
         let outcome = await performInsert(plugin, replacing: slotIndex)
-        log("  result: \(outcome)")
+        let ms = (ContinuousClock.now - start).components.attoseconds / 1_000_000_000_000_000
+            + (ContinuousClock.now - start).components.seconds * 1000
+        log("  result: \(outcome) in \(ms) ms")
         return outcome
     }
 
@@ -79,8 +82,7 @@ final class LogicInserter {
             case .unavailable: log("  Search and Add not available, falling back to the slots")
             }
         }
-        logic.activate()
-        try? await Task.sleep(for: .milliseconds(150))
+        await bringForward(logic)
 
         let app = AXNode(el: AXUIElementCreateApplication(logic.processIdentifier))
         AXUIElementSetMessagingTimeout(app.el, 2.0)
@@ -126,12 +128,7 @@ final class LogicInserter {
             return .failed("Logic's plug-in menu did not open.")
         }
         log("  menu opened, items=\(menu.children.count)")
-        if plugin.isLegacy == true {
-            if await chooseLegacy(plugin, menu: menu, app: app) { return .inserted }
-        } else if await chooseBySearch(plugin, menu: menu, app: app, pid: logic.processIdentifier) {
-            return .inserted
-        }
-        if await chooseByBrowsing(plugin, menu: menu, app: app) {
+        if await choose(plugin, menu: menu, app: app, pid: logic.processIdentifier) {
             return .inserted
         }
         log("  menu titles: " + menuItems(menu).map(\.title).joined(separator: " | "))
@@ -148,8 +145,7 @@ final class LogicInserter {
         let pid = logic.processIdentifier
         let app = AXNode(el: AXUIElementCreateApplication(pid))
         AXUIElementSetMessagingTimeout(app.el, 2.0)
-        logic.activate()
-        try? await Task.sleep(for: .milliseconds(200))
+        await bringForward(logic)
 
         guard let menuBar: AXUIElement = app.attr(kAXMenuBarAttribute),
               let mix = AXNode(el: menuBar).children.first(where: { $0.title == "Mix" }),
@@ -165,8 +161,8 @@ final class LogicInserter {
 
         // Find the search field Logic opens (focused element, or a field in a new window).
         var field: AXNode?
-        for _ in 0..<25 {
-            try? await Task.sleep(for: .milliseconds(80))
+        for _ in 0..<50 {
+            try? await Task.sleep(for: .milliseconds(40))
             if let focused: AXUIElement = app.attr(kAXFocusedUIElementAttribute) {
                 let f = AXNode(el: focused)
                 if [AXRole.textField, "AXSearchField", "AXComboBox"].contains(f.role) { field = f; break }
@@ -181,18 +177,23 @@ final class LogicInserter {
         if !field.setValue(plugin.name) || field.stringValue != plugin.name {
             Keyboard.type(plugin.name, pid: pid)
         }
-        try? await Task.sleep(for: .milliseconds(600))
-
-        // The results live in the window that holds the field.
+        // The results live in the window that holds the field. Read them as soon as Logic has
+        // listed the plugin, instead of always waiting the same time (BL-68).
         let popup = window(containing: field, app: app, before: windowsBefore)
-        let candidates = popup.findAll(maxNodes: 3000) { n in
-            let r = n.role
-            return r == "AXRow" || r == "AXCell" || r == "AXStaticText" || r == AXRole.menuItem
-                || r == "AXButton" || r == "AXOutlineRow"
-        }
         let name = plugin.name.lowercased()
         func text(_ n: AXNode) -> String { [n.title, n.stringValue, n.desc].first { !$0.isEmpty } ?? "" }
-        let exact = candidates.filter { text($0).lowercased() == name }
+        var candidates: [AXNode] = []
+        var exact: [AXNode] = []
+        let end = Date().addingTimeInterval(1.5)
+        repeat {
+            try? await Task.sleep(for: .milliseconds(60))
+            candidates = popup.findAll(maxNodes: 3000) { n in
+                let r = n.role
+                return r == "AXRow" || r == "AXCell" || r == "AXStaticText" || r == AXRole.menuItem
+                    || r == "AXButton" || r == "AXOutlineRow"
+            }
+            exact = candidates.filter { text($0).lowercased() == name }
+        } while exact.isEmpty && Date() < end
         log("  results: \(candidates.count) elements, \(exact.count) exact for \"\(plugin.name)\"")
         if exact.isEmpty {
             logTree(popup)
@@ -349,7 +350,7 @@ final class LogicInserter {
                     return menu
                 }
             }
-            try? await Task.sleep(for: .milliseconds(80))
+            try? await Task.sleep(for: .milliseconds(30))
         }
         return nil
     }
@@ -363,10 +364,29 @@ final class LogicInserter {
         if !field.setValue(plugin.name) || field.stringValue != plugin.name {
             Keyboard.type(plugin.name, pid: pid)
         }
-        try? await Task.sleep(for: .milliseconds(500))
-
-        // Search results replace the menu contents; read them from whichever menu is open now.
-        let current = await waitForMenu(app: app) ?? menu
+        // Search results replace the menu contents. Use them as soon as they are there: an exact
+        // match right away, a looser one once the list has settled (BL-68).
+        let before = menuItems(menu).map(\.title)
+        let end = Date().addingTimeInterval(1.2)
+        var settled = Date().addingTimeInterval(0.5)
+        var changed = false
+        while Date() < end {
+            try? await Task.sleep(for: .milliseconds(50))
+            let current = await waitForMenu(app: app, timeout: 0.3) ?? menu
+            if !changed, menuItems(current).map(\.title) != before {
+                changed = true
+                settled = Date().addingTimeInterval(0.15)
+            }
+            guard changed else { continue }
+            let items = current.findAll(maxNodes: 600) { $0.role == AXRole.menuItem && $0.isEnabled }
+            if let item = items.first(where: { $0.title.localizedCaseInsensitiveCompare(plugin.name) == .orderedSame }) {
+                return await pick(item, app: app)
+            }
+            if Date() >= settled, let item = bestItem(for: plugin, in: current) {
+                return await pick(item, app: app)
+            }
+        }
+        let current = await waitForMenu(app: app, timeout: 0.3) ?? menu
         guard let item = bestItem(for: plugin, in: current) else { return false }
         return await pick(item, app: app)
     }
@@ -407,6 +427,7 @@ final class LogicInserter {
                       }),
                       let list = await submenu(of: group) else { continue }
                 if let item = bestItem(for: plugin, in: list, maxNodes: 2000) {
+                    UserDefaults.standard.set(title, forKey: "menuGroup." + plugin.name)
                     return await pick(item, app: app)
                 }
             }
@@ -430,6 +451,46 @@ final class LogicInserter {
         return await pick(item, app: app)
     }
 
+    /// The quickest way to the plugin in an open slot menu (BL-68): straight down its path in
+    /// the menu (Audio Units, maker, name; or Logic's own group), then Logic's search, then
+    /// looking through every group.
+    func choose(_ plugin: Plugin, menu: AXNode, app: AXNode, pid: pid_t) async -> Bool {
+        if plugin.isLegacy == true { return await chooseLegacy(plugin, menu: menu, app: app) }
+        if await chooseByPath(plugin, menu: menu, app: app) { log("  chose by path"); return true }
+        if await chooseBySearch(plugin, menu: menu, app: app, pid: pid) { log("  chose by search"); return true }
+        return await chooseByBrowsing(plugin, menu: menu, app: app)
+    }
+
+    private func chooseByPath(_ plugin: Plugin, menu: AXNode, app: AXNode) async -> Bool {
+        if !plugin.isLogic { return await chooseByBrowsing(plugin, menu: menu, app: app) }
+        if let item = menuItems(menu).first(where: {
+            $0.isEnabled && $0.title.localizedCaseInsensitiveCompare(plugin.name) == .orderedSame
+        }) { return await pick(item, app: app) }
+        // The group Logic listed it under last time, else its own category.
+        let key = "menuGroup." + plugin.name
+        let groups = [UserDefaults.standard.string(forKey: key), plugin.category].compactMap { $0 }
+        for title in groups {
+            guard let group = menuItems(menu).first(where: {
+                      $0.title.localizedCaseInsensitiveCompare(title) == .orderedSame
+                  }),
+                  let list = await submenu(of: group),
+                  let item = menuItems(list).first(where: {
+                      $0.isEnabled && $0.title.localizedCaseInsensitiveCompare(plugin.name) == .orderedSame
+                  })
+            else { continue }
+            return await pick(item, app: app)
+        }
+        return false
+    }
+
+    /// Brings Logic to the front and goes on as soon as it is there.
+    func bringForward(_ logic: NSRunningApplication) async {
+        logic.activate()
+        for _ in 0..<15 where !logic.isActive {
+            try? await Task.sleep(for: .milliseconds(20))
+        }
+    }
+
     /// Presses the item; when it opens a channel-format submenu (Mono / Stereo …) picks Stereo.
     func pick(_ item: AXNode, app: AXNode) async -> Bool {
         if let formats = await submenu(of: item, pressIfNeeded: false) {
@@ -451,8 +512,8 @@ final class LogicInserter {
         }
         guard pressIfNeeded else { return nil }
         item.perform(kAXPressAction)
-        for _ in 0..<10 {
-            try? await Task.sleep(for: .milliseconds(80))
+        for _ in 0..<27 {
+            try? await Task.sleep(for: .milliseconds(30))
             if let m = item.children.first(where: { $0.role == AXRole.menu }), !m.children.isEmpty {
                 return m
             }
@@ -527,8 +588,7 @@ final class LogicInserter {
                                   confirmedReplace: Bool) async -> InsertOutcome {
         let app = AXNode(el: AXUIElementCreateApplication(logic.processIdentifier))
         AXUIElementSetMessagingTimeout(app.el, 2.0)
-        logic.activate()
-        try? await Task.sleep(for: .milliseconds(150))
+        await bringForward(logic)
         guard let window: AXUIElement = projectWindow(app)
         else { return .failed("Logic has no open project window.") }
         guard let slot = instrumentSlot(in: AXNode(el: window)) else {
@@ -566,8 +626,7 @@ final class LogicInserter {
                 Keyboard.escapeIfOpen(pid: pid)
                 return .failed("Logic's instrument menu did not open.")
             }
-            if await chooseBySearch(plugin, menu: menu, app: app, pid: pid) { return .inserted }
-            if await chooseByBrowsing(plugin, menu: menu, app: app) { return .inserted }
+            if await choose(plugin, menu: menu, app: app, pid: pid) { return .inserted }
             log("  menu titles: " + menuItems(menu).map(\.title).joined(separator: " | "))
             Keyboard.escapeIfOpen(pid: pid)
             Keyboard.escapeIfOpen(pid: pid)

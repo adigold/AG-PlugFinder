@@ -12,9 +12,9 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 ## Now
 
-- [~] **BL-63** `P2 · Low` **Menu bar icon:** the app's own three-bar mark instead of a generic puzzle piece. Adi, 2026-10-31.
-- [ ] **BL-64** `P1 · Medium` **Logic in other languages:** recognise Logic's slots and menus when Logic runs in German, French and other languages (PlugSearch does). Adi, 2026-10-31.
-- [ ] **BL-65** `P1 · Medium` **Point at a slot and press a key:** with the pointer over a slot in Logic, a key inserts, replaces or removes right there, with a highlight on the slot. Adi, 2026-10-31.
+- [~] **BL-68** `P1 · High` **Faster inserting into Logic:** go straight down Logic's plug-in menu to the plugin (maker, then name) and remember the path, wait only as long as Logic needs instead of fixed pauses. Adi asked why PlugSearch is faster, 2026-10-31.
+- [ ] **BL-64** `P3 · Low` **Logic in other languages:** recognise Logic's slots and menus when Logic runs in German, French and other languages (PlugSearch does). Adi, 2026-10-31.
+- [~] **BL-65** `P1 · Medium` **Point at a slot and press a key:** with the pointer over a slot in Logic, a key inserts, replaces or removes right there, with a highlight on the slot. Adi, 2026-10-31.
 - [ ] **BL-66** `P2 · Medium` **Drag a plugin from AG PlugFinder onto Logic:** drop on a slot, a track header, or the empty area to make a new track. Adi, 2026-10-31.
 - [ ] **BL-67** `P2 · Low` **Hide plugins Logic won't load:** read which plugins Logic accepts and hide the rest. Adi, 2026-10-31.
 - [~] **BL-47** `P1 · High` **Publish 0.5.0 so Check for Update finds it:** make the AG-PlugFinder repo public (Adi chose this over a separate releases repo) and publish a signed, notarized 0.5.0 release with every feature since 0.4.0. Adi, 2026-10-31.
@@ -22,6 +22,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-63** `P2 · Low` **Menu bar icon:** the app's own three-bar mark instead of a generic puzzle piece. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-62** `P1 · Medium` **Install with Homebrew:** tap adigold/homebrew-tap with the ag-plugfinder cask, README steps, release.sh updates the cask on every release. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-61** `P2 · Medium` **Magnifier on the info panel picture:** a magnifier on hover; click opens the picture large, zoom with pinch or double-click, Esc or a click outside closes it. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-60** `P2 · Medium` **Drag plugins onto collections:** drag a plugin's picture onto a collection chip at the top to add it to that collection. Adi, 2026-10-31. · done 2026-10-31

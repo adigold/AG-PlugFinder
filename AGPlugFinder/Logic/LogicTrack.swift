@@ -247,10 +247,8 @@ final class LogicTrack {
         return "I couldn't find \(plugin.name) in Logic's plug-in menu."
     }
 
-    private func choose(_ plugin: Plugin, menu: AXNode, app: AXNode, pid: pid_t) async -> Bool {
-        if plugin.isLegacy == true { return await inserter.chooseLegacy(plugin, menu: menu, app: app) }
-        if await inserter.chooseBySearch(plugin, menu: menu, app: app, pid: pid) { return true }
-        return await inserter.chooseByBrowsing(plugin, menu: menu, app: app)
+    func choose(_ plugin: Plugin, menu: AXNode, app: AXNode, pid: pid_t) async -> Bool {
+        await inserter.choose(plugin, menu: menu, app: app, pid: pid)
     }
 
     // MARK: Reorder (BL-56)
@@ -392,18 +390,26 @@ final class LogicTrack {
     func newInstrumentTrack(_ plugin: Plugin) async -> String? {
         guard plugin.slotKind == .instrument else { return "Only instruments get a new track." }
         guard let (logic, app) = logic() else { return "Logic Pro isn't open." }
-        logic.activate()
-        try? await Task.sleep(for: .milliseconds(200))
+        await inserter.bringForward(logic)
+        let oldTrack = leftStrip(app)?.desc
         guard pressMenu(app, ["Track", "New Software Instrument Track"]) else {
             return "Logic's New Software Instrument Track command isn't available. Open a project first."
         }
         inserter.log("TRACK new instrument track for \(plugin.name)")
-        try? await Task.sleep(for: .milliseconds(1400))
+        // Go on once the Inspector shows the new track, at most the old fixed wait (BL-68).
+        let end = Date().addingTimeInterval(1.4)
+        while Date() < end {
+            try? await Task.sleep(for: .milliseconds(50))
+            if let now = leftStrip(app)?.desc, now != oldTrack {
+                try? await Task.sleep(for: .milliseconds(150))
+                break
+            }
+        }
         // The new track is selected; whatever Logic loaded by default is replaced.
         let outcome = await inserter.insert(plugin, replacing: 0)
         guard case .inserted = outcome else { return message(outcome, plugin) }
         lastAdded = plugin.name
-        try? await Task.sleep(for: .milliseconds(600))
+        try? await Task.sleep(for: .milliseconds(250))
         await rename(to: plugin.name, app: app)
         return nil
     }
@@ -413,12 +419,11 @@ final class LogicTrack {
     /// Track, and types only into the name field Logic opens for it.
     func rename(to name: String, app: AXNode) async {
         guard let logic = inserter.logicApp else { return }
-        logic.activate()
-        try? await Task.sleep(for: .milliseconds(250))
+        await inserter.bringForward(logic)
         guard pressMenu(app, ["Track", "Rename Track"]) else { return }
         var field: AXNode?
-        for _ in 0..<15 {
-            try? await Task.sleep(for: .milliseconds(80))
+        for _ in 0..<30 {
+            try? await Task.sleep(for: .milliseconds(40))
             if let f: AXUIElement = app.attr(kAXFocusedUIElementAttribute), AXNode(el: f).role == AXRole.textField {
                 field = AXNode(el: f); break
             }
