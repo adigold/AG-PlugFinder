@@ -95,12 +95,31 @@ enum SnapshotRenderer {
         }
         let params = unit.auAudioUnit.parameterTree?.allParameters.count ?? 0
 
-        let controller: NSViewController? = await withCheckedContinuation { cont in
-            unit.auAudioUnit.requestViewController { cont.resume(returning: $0) }
+        // Start the plugin the way Logic does before asking for its window: some makers
+        // (iZotope) only build their window once the plugin is running.
+        let au = unit.auAudioUnit
+        if let bus = au.outputBusses.count > 0 ? au.outputBusses[0] : nil {
+            if let stereo = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 2) { try? bus.setFormat(stereo) }
         }
-        // No custom window: show the plugin's controls the way Logic does (generic view).
+        au.maximumFramesToRender = 512
+        try? au.allocateRenderResources()
+
+        func askForWindow() async -> NSViewController? {
+            await withCheckedContinuation { cont in au.requestViewController { cont.resume(returning: $0) } }
+        }
+        var controller = await askForWindow()
+        if controller == nil {
+            try? await Task.sleep(for: .milliseconds(1500))
+            controller = await askForWindow()
+        }
+        // No window of its own: Apple's simple plugins are shown with their basic controls, the
+        // way Logic does. Other makers always have a window; a list of controls would look wrong,
+        // so that counts as failed and the picture comes from the database or the web instead.
         let hasCustomView = controller != nil
-        guard let controller = controller ?? genericController(unit.auAudioUnit, params: params) else {
+        if controller == nil, manu != 0x6170706C /* appl */ {
+            return ["status": "failed", "params": params, "error": "its window didn't open here"]
+        }
+        guard let controller = controller ?? genericController(au, params: params) else {
             return ["status": "noUI", "params": params]
         }
 

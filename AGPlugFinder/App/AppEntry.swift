@@ -184,6 +184,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task { @MainActor in
             let store = PluginStore.shared
             store.rescan()
+            // Once: iZotope pictures taken before 0.9.6 show only a list of controls. Clear them
+            // so they are taken again the new way, or come from the database or the web.
+            if !UserDefaults.standard.bool(forKey: "fix.izotopePictures") {
+                UserDefaults.standard.set(true, forKey: "fix.izotopePictures")
+                let ids = store.plugins.filter { $0.manufacturer.localizedCaseInsensitiveContains("izotope") }.map(\.id)
+                for id in ids {
+                    try? FileManager.default.removeItem(at: store.snapshotURL(for: id))
+                    store.update(id) { $0.snapshotState = .pending; $0.snapshotError = nil }
+                }
+                if !ids.isEmpty { store.snapshotChanged() }
+            }
             if !OnboardingWindow.isDone {
                 // First run: permissions first; the tour starts the scan itself.
                 OnboardingWindow.shared.show()
