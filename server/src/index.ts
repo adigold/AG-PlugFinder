@@ -89,6 +89,42 @@ app.post("/v1/reports", async (c) => {
   return c.json({ ok: true }, 201);
 });
 
+// A category a user chose for a plugin and agreed to share (BL-82).
+const CATEGORIES = new Set(["Amps and Pedals", "Delay", "Distortion", "Dynamics", "EQ", "Filter", "Imaging",
+  "Metering", "Modulation", "Multi Effects", "Pitch", "Reverb", "Utility", "Effects", "Synth", "Sampler",
+  "Drums", "Keys", "Bass", "Orchestral", "MIDI FX"]);
+app.post("/v1/categories", async (c) => {
+  if (Number(c.req.header("content-length") ?? 0) > 20_000) return c.json({ error: "too large" }, 413);
+  let body: Record<string, unknown>;
+  try { body = await c.req.json(); } catch { return c.json({ error: "bad json" }, 400); }
+  const str = (k: string, max: number) => (typeof body[k] === "string" && (body[k] as string).trim()
+    ? (body[k] as string).trim().slice(0, max) : null);
+  const list = Array.isArray(body.plugins) ? body.plugins.slice(0, 500) : [];
+  const category = str("category", 40);
+  const installId = str("installId", 64);
+  if (!category || !CATEGORIES.has(category) || !installId || list.length === 0) return c.json({ error: "missing fields" }, 400);
+  const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ipHash = createHash("sha256").update(ip + (process.env.UPLOAD_KEY ?? "")).digest("hex").slice(0, 32);
+  const { rows: [{ n }] } = await pool.query(
+    "select count(*)::int as n from category_votes where ip_hash = $1 and created_at > now() - interval '1 day'", [ipHash]);
+  if (n >= 2000) return c.json({ error: "slow down" }, 429);
+  let saved = 0;
+  for (const raw of list) {
+    const p = raw as Record<string, unknown>;
+    const id = typeof p.pluginId === "string" ? p.pluginId : "";
+    const name = typeof p.name === "string" ? p.name.slice(0, 200) : "";
+    const maker = typeof p.manufacturer === "string" ? p.manufacturer.slice(0, 200) : "";
+    if (!ID.test(id) || !name || !maker) continue;
+    await pool.query(
+      `insert into category_votes (plugin_id, name, manufacturer, category, install_id, ip_hash)
+       values ($1, $2, $3, $4, $5, $6)
+       on conflict (plugin_id, install_id) do update set category = excluded.category, created_at = now()`,
+      [id, name, maker, category, installId, ipHash]);
+    saved++;
+  }
+  return c.json({ ok: true, saved }, 201);
+});
+
 // Which of these plugins already have an approved picture (so the app need not take one).
 app.post("/v1/lookup", async (c) => {
   let ids: unknown;

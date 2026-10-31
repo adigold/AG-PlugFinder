@@ -293,6 +293,21 @@ enum SelfTest {
                 print("ZOOM done"); fflush(stdout)
             }
         }
+        // --selftest-category: sets a plugin's category, checks it shows and survives a rescan, then undoes it.
+        if args.contains("--selftest-category") {
+            Task {
+                let store = PluginStore.shared
+                guard let p = store.plugins.first(where: { !$0.isLogic }) else { exit(1) }
+                let before = p.displayCategory
+                store.update(p.id) { $0.userCategory = "Imaging" }
+                let set = store.plugin(p.id)?.displayCategory ?? "?"
+                store.rescan()
+                let after = store.plugin(p.id)?.displayCategory ?? "?"
+                store.update(p.id) { $0.userCategory = nil }
+                print("CATEGORY \(p.name): \(before) -> \(set) -> after rescan \(after) -> back \(store.plugin(p.id)?.displayCategory ?? "?")")
+                fflush(stdout); exit(0)
+            }
+        }
         // --selftest-picked <png>: the grid with three plugins picked and the bar at the bottom.
         if let k = args.firstIndex(of: "--selftest-picked"), k + 1 < args.count {
             let out = URL(fileURLWithPath: args[k + 1])

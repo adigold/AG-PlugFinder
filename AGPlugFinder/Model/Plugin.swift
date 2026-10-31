@@ -41,6 +41,8 @@ struct Plugin: Identifiable, Codable, Hashable {
     var isLegacy: Bool?
     /// Where the plugin lives on disk (Audio Units), for the cleanup report (BL-32).
     var path: String?
+    /// The category the user chose (BL-82); always wins over the guess and the look-up.
+    var userCategory: String?
 
     var kind: PluginSource { source ?? (isV3 ? .audioUnitV3 : .audioUnit) }
     var isLogic: Bool { kind == .logic }
@@ -81,6 +83,7 @@ struct Plugin: Identifiable, Codable, Hashable {
 
     /// Category shown in the UI: the looked-up one wins over our guess.
     var displayCategory: String {
+        if let c = userCategory { return c }
         if isLogic { return category } // Logic's own menu category
         // A looked-up category counts only when it is one of the app's own (BL-77).
         if let c = details?.category, let known = PluginCategories.normalize(c) { return known }

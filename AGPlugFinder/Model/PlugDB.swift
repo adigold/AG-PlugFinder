@@ -53,6 +53,24 @@ enum PlugDB {
         }
     }
 
+    /// Sends a category the user chose for these plugins, after they agreed (BL-82).
+    static func shareCategory(_ plugins: [Plugin], _ category: String) {
+        guard let base, let key, !plugins.isEmpty else { return }
+        let body: [String: Any] = [
+            "installId": installID, "category": category,
+            "plugins": plugins.filter { !$0.isLogic }.prefix(500).map {
+                ["pluginId": $0.id, "name": $0.name, "manufacturer": $0.manufacturer]
+            },
+        ]
+        var request = URLRequest(url: base.appendingPathComponent("v1/categories"))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(key, forHTTPHeaderField: "X-AGPF-Key")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        Task { _ = try? await URLSession.shared.data(for: request) }
+    }
+
     /// Downloads approved pictures for these plugins, saves them like a picture the app took,
     /// and returns the ids it got. Silent on any failure: the app then takes the pictures itself.
     static func fetchApproved(_ ids: [String]) async -> Set<String> {

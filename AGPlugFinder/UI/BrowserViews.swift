@@ -759,6 +759,7 @@ struct PluginContextMenu: View {
                 }
             }
         }
+        CategoryMenu(ids: [plugin.id])
         Menu("Pin to Key") {
             let mine = UserLibrary.shared.key(for: .plugin(plugin.id))
             ForEach(1...9, id: \.self) { n in
@@ -1112,6 +1113,7 @@ struct PickedMenu: View {
             if !UserLibrary.shared.collections.isEmpty { Divider() }
             Button("New Collection…") { PickedActions.addToCollection(model, nil) }
         }
+        CategoryMenu(ids: Array(model.picked))
         Button("Look Up Info for \(n)") { PluginInfoFetcher.shared.start(ids: Array(model.picked)) }
             .disabled(PluginInfoFetcher.shared.isRunning || !PluginInfoFetcher.shared.canLookUp)
         Divider()
@@ -1141,6 +1143,51 @@ struct PickedBar: View {
             .shadow(color: .black.opacity(0.45), radius: 18, y: 6)
             .padding(.bottom, 16)
             .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+    }
+}
+
+
+/// Choose the category for one plugin or several (BL-82). "Automatic" goes back to the guess.
+struct CategoryMenu: View {
+    let ids: [String]
+    var store = PluginStore.shared
+
+    var body: some View {
+        let current = Set(ids.compactMap { id in store.plugins.first { $0.id == id }?.displayCategory })
+        Menu(ids.count > 1 ? "Set Category for \(ids.count)" : "Category") {
+            ForEach(PluginCategories.all, id: \.self) { c in
+                Button((current == [c] ? "✓ " : "") + c) { set(c) }
+            }
+            Divider()
+            Button("Automatic") { set(nil) }
+                .disabled(!ids.contains { id in store.plugins.first { $0.id == id }?.userCategory != nil })
+        }
+    }
+
+    private func set(_ category: String?) {
+        for id in ids { store.update(id) { $0.userCategory = category } }
+        Toast.show(category.map { ids.count > 1 ? "\(ids.count) plugins moved to \($0)" : "Moved to \($0)" }
+                   ?? "Back to the automatic category")
+        guard let category else { return }
+        let plugins = ids.compactMap { id in store.plugins.first { $0.id == id } }.filter { !$0.isLogic }
+        guard !plugins.isEmpty else { return }
+        // Offer it to everyone: other users' apps can then sort these plugins the same way.
+        let d = UserDefaults.standard
+        if d.bool(forKey: "share.categories.always") { PlugDB.shareCategory(plugins, category); return }
+        let alert = NSAlert()
+        alert.messageText = "Share this with other users?"
+        alert.informativeText = (plugins.count == 1 ? plugins[0].name : "These \(plugins.count) plugins") +
+            " will be in \(category) for everyone who has \(plugins.count == 1 ? "it" : "them"), once other users agree. Only the plugin names and the category are sent."
+        alert.addButton(withTitle: "Share")
+        alert.addButton(withTitle: "Just for Me")
+        alert.showsSuppressionButton = true
+        alert.suppressionButton?.title = "Always share my categories without asking"
+        let share = alert.runModal() == .alertFirstButtonReturn
+        if share {
+            PlugDB.shareCategory(plugins, category)
+            if alert.suppressionButton?.state == .on { d.set(true, forKey: "share.categories.always") }
+            Toast.show("Shared. Thank you!")
         }
     }
 }

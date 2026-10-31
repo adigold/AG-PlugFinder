@@ -48,6 +48,7 @@ final class PluginStore {
             var merged = p
             merged.details = prev.details
             merged.parameterCount = prev.parameterCount
+            merged.userCategory = prev.userCategory
             if prev.version == p.version, !p.isLogic {
                 merged.snapshotState = prev.snapshotState
                 merged.snapshotError = prev.snapshotError

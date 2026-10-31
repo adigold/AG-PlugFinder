@@ -4,9 +4,14 @@ import AudioToolbox
 /// (Imaging, Metering, Drums …), so a category chip shows every plugin of that kind, not
 /// only Logic's (a user's report, 2026-10-31: wideners, sonible and iZotope missing from Imaging).
 enum PluginCategories {
+    /// Every category a user can choose, in Logic's words.
+    static let all = ["Amps and Pedals", "Delay", "Distortion", "Dynamics", "EQ", "Filter", "Imaging",
+                      "Metering", "Modulation", "Multi Effects", "Pitch", "Reverb", "Utility", "Effects",
+                      "Synth", "Sampler", "Drums", "Keys", "Bass", "Orchestral", "MIDI FX"]
+
     /// Words in a plugin's name, most telling first. Matched against the lowercased name.
     private static let effectWords: [(String, [String])] = [
-        ("Metering", [#"\bpaz"#, #"\blevels\b"#, #"\breference\b"#, "meter", "loudness", "lufs", "analyzer", "analyser", "scope", "spectrum", "tuner",
+        ("Metering", ["tonal balance", "tonalbalance", "truebalance", "true:balance", "true balance", "truelevel", "true level", "true-level", "adptr", "metric ab", "metricab", #"\bexpose\b"#, "loudness", #"\bpaz"#, #"\blevels\b"#, #"\breference\b"#, "meter", "loudness", "lufs", "analyzer", "analyser", "scope", "spectrum", "tuner",
                       "correlat", "insight", #"\bspan\b"#, "monitor"]),
         ("Imaging", ["midside", "mid side", #"\bsplit"#, "xsplit", "wider", "widen", "width", "imager", "imaging", "stereo", "spread", "panner", "binaural",
                      "haas", "microshift", "dimension", "spatial", "surround", "mid/side", "upmix"]),
@@ -25,7 +30,7 @@ enum PluginCategories {
         ("Modulation", ["phasemistress", "movement", "autopan", "vocoder", "talkbox", "sheen", "chorus", "flang", "phaser", "tremolo", "vibrato", "ensemble", "rotary", "leslie",
                         "modul", "doubler", "shaper", "shifter"]),
         ("Filter", ["flux", "lohi", "filter", #"\bwah"#, "bandpass", "hipass", "lowpass", "highpass"]),
-        ("EQ", [#"\bq\d+\b"#, #"\breq\b"#, "emo-q", #"\bapi-5"#, "curves", "maag", "sie-q", "equivoc", "riceflat", "phils cascade", #"\bu17\b"#, "electra", "trueb", "omega 458", "equal", "shelf", "pultec", "graphic", "pro-q", "smart:eq", "tilt", "q10"]),
+        ("EQ", [#"\bq\d+\b"#, #"\breq\b"#, "emo-q", #"\bapi-5"#, "curves", "maag", "sie-q", "equivoc", "riceflat", "phils cascade", #"\bu17\b"#, "electra", "omega 458", "equal", "shelf", "pultec", "graphic", "pro-q", "smart:eq", "tilt", "q10"]),
         ("Utility", ["stream send", "recorder", "frontdaw", "vocalign", "clarity", "voiceassist", "kraftur", "gain", "utility", "trim", "polarity", "router", "tool", #"\bmono"#, "noise", "denois",
                      "de-noise", #"\brx\b"#, "repair", "clean", "netsend", "aac", #"\btest"#, "oscillat"]),
     ]
