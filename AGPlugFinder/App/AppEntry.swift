@@ -1,6 +1,7 @@
 import AppKit
 import ServiceManagement
 import SwiftUI
+import AudioToolbox
 
 @main
 enum Entry {
@@ -202,6 +203,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 // Only new or updated plugins get a screenshot; the rest load from the cache.
                 SnapshotQueue.shared.start()
             }
+            PluginWatcher.shared.start()
             #if DEBUG
             SelfTest.runIfRequested()
             #endif
@@ -235,5 +237,49 @@ enum LaunchAtLogin {
         guard !UserDefaults.standard.bool(forKey: key) else { return }
         UserDefaults.standard.set(true, forKey: key)
         set(true)
+    }
+}
+
+
+/// Plugins installed or removed while the app is open (Adi, 2026-10-31): macOS says so, and
+/// the app rescans by itself, tells the user what is new and takes the new plugins' pictures.
+@MainActor
+final class PluginWatcher {
+    static let shared = PluginWatcher()
+    private var token: NSObjectProtocol?
+    private var pending: Task<Void, Never>?
+
+    func start() {
+        guard token == nil else { return }
+        token = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name(kAudioComponentRegistrationsChangedNotification as String),
+            object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated { PluginWatcher.shared.changed() }
+        }
+    }
+
+    /// Installers register several plugins in a row: wait for them to settle, then rescan once.
+    private func changed() {
+        pending?.cancel()
+        pending = Task {
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { return }
+            rescanNow(quietWhenNothingNew: true)
+        }
+    }
+
+    /// Rescans the installed plugins, says what is new and takes the new plugins' pictures.
+    /// Used by the watcher and by the Rescan Plugins button in Settings.
+    func rescanNow(quietWhenNothingNew: Bool = false) {
+        let store = PluginStore.shared
+        let before = Set(store.plugins.map(\.id))
+        store.rescan()
+        let added = store.plugins.filter { !before.contains($0.id) }
+        guard !added.isEmpty else {
+            if !quietWhenNothingNew { Toast.show("No new plugins found") }
+            return
+        }
+        Toast.show(added.count == 1 ? "New plugin found: \(added[0].name)" : "Found \(added.count) new plugins")
+        if !SnapshotQueue.shared.isRunning { SnapshotQueue.shared.start(only: Set(added.map(\.id))) }
     }
 }

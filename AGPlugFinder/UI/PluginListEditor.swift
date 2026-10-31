@@ -34,6 +34,8 @@ struct PluginListEditor: View {
                     Chip(title: k.title, on: kind == k) { kind = k; selectedGroup = nil }
                 }
                 Spacer()
+                Button("Rescan Plugins") { PluginWatcher.shared.rescanNow() }
+                    .help("Finds plugins you installed since, and takes their pictures")
                 Button("Show Everything") {
                     store.hiddenGroups = []; store.hiddenPlugins = []; store.shownPlugins = []
                 }
@@ -159,7 +161,7 @@ struct BulkMenu: View {
 
     var body: some View {
         if isAll {
-            Button("Rescan Installed Plugins") { store.rescan() }
+            Button("Rescan Installed Plugins") { PluginWatcher.shared.rescanNow() }
             Divider()
         }
         Button(missing.isEmpty ? "No Missing Screenshots" : "Take Missing Screenshots (\(missing.count))") {
