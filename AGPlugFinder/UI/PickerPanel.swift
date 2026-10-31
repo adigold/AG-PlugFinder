@@ -33,7 +33,7 @@ final class PickerPanelController {
         for b in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
             p.standardWindowButton(b)?.isHidden = true
         }
-        p.contentView = NSHostingView(rootView: PickerView(model: model))
+        p.contentView = NSHostingView(rootView: PickerView(model: model).overlay { UnfavoriteConfirm() })
         return p
     }()
 
@@ -104,7 +104,7 @@ final class PickerPanelController {
         if cmd, let chars = e.charactersIgnoringModifiers {
             if let n = Int(chars), (1...PluginSort.allCases.count).contains(n) { model.cycleSort(to: n - 1); return true }
             if chars == "f" { ViewSettings.shared.favoritesOnly.toggle(); model.selection = 0; return true }
-            if chars == "d", let p = model.selected { PluginStore.shared.toggleFavorite(p.id); return true }
+            if chars == "d", let p = model.selected { PluginStore.shared.favoriteTapped(p.id); return true }
         }
         return false
     }

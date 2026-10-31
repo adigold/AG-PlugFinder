@@ -263,16 +263,7 @@ struct PluginTile: View {
         VStack(alignment: .leading, spacing: 10) {
             PluginThumbnail(plugin: plugin)
                 .aspectRatio(1.6, contentMode: .fit)
-                .overlay(alignment: .topTrailing) {
-                    if store.favorites.contains(plugin.id) {
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(Theme.accent)
-                            .padding(6)
-                            .background(Circle().fill(Color.black.opacity(0.7)))
-                            .padding(8)
-                    }
-                }
+                .overlay(alignment: .topTrailing) { FavoriteStar(plugin: plugin, cardHovered: hovering) }
             if view.showName || view.showDetails {
                 VStack(alignment: .leading, spacing: 3) {
                     if view.showName {
@@ -492,7 +483,7 @@ struct PluginDetailView: View {
                 BarIconButton(systemImage: store.favorites.contains(plugin.id) ? "star.fill" : "star",
                               help: "Favorite (⌘D)", active: store.favorites.contains(plugin.id),
                               activeTint: Theme.accent) {
-                    store.toggleFavorite(plugin.id)
+                    store.favoriteTapped(plugin.id)
                 }
             }
             if let message = model.message {
@@ -680,7 +671,7 @@ struct PluginContextMenu: View {
     var body: some View {
         Button(plugin.slotKind == .instrument ? "Load as Instrument" : "Insert in Logic") { select(); insert() }
         Button(store.favorites.contains(plugin.id) ? "Remove from Favorites" : "Add to Favorites") {
-            store.toggleFavorite(plugin.id)
+            store.favoriteTapped(plugin.id)
         }
         Divider()
         TrackMenuItems(plugin: plugin)
@@ -860,5 +851,74 @@ final class ZoomWindow: NSWindow {
     override func resignKey() {
         super.resignKey()
         if wasKey { DispatchQueue.main.async { self.close() } }
+    }
+}
+
+
+/// The star on a card: amber when the plugin is a favorite, a quiet gray outline otherwise.
+/// A click adds it; removing asks first.
+struct FavoriteStar: View {
+    let plugin: Plugin
+    var cardHovered = false
+    var store = PluginStore.shared
+    @State private var hovering = false
+
+    var body: some View {
+        let on = store.favorites.contains(plugin.id)
+        Button { store.favoriteTapped(plugin.id) } label: {
+            Image(systemName: on ? "star.fill" : "star")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(on ? Theme.accent : (hovering ? Theme.text : Color.white.opacity(cardHovered ? 0.55 : 0.32)))
+                .frame(width: 24, height: 24)
+                .background(Circle().fill(Color.black.opacity(on || hovering || cardHovered ? 0.7 : 0.45)))
+                .scaleEffect(hovering ? 1.12 : 1)
+        }
+        .buttonStyle(.plain)
+        .padding(8)
+        .onHover { hovering = $0 }
+        .animation(.easeOut(duration: 0.12), value: hovering)
+        .animation(.spring(response: 0.25, dampingFraction: 0.6), value: on)
+        .help(on ? "Remove from Favorites" : "Add to Favorites")
+    }
+}
+
+/// "Remove from Favorites?", in the app's own style, over the window that asked.
+struct UnfavoriteConfirm: View {
+    var store = PluginStore.shared
+
+    var body: some View {
+        if let id = store.confirmingUnfavorite {
+            let plugin = store.plugins.first { $0.id == id }
+            ZStack {
+                Color.black.opacity(0.55).onTapGesture { store.confirmingUnfavorite = nil }
+                VStack(spacing: 14) {
+                    if let plugin {
+                        PluginThumbnail(plugin: plugin, radius: 10).frame(width: 150, height: 94)
+                    }
+                    Image(systemName: "star.slash").font(.system(size: 20)).foregroundStyle(Theme.accent)
+                    VStack(spacing: 4) {
+                        Text("Remove from Favorites?").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
+                        Text("\(plugin?.name ?? "This plugin") won't show in Favorites anymore. You can add it back with the star.")
+                            .font(.system(size: 12)).foregroundStyle(Theme.muted)
+                            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                    }
+                    HStack(spacing: 8) {
+                        QuietPill(title: "Keep", height: 32) { store.confirmingUnfavorite = nil }
+                            .keyboardShortcut(.cancelAction)
+                        PrimaryPill(title: "Remove", systemImage: "star.slash", height: 32) {
+                            store.favorites.remove(id)
+                            store.confirmingUnfavorite = nil
+                        }
+                        .keyboardShortcut(.defaultAction)
+                    }
+                }
+                .padding(22)
+                .frame(width: 300)
+                .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.surface))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.rule, lineWidth: 1))
+                .shadow(color: .black.opacity(0.5), radius: 30, y: 10)
+            }
+            .transition(.opacity)
+        }
     }
 }

@@ -293,6 +293,27 @@ enum SelfTest {
                 print("ZOOM done"); fflush(stdout)
             }
         }
+        // --selftest-favorites <dir>: cards with their stars, then the Remove from Favorites
+        // confirmation (answered Keep, so nothing changes).
+        if let k = args.firstIndex(of: "--selftest-favorites"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task {
+                LibraryWindow.show()
+                try? await Task.sleep(for: .seconds(2.5))
+                guard let w = LibraryWindow.window else { print("FAV no window"); return }
+                await capture(w, to: dir.appendingPathComponent("cards.png"), scale: 1)
+                let store = PluginStore.shared
+                let id = store.favorites.first ?? store.plugins.first?.id
+                let wasFavorite = id.map { store.favorites.contains($0) } ?? false
+                if let id, !wasFavorite { store.favorites.insert(id) }
+                if let id { store.favoriteTapped(id) }
+                try? await Task.sleep(for: .seconds(0.8))
+                await capture(w, to: dir.appendingPathComponent("confirm.png"), scale: 1)
+                store.confirmingUnfavorite = nil
+                if let id, !wasFavorite { store.favorites.remove(id) }
+                print("FAV done"); fflush(stdout)
+            }
+        }
         if let k = args.firstIndex(of: "--selftest-features"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])
             Task { await features(dir); fflush(stdout) }

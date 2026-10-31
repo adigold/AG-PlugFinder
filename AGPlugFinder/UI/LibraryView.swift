@@ -28,6 +28,8 @@ struct LibraryView: View {
             if mini { miniBody } else { fullBody }
         }
         .frame(minWidth: mini ? 340 : 860, minHeight: mini ? 150 : 540)
+        .overlay { UnfavoriteConfirm() }
+        .animation(.easeOut(duration: 0.15), value: PluginStore.shared.confirmingUnfavorite)
         .background(Theme.ground)
         .ignoresSafeArea(.container, edges: .top)
         .preferredColorScheme(.dark)
@@ -289,7 +291,7 @@ struct LibraryView: View {
             }
             if cmd, let chars = event.charactersIgnoringModifiers {
                 if let n = Int(chars), (1...PluginSort.allCases.count).contains(n) { model.cycleSort(to: n - 1); return nil }
-                if chars == "d", let p = model.selected { store.toggleFavorite(p.id); return nil }
+                if chars == "d", let p = model.selected { store.favoriteTapped(p.id); return nil }
                 if chars == "f" { ViewSettings.shared.favoritesOnly.toggle(); model.selection = 0; return nil }
             }
             return event

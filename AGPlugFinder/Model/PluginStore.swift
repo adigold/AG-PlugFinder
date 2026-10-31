@@ -120,6 +120,14 @@ final class PluginStore {
         if favorites.contains(id) { favorites.remove(id) } else { favorites.insert(id) }
     }
 
+    /// The plugin waiting for "Remove from Favorites?" to be answered.
+    var confirmingUnfavorite: String?
+
+    /// Adds at once; removing asks first (Adi, 2026-10-31).
+    func favoriteTapped(_ id: String) {
+        if favorites.contains(id) { confirmingUnfavorite = id } else { favorites.insert(id) }
+    }
+
     func markUsed(_ id: String) {
         lastUsed[id] = Date()
         UserLibrary.shared.countUse(id)
