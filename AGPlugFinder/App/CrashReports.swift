@@ -28,8 +28,10 @@ enum CrashReports {
 
     private static func isHelperCrash(_ url: URL) -> Bool {
         guard let text = try? String(contentsOf: url, encoding: .utf8) else { return false }
-        // The helper is started by the app itself; the app is started by launchd.
+        // The helper is started by the app itself; the app is started by launchd. Test builds
+        // (they carry a debug library) are not the user's crashes either.
         return text.contains("\"parentProc\" : \"AG PlugFinder\"") || text.contains("\"parentProc\":\"AG PlugFinder\"")
+            || text.contains("AG PlugFinder.debug.dylib")
     }
 
     static func checkOnLaunch() {

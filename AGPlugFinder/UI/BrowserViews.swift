@@ -384,6 +384,10 @@ struct PluginGrid: View {
     var onActivate: () -> Void
     var view = ViewSettings.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    // Selection box (BL-97): drag on empty space to pick every plugin it touches.
+    @State private var frames: [String: CGRect] = [:]
+    @State private var band: CGRect?
+    @State private var bandBase: Set<String> = []
 
     var body: some View {
         let results = model.results
@@ -416,6 +420,23 @@ struct PluginGrid: View {
                     // glide into their new places (BL-23).
                     .animation(reduceMotion ? nil : .spring(duration: 0.34, bounce: 0.1),
                                value: results.map(\.id))
+                    .frame(minHeight: geo.size.height, alignment: .top)
+                    .coordinateSpace(.named(Self.space))
+                    .onPreferenceChange(TileFrames.self) { frames = $0 }
+                    .background {
+                        Color.clear.contentShape(Rectangle())
+                            .onTapGesture { model.picked = [] }
+                            .gesture(bandGesture(results))
+                    }
+                    .overlay(alignment: .topLeading) {
+                        if let band {
+                            Rectangle().fill(Theme.accent.opacity(0.12))
+                                .overlay(Rectangle().strokeBorder(Theme.accent, lineWidth: 1))
+                                .frame(width: band.width, height: band.height)
+                                .offset(x: band.minX, y: band.minY)
+                                .allowsHitTesting(false)
+                        }
+                    }
                 }
                 .scrollIndicators(.automatic)
                 .onChange(of: model.selection) { _, new in
@@ -432,6 +453,30 @@ struct PluginGrid: View {
             .overlay(alignment: .bottom) { PickedBar(model: model) }
             .animation(.easeOut(duration: 0.18), value: model.picked.count > 1)
         }
+    }
+
+    static let space = "pluginGrid"
+
+    /// Drag from empty space: a box that picks every plugin it touches. ⌘ or ⇧ adds to the
+    /// plugins already picked.
+    private func bandGesture(_ results: [Plugin]) -> some Gesture {
+        DragGesture(minimumDistance: 4, coordinateSpace: .named(Self.space))
+            .onChanged { v in
+                if band == nil {
+                    let mods = NSEvent.modifierFlags
+                    bandBase = mods.contains(.command) || mods.contains(.shift) ? model.picked : []
+                }
+                let r = CGRect(x: min(v.startLocation.x, v.location.x), y: min(v.startLocation.y, v.location.y),
+                               width: abs(v.location.x - v.startLocation.x), height: abs(v.location.y - v.startLocation.y))
+                band = r
+                let hits = Set(frames.filter { $0.value.intersects(r) }.map(\.key))
+                let next = bandBase.union(hits)
+                if next != model.picked { model.picked = next }
+            }
+            .onEnded { _ in
+                band = nil
+                if let first = results.firstIndex(where: { model.picked.contains($0.id) }) { model.selection = first }
+            }
     }
 
     private var emptyState: some View {
@@ -457,6 +502,9 @@ struct PluginGrid: View {
         ForEach(Array(results.enumerated()), id: \.element.id) { i, plugin in
             cell(plugin, i == model.selection)
                 .id(plugin.id)
+                .background(GeometryReader { g in
+                    Color.clear.preference(key: TileFrames.self, value: [plugin.id: g.frame(in: .named(Self.space))])
+                })
                 .transition(.asymmetric(
                     insertion: .opacity.combined(with: .scale(scale: 0.94)),
                     removal: .opacity.combined(with: .scale(scale: 0.88))))
@@ -1291,5 +1339,13 @@ struct PictureActions: View {
         }
         .buttonStyle(PressScale())
         .help(title)
+    }
+}
+
+/// Where each plugin card sits in the grid, for the selection box (BL-97).
+struct TileFrames: PreferenceKey {
+    static let defaultValue: [String: CGRect] = [:]
+    static func reduce(value: inout [String: CGRect], nextValue: () -> [String: CGRect]) {
+        value.merge(nextValue()) { $1 }
     }
 }

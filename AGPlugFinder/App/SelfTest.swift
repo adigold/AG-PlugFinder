@@ -461,6 +461,14 @@ enum SelfTest {
                 print("LICENSES ok \(lic.money(lic.collectionValue)) \(lic.money(lic.perMonth))"); fflush(stdout)
             }
         }
+        if let k = args.firstIndex(of: "--selftest-menu-actions"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task { await menuActions(dir) }
+        }
+        if let k = args.firstIndex(of: "--selftest-menu-of"), k + 1 < args.count, let pid = pid_t(args[k + 1]),
+           pid != getpid() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { menuTest(of: pid) }
+        }
         if let k = args.firstIndex(of: "--selftest-onboarding-sync"), k + 1 < args.count {
             let out = URL(fileURLWithPath: args[k + 1])
             Task {
@@ -601,7 +609,7 @@ enum SelfTest {
         say("done")
     }
 
-    private static func capture(_ window: NSWindow, to url: URL, scale: Int = 2) async {
+    static func capture(_ window: NSWindow, to url: URL, scale: Int = 2) async {
         guard let content = try? await SCShareableContent.currentProcess,
               let sc = content.windows.first(where: { $0.windowID == CGWindowID(window.windowNumber) })
         else { print("SELFTEST no window"); return }
