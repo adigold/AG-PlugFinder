@@ -10,18 +10,20 @@ const sql = neon(process.env.DATABASE_URL!);
 const [cmd, ...ids] = process.argv.slice(2);
 
 async function approve(where: string, params: unknown[]) {
+  // One step in the database: the newest waiting picture per plugin becomes the approved one.
   const rows = await sql.query(
-    `update submissions set status = 'approved' where status = 'waiting' and ${where} returning *`, params);
-  for (const s of rows as any[]) {
-    await sql.query(
-      `insert into plugins (plugin_id, name, manufacturer, version, category, picture, picture_type, submission_id)
-       values ($1, $2, $3, $4, $5, $6, $7, $8)
+    `with picked as (
+       select distinct on (plugin_id) * from submissions
+       where status = 'waiting' and ${where} order by plugin_id, created_at desc),
+     put as (
+       insert into plugins (plugin_id, name, manufacturer, version, category, picture, picture_type, submission_id)
+       select plugin_id, name, manufacturer, version, category, picture, picture_type, id from picked
        on conflict (plugin_id) do update set name = excluded.name, manufacturer = excluded.manufacturer,
          version = excluded.version, category = excluded.category, picture = excluded.picture,
-         picture_type = excluded.picture_type, submission_id = excluded.submission_id, approved_at = now()`,
-      [s.plugin_id, s.name, s.manufacturer, s.version, s.category, s.picture, s.picture_type, s.id]);
-  }
-  console.log(`approved ${rows.length}`);
+         picture_type = excluded.picture_type, submission_id = excluded.submission_id, approved_at = now()
+       returning plugin_id)
+     update submissions set status = 'approved' where status = 'waiting' and ${where} returning id`, params);
+  console.log(`approved ${rows.length} pictures`);
 }
 
 if (cmd === "approve") await approve("id = any($1)", [ids.map(Number)]);
