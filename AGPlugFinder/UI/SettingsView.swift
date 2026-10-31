@@ -75,29 +75,32 @@ struct GeneralSettings: View {
                 }
             }
 
-            Section("Plugin info (Claude API)") {
-                SecureField(keySaved ? "Key saved in Keychain" : "Anthropic API key (sk-ant-…)", text: $apiKey)
-                HStack {
-                    Button("Save Key") {
-                        keySaved = Keychain.save(apiKey) && !apiKey.isEmpty
-                        apiKey = ""
-                    }.disabled(apiKey.isEmpty)
-                    if keySaved {
-                        Button("Remove Key") { Keychain.delete(); keySaved = false }
+            Section("Plugin info") {
+                InfoSourcePicker()
+                if PluginInfoFetcher.shared.source == .online {
+                    SecureField(keySaved ? "Key saved in Keychain" : "Anthropic API key (sk-ant-…)", text: $apiKey)
+                    HStack {
+                        Button("Save Key") {
+                            keySaved = Keychain.save(apiKey) && !apiKey.isEmpty
+                            apiKey = ""
+                        }.disabled(apiKey.isEmpty)
+                        if keySaved {
+                            Button("Remove Key") { Keychain.delete(); keySaved = false }
+                        }
                     }
-                }
-                LabeledContent("Model") {
-                    HStack(spacing: 4) {
-                        ForEach(PluginInfoFetcher.Model.allCases) { m in
-                            Chip(title: "\(m.title) (~$\(String(format: "%.2f", m.estimatedCostPerPlugin)) each)", on: model == m) {
-                                model = m
-                                PluginInfoFetcher.shared.model = m
+                    LabeledContent("Model") {
+                        HStack(spacing: 4) {
+                            ForEach(PluginInfoFetcher.Model.allCases) { m in
+                                Chip(title: "\(m.title) (~$\(String(format: "%.2f", m.estimatedCostPerPlugin)) each)", on: model == m) {
+                                    model = m
+                                    PluginInfoFetcher.shared.model = m
+                                }
                             }
                         }
                     }
+                    Text("The key is stored in your Mac's Keychain. Plugins are looked up only when you press Look Up Info.")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
-                Text("The key is stored in your Mac's Keychain. Plugins are looked up only when you press Look Up Info.")
-                    .font(.caption).foregroundStyle(.secondary)
             }
 
             Section("Cache") {

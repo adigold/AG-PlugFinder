@@ -325,7 +325,7 @@ struct LibraryActions: View {
             action("sparkles", "Look up plugin info",
                    detail: fetcher.missingCount() == 0 ? "Every plugin has a description" : "\(fetcher.missingCount()) without a description",
                    disabled: fetcher.isRunning || fetcher.missingCount() == 0) {
-                confirmLookup = true
+                if fetcher.isFree { fetcher.start() } else { confirmLookup = true }
             }
             action("arrow.down.circle", "Download plugin pack", detail: packDetail,
                    disabled: pack.state == .working) {

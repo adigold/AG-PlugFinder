@@ -438,6 +438,15 @@ struct PluginGrid: View {
                 .onTapGesture(count: 2) { model.selection = i; onActivate() }
                 .onTapGesture { model.selection = i }
                 .contextMenu { PluginContextMenu(plugin: plugin, select: { model.selection = i }, insert: onActivate) }
+                // Drag onto a collection chip to add it there (BL-60).
+                .draggable(PluginDrag.prefix + plugin.id) {
+                    HStack(spacing: 8) {
+                        PluginThumbnail(plugin: plugin, radius: 6).frame(width: 54, height: 36)
+                        Text(plugin.name).font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.text)
+                    }
+                    .padding(8)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Theme.raised))
+                }
         }
     }
 }
@@ -688,7 +697,7 @@ struct PluginContextMenu: View {
         Button(plugin.details == nil ? "Look Up Info" : "Look Up Info Again") {
             PluginInfoFetcher.shared.start(ids: [plugin.id])
         }
-        .disabled(PluginInfoFetcher.shared.isRunning || !PluginInfoFetcher.shared.hasKey)
+        .disabled(PluginInfoFetcher.shared.isRunning || !PluginInfoFetcher.shared.canLookUp)
         Divider()
         Menu("Add to Chain") {
             ForEach(UserLibrary.shared.chains) { c in
@@ -727,4 +736,12 @@ struct PluginContextMenu: View {
 
 extension Notification.Name {
     static let focusSearch = Notification.Name("AGPFFocusSearch")
+}
+
+/// What a dragged plugin carries: its id, marked so other dropped text is ignored.
+enum PluginDrag {
+    static let prefix = "agplugfinder-plugin:"
+    static func ids(_ items: [String]) -> [String] {
+        items.filter { $0.hasPrefix(prefix) }.map { String($0.dropFirst(prefix.count)) }
+    }
 }

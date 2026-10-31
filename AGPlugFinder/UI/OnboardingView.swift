@@ -162,7 +162,7 @@ struct OnboardingView: View {
                     Button("Save") { keySaved = Keychain.save(apiKey) && !apiKey.isEmpty; apiKey = "" }
                         .disabled(apiKey.isEmpty)
                 }
-                Text("No key? Skip this step. Everything else works without it.")
+                Text("No key? Skip this step. You can use a free option instead, in Settings > General > Plugin info.")
                     .font(.system(size: 11)).foregroundStyle(Theme.muted)
             }
         }

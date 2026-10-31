@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0475C34975ACC0546A86129F /* PluginInfoFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46463EBC97E295A49C3EB7CA /* PluginInfoFetcher.swift */; };
 		04CC40311F1F7988F588D60A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 597B1DCFC14B2876ADEF60AA /* OnboardingView.swift */; };
+		0CB2686890FCDC54324D120C /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 5743010E178E4020ED1E143E /* MLXLMCommon */; };
 		13A90B02B0FBED49ED49B448 /* LogicCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D8B9B25BDB22A89D24468 /* LogicCapture.swift */; };
 		17273346968303AADBE29BB4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD381CA2BB6F2AE268D763CD /* Assets.xcassets */; };
 		22C05D51D8B31A9562FB3476 /* SelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19606CDC7F0663446B24FE2 /* SelfTest.swift */; };
@@ -18,22 +19,28 @@
 		2B1238F5A1C0E4FEA95749AF /* PluginPack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D71657EEC5ED1CB8747992C3 /* PluginPack.swift */; };
 		2CDDD895CD2750912DB73AFC /* WhatsNewWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C0948383AEB9D0BE90BBA8 /* WhatsNewWindow.swift */; };
 		2E95C518E15D9AE1CE0BD68C /* PluginStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FD7E657F3026F318121A9D6 /* PluginStore.swift */; };
+		3A2D7CA369AF790F74FE1334 /* MLXHuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = B4A3221D37C4070643BC196D /* MLXHuggingFace */; };
 		3BBC1A8A91E10880B239C18D /* AX.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFBFF2C38A98C6768DF05100 /* AX.swift */; };
 		450CA6479EE050AEE218A77A /* UpdateViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F023E1377B6D025990A4AD1D /* UpdateViews.swift */; };
 		48B6DCB114257559637BA3E5 /* Share in Resources */ = {isa = PBXBuildFile; fileRef = B65B4103D33CABD66BA2B1EA /* Share */; };
+		4A40DE7854C33CE4E4B9FB2F /* HuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = 43B30E692D4D93F65FF98B54 /* HuggingFace */; };
 		55042213A5FBB48BD7609817 /* LogicInserter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE2A7565B4582595AC03716 /* LogicInserter.swift */; };
 		5DCD29A96935375138A77B64 /* ShortcutSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55FD3617B4BC576C117D7A0D /* ShortcutSettings.swift */; };
 		614EE6DB31B4D355967EE472 /* LogicCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79020B749BE713B285FFCF69 /* LogicCatalog.swift */; };
 		6A189FEC2349289FD418F81D /* AppEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543D77325B5A182229531F62 /* AppEntry.swift */; };
 		7219F4928E487650D9BD675F /* ShareWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73BE9C76C349750CE02E0E1B /* ShareWindow.swift */; };
+		790F240C2F395A736A939F2F /* Tokenizers in Frameworks */ = {isa = PBXBuildFile; productRef = 11AB3FB69F641826FFB5A7CA /* Tokenizers */; };
 		798772CCE9D7FB6C1CC04281 /* LogicTrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 510649A05002EFFF609F883A /* LogicTrack.swift */; };
 		7A24730DB3744E8D9FC7BE9E /* InsertRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF177B31F8EB43737223CB1 /* InsertRunner.swift */; };
 		7C7F0A0658B68ED1C4AD62B6 /* SnapshotProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3489490CA53609C463DF80B1 /* SnapshotProgressView.swift */; };
 		7CA982ACA4D63FEE79A2B743 /* Plugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B431D534CB99B5A459D3517F /* Plugin.swift */; };
 		7F4F4F8080F79CF039A760C4 /* LogicScreenshots in Resources */ = {isa = PBXBuildFile; fileRef = 356DA54D6AF0A0ECD8B21135 /* LogicScreenshots */; };
+		8091CB98BE54644D13D73DA3 /* OnDeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFFB100FD4998C193C7BEA94 /* OnDeviceInfo.swift */; };
 		8E8D3A87A231BD3E8D683B69 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AED26F1AE92B46F89A94CE6 /* LibraryView.swift */; };
+		931ACACD35A71211C23FDE8B /* LocalModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6EC4140429A7774ED898F02 /* LocalModel.swift */; };
 		9970AF4632E51CEE778BA8EE /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FC6C5138045E623B2A0134 /* Migration.swift */; };
 		A31521FE2FB09048BD460EB8 /* Shortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04543FB792952D69782A9314 /* Shortcuts.swift */; };
+		ABEB3BBD42D097BFBCDE432A /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 70C0773F4C511D264C9AE7F9 /* MLXLLM */; };
 		ABF6017627F4BF04469803C6 /* ViewSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8EBF150252A9B6AF992139C /* ViewSettings.swift */; };
 		B1E65F4E61D464E5340D09D2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB8804982519104A3E9C10 /* SettingsView.swift */; };
 		B4343ECFDF6C445F008BB50D /* PluginScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F96300B45F6AC9AB4D9D915 /* PluginScanner.swift */; };
@@ -92,12 +99,29 @@
 		B6F77814834E56DA4A623391 /* SnapshotRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotRenderer.swift; sourceTree = "<group>"; };
 		B8EBF150252A9B6AF992139C /* ViewSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSettings.swift; sourceTree = "<group>"; };
 		BFBFF2C38A98C6768DF05100 /* AX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AX.swift; sourceTree = "<group>"; };
+		C6EC4140429A7774ED898F02 /* LocalModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalModel.swift; sourceTree = "<group>"; };
 		CC0BC245023DFE7ED68CE6AA /* BrowserViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserViews.swift; sourceTree = "<group>"; };
 		D71657EEC5ED1CB8747992C3 /* PluginPack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginPack.swift; sourceTree = "<group>"; };
 		DDD1C34D4EFF0692962BAAE7 /* PluginListEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginListEditor.swift; sourceTree = "<group>"; };
+		EFFB100FD4998C193C7BEA94 /* OnDeviceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceInfo.swift; sourceTree = "<group>"; };
 		F023E1377B6D025990A4AD1D /* UpdateViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateViews.swift; sourceTree = "<group>"; };
 		FD381CA2BB6F2AE268D763CD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		785EE84218272B1CCCF12B42 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ABEB3BBD42D097BFBCDE432A /* MLXLLM in Frameworks */,
+				0CB2686890FCDC54324D120C /* MLXLMCommon in Frameworks */,
+				3A2D7CA369AF790F74FE1334 /* MLXHuggingFace in Frameworks */,
+				4A40DE7854C33CE4E4B9FB2F /* HuggingFace in Frameworks */,
+				790F240C2F395A736A939F2F /* Tokenizers in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		1CDF4935846C48F6BB38C8A6 /* Snapshot */ = {
@@ -156,6 +180,8 @@
 			isa = PBXGroup;
 			children = (
 				3126DBE9AE17BDEEEA02A558 /* Keychain.swift */,
+				C6EC4140429A7774ED898F02 /* LocalModel.swift */,
+				EFFB100FD4998C193C7BEA94 /* OnDeviceInfo.swift */,
 				46463EBC97E295A49C3EB7CA /* PluginInfoFetcher.swift */,
 			);
 			path = Info;
@@ -232,6 +258,7 @@
 			buildPhases = (
 				BBA76ACFC351CC4BDF5F61F2 /* Sources */,
 				060EF8747B587FF4722F6730 /* Resources */,
+				785EE84218272B1CCCF12B42 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -239,6 +266,11 @@
 			);
 			name = AGPlugFinder;
 			packageProductDependencies = (
+				70C0773F4C511D264C9AE7F9 /* MLXLLM */,
+				5743010E178E4020ED1E143E /* MLXLMCommon */,
+				B4A3221D37C4070643BC196D /* MLXHuggingFace */,
+				43B30E692D4D93F65FF98B54 /* HuggingFace */,
+				11AB3FB69F641826FFB5A7CA /* Tokenizers */,
 			);
 			productName = AGPlugFinder;
 			productReference = 36742C3F75E620A4C9713D2D /* AGPlugFinder.app */;
@@ -268,6 +300,11 @@
 			);
 			mainGroup = DC444221E7F172B4714DD71A;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				6326B738D89BDB79642DE3F0 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */,
+				91B0E78729E7A0BC73BC6E89 /* XCRemoteSwiftPackageReference "swift-huggingface" */,
+				EA2BB9F4CBD02BC530CE3B66 /* XCRemoteSwiftPackageReference "swift-transformers" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 90AE9D588EDF48E81E1A4D56 /* Products */;
 			projectDirPath = "";
@@ -305,11 +342,13 @@
 				7A24730DB3744E8D9FC7BE9E /* InsertRunner.swift in Sources */,
 				2626830B5D9848089F58FEAF /* Keychain.swift in Sources */,
 				8E8D3A87A231BD3E8D683B69 /* LibraryView.swift in Sources */,
+				931ACACD35A71211C23FDE8B /* LocalModel.swift in Sources */,
 				13A90B02B0FBED49ED49B448 /* LogicCapture.swift in Sources */,
 				614EE6DB31B4D355967EE472 /* LogicCatalog.swift in Sources */,
 				55042213A5FBB48BD7609817 /* LogicInserter.swift in Sources */,
 				798772CCE9D7FB6C1CC04281 /* LogicTrack.swift in Sources */,
 				9970AF4632E51CEE778BA8EE /* Migration.swift in Sources */,
+				8091CB98BE54644D13D73DA3 /* OnDeviceInfo.swift in Sources */,
 				04CC40311F1F7988F588D60A /* OnboardingView.swift in Sources */,
 				E854273C1E3933DE20D03BA7 /* PickerModel.swift in Sources */,
 				D11B1A084B198C0461413B26 /* PickerPanel.swift in Sources */,
@@ -530,6 +569,61 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6326B738D89BDB79642DE3F0 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ml-explore/mlx-swift-lm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.31.4;
+			};
+		};
+		91B0E78729E7A0BC73BC6E89 /* XCRemoteSwiftPackageReference "swift-huggingface" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/huggingface/swift-huggingface";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.13.0;
+			};
+		};
+		EA2BB9F4CBD02BC530CE3B66 /* XCRemoteSwiftPackageReference "swift-transformers" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/huggingface/swift-transformers";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		11AB3FB69F641826FFB5A7CA /* Tokenizers */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EA2BB9F4CBD02BC530CE3B66 /* XCRemoteSwiftPackageReference "swift-transformers" */;
+			productName = Tokenizers;
+		};
+		43B30E692D4D93F65FF98B54 /* HuggingFace */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 91B0E78729E7A0BC73BC6E89 /* XCRemoteSwiftPackageReference "swift-huggingface" */;
+			productName = HuggingFace;
+		};
+		5743010E178E4020ED1E143E /* MLXLMCommon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6326B738D89BDB79642DE3F0 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXLMCommon;
+		};
+		70C0773F4C511D264C9AE7F9 /* MLXLLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6326B738D89BDB79642DE3F0 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXLLM;
+		};
+		B4A3221D37C4070643BC196D /* MLXHuggingFace */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6326B738D89BDB79642DE3F0 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXHuggingFace;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E611F39F55361B5ABC76D67C /* Project object */;
 }

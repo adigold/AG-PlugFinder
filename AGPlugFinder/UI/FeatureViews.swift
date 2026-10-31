@@ -29,6 +29,7 @@ struct CollectionBar: View {
     @Bindable var model: PickerModel
     var library = UserLibrary.shared
     var view = ViewSettings.shared
+    @State private var dropOn: String?
     /// The library window shows the picture size slider at the right of this row (BL-48).
     var showSizeSlider = false
 
@@ -96,6 +97,21 @@ struct CollectionBar: View {
             Chip(title: "\(c.name)  \(c.pluginIDs.count)", on: model.collectionID == c.id) {
                 model.collectionID = model.collectionID == c.id ? nil : c.id
                 model.category = nil
+            }
+            // Drop plugins on a collection to add them (BL-60).
+            .overlay(Capsule().strokeBorder(Theme.accent, lineWidth: 2).opacity(dropOn == c.id ? 1 : 0))
+            .scaleEffect(dropOn == c.id ? 1.08 : 1)
+            .animation(.easeOut(duration: 0.12), value: dropOn)
+            .dropDestination(for: String.self) { items, _ in
+                let ids = PluginDrag.ids(items)
+                guard !ids.isEmpty, let i = library.collections.firstIndex(where: { $0.id == c.id }) else { return false }
+                let new = ids.filter { !library.collections[i].pluginIDs.contains($0) }
+                library.collections[i].pluginIDs.append(contentsOf: new)
+                let name = ids.count == 1 ? (PluginStore.shared.plugin(ids[0])?.name ?? "Plugin") : "\(ids.count) plugins"
+                Toast.show(new.isEmpty ? "\(name) is already in \(c.name)" : "Added \(name) to \(c.name)")
+                return true
+            } isTargeted: { on in
+                if on { dropOn = c.id } else if dropOn == c.id { dropOn = nil }
             }
             .contextMenu {
                 Button("Rename…") {

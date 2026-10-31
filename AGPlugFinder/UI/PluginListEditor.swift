@@ -178,7 +178,7 @@ struct BulkMenu: View {
         Button(withoutInfo.isEmpty ? "Look Up Info Again (\(ids.count))" : "Look Up Missing Info (\(withoutInfo.count))") {
             fetcher.start(ids: withoutInfo.isEmpty ? ids : withoutInfo)
         }
-        .disabled(fetcher.isRunning || !fetcher.hasKey)
+        .disabled(fetcher.isRunning || !fetcher.canLookUp)
         Button("Clear Info") { store.clearInfo(ids) }
             .disabled(ids.allSatisfy { store.plugin($0)?.details == nil })
         if isAll {

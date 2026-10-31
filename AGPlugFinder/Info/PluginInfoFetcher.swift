@@ -18,6 +18,41 @@ final class PluginInfoFetcher {
         var estimatedCostPerPlugin: Double { self == .opus ? 0.10 : 0.06 }
     }
 
+    /// Where descriptions come from (BL-50): the web lookup with the user's key (most accurate),
+    /// the Mac's built-in model, or the downloaded model. The two free ones need no key.
+    enum Source: String, CaseIterable, Identifiable {
+        case online, builtIn, downloaded
+        var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .online: return "Most accurate"
+            case .builtIn: return "Free, built into this Mac"
+            case .downloaded: return "Free, downloaded model"
+            }
+        }
+    }
+
+    var source: Source {
+        get {
+            if let s = Source(rawValue: UserDefaults.standard.string(forKey: "infoSource") ?? "") { return s }
+            if hasKey { return .online }
+            if OnDeviceInfo.status == .ready { return .builtIn }
+            return LocalModel.shared.state == .ready ? .downloaded : .online
+        }
+        set { UserDefaults.standard.set(newValue.rawValue, forKey: "infoSource") }
+    }
+
+    /// True when the chosen source can run now.
+    var canLookUp: Bool {
+        switch source {
+        case .online: return hasKey
+        case .builtIn: return OnDeviceInfo.status == .ready
+        case .downloaded: return LocalModel.shared.state == .ready
+        }
+    }
+
+    var isFree: Bool { source != .online }
+
     private(set) var isRunning = false
     private(set) var done = 0
     private(set) var total = 0
@@ -36,8 +71,15 @@ final class PluginInfoFetcher {
 
     /// Looks up the given plugins (default: every plugin with no info yet).
     func start(ids: [String]? = nil) {
-        guard !isRunning, let key = Keychain.read() else {
-            if Keychain.read() == nil { lastError = "Add your Anthropic API key in Settings first." }
+        guard !isRunning else { return }
+        let source = self.source
+        let key = Keychain.read() ?? ""
+        guard canLookUp else {
+            switch source {
+            case .online: lastError = "Add your API key in Settings, or choose a free option there."
+            case .builtIn: lastError = "The Mac's built-in model isn't available. Choose another option in Settings."
+            case .downloaded: lastError = "Download the free model in Settings first."
+            }
             return
         }
         let store = PluginStore.shared
@@ -56,16 +98,25 @@ final class PluginInfoFetcher {
         total = todo.count
         let model = self.model
         Task {
-            // Two at a time keeps it quick without hitting rate limits.
+            // Online: two at a time keeps it quick without hitting rate limits. On the Mac: one
+            // at a time, the model uses the whole machine.
             var index = 0
             while index < todo.count, !cancelled {
-                let batch = Array(todo[index..<min(index + 2, todo.count)])
+                let batch = Array(todo[index..<min(index + (source == .online ? 2 : 1), todo.count)])
                 index += batch.count
-                let results = await withTaskGroup(of: (String, Result<PluginDetails, Error>).self) { group in
-                    for p in batch { group.addTask { (p.id, await Self.lookUp(p, key: key, model: model)) } }
-                    var out: [(String, Result<PluginDetails, Error>)] = []
-                    for await r in group { out.append(r) }
-                    return out
+                var results: [(String, Result<PluginDetails, Error>)] = []
+                switch source {
+                case .online:
+                    results = await withTaskGroup(of: (String, Result<PluginDetails, Error>).self) { group in
+                        for p in batch { group.addTask { (p.id, await Self.lookUp(p, key: key, model: model)) } }
+                        var out: [(String, Result<PluginDetails, Error>)] = []
+                        for await r in group { out.append(r) }
+                        return out
+                    }
+                case .builtIn:
+                    for p in batch { results.append((p.id, await OnDeviceInfo.lookUp(p))) }
+                case .downloaded:
+                    for p in batch { results.append((p.id, await LocalModel.shared.lookUp(p))) }
                 }
                 for (id, result) in results {
                     switch result {
