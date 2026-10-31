@@ -85,8 +85,26 @@ struct MenuBarContent: View {
 /// The menu bar icon; it also hands the window opener to the hotkey (BL-45).
 struct MenuBarIcon: View {
     @Environment(\.openWindow) private var openWindow
+
+    /// The AG PlugFinder mark (three bars, the bottom one strongest) as a template image, so
+    /// macOS colours it for light and dark menu bars like every other menu bar icon.
+    static let mark: NSImage = {
+        let size = NSSize(width: 18, height: 18)
+        let img = NSImage(size: size, flipped: true) { _ in
+            let barH: CGFloat = 3.2, gap: CGFloat = 2.3, w: CGFloat = 14
+            let top = (size.height - 3 * barH - 2 * gap) / 2
+            for i in 0..<3 {
+                let r = NSRect(x: (size.width - w) / 2, y: top + CGFloat(i) * (barH + gap), width: w, height: barH)
+                NSColor.black.withAlphaComponent(i == 2 ? 1 : 0.5).setFill()
+                NSBezierPath(roundedRect: r, xRadius: barH / 2, yRadius: barH / 2).fill()
+            }
+            return true
+        }
+        img.isTemplate = true
+        return img
+    }()
     var body: some View {
-        Image(systemName: "puzzlepiece.extension")
+        Image(nsImage: Self.mark)
             .onAppear { LibraryWindow.opener = { openWindow(id: "library") } }
     }
 }
