@@ -27,6 +27,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
+- [x] **BL-89** `P2 · Medium` **Licenses, subscriptions and collection value:** the user records each plugin's license (owned, subscription, trial, free, bundle; price, date, store, account, notes) and subscriptions or bundles that cover many plugins (cost, monthly or yearly, next renewal). Reminders before a renewal or trial end with the amount; totals: collection value, paid, subscriptions per month and year. All kept on the Mac only. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-88** `P2 · Medium` **Find newly installed plugins:** while the app is open, macOS tells it when plugins are installed or removed; it rescans by itself, shows "Found N new plugins" and takes their pictures. Plus a Rescan Plugins button in Settings, Plugin List tab. Adi, 2026-10-31. · done 2026-10-31
 
 - [x] **BL-87** `P1 · High` **Picture scan: skip, counter, choose from the web:** a seconds counter for the plugin being opened, Skip This Plugin, a maker is skipped after its first 3 plugins all fail, and Find Picture on the Web now shows up to 9 candidates to choose from (also offered after a scan for failed and basic-controls plugins, e.g. iZotope). Adi, 2026-10-31. · done 2026-10-31

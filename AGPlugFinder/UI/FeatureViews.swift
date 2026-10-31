@@ -202,6 +202,7 @@ struct PluginExtras: View {
             pinRow
             collectionsRow
             chainRow
+            if !plugin.isLogic { LicenseSection(plugin: plugin).id(plugin.id) }
             notes
             similar
         }

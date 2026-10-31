@@ -73,6 +73,7 @@ struct MenuBarContent: View {
         Button(updater.state == .upToDate ? "You're updated (v\(updater.currentVersion))" : "Check for Update…") {
             Task { await updater.check(userInitiated: true) }
         }
+        Button("Licenses and Subscriptions…") { LicensesWindow.shared.show() }
         Button("Share AG PlugFinder…") { ShareWindow.shared.show() }
         Button("Send Feedback to Goldi…") { FeedbackWindow.shared.show() }
         Button("Send Error Log to Goldi…") { CrashReports.sendLogs() }
@@ -204,6 +205,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 SnapshotQueue.shared.start()
             }
             PluginWatcher.shared.start()
+            Licenses.shared.refresh()
             #if DEBUG
             SelfTest.runIfRequested()
             #endif

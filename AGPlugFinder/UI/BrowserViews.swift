@@ -1137,6 +1137,7 @@ struct PickedMenu: View {
             Button("New Collection…") { PickedActions.addToCollection(model, nil) }
         }
         CategoryMenu(ids: Array(model.picked))
+        LicenseMenu(ids: Array(model.picked))
         Button("Look Up Info for \(n)") { PluginInfoFetcher.shared.start(ids: Array(model.picked)) }
             .disabled(PluginInfoFetcher.shared.isRunning || !PluginInfoFetcher.shared.canLookUp)
         Divider()

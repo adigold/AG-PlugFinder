@@ -409,6 +409,43 @@ enum SelfTest {
                 fflush(stdout)
             }
         }
+        // --selftest-licenses <dir>: sample licenses (never the real file), then pictures of the windows.
+        if let k = args.firstIndex(of: "--selftest-licenses"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task {
+                Licenses.testMode = true
+                let lic = Licenses.shared
+                lic.licenses = [:]; lic.plans = []
+                let cal = Calendar.current, today = cal.startOfDay(for: Date())
+                lic.plans = [
+                    LicensePlan(name: "Waves Creative Access", kind: .subscription, cost: 299.88, period: .yearly,
+                                nextRenewal: cal.date(byAdding: .day, value: 12, to: today), remindDays: 7),
+                    LicensePlan(name: "Slate All Access", kind: .subscription, cost: 14.99, period: .monthly,
+                                nextRenewal: cal.date(byAdding: .day, value: 4, to: today), remindDays: 3),
+                    LicensePlan(name: "Plugin Alliance MEGA", kind: .bundle, cost: 349, value: 4999),
+                ]
+                let ps = PluginStore.shared.plugins.filter { !$0.isLogic }
+                for (i, p) in ps.prefix(12).enumerated() {
+                    var l = LicenseInfo()
+                    switch i % 4 {
+                    case 0: l.status = .owned; l.price = 149; l.value = 199; l.store = "Plugin Boutique"
+                    case 1: l.status = .subscription; l.planID = lic.plans[0].id
+                    case 2: l.status = .trial; l.trialEnds = cal.date(byAdding: .day, value: 9, to: today); l.value = 129
+                    default: l.status = .bundle; l.planID = lic.plans[2].id
+                    }
+                    lic.set(l, for: p.id)
+                }
+                await shoot(LicensesView(), size: NSSize(width: 760, height: 900), to: dir.appendingPathComponent("licenses.png"))
+                await shoot(PlanEditor(id: lic.plans[0].id) {}, size: NSSize(width: 520, height: 700),
+                            to: dir.appendingPathComponent("plan.png"))
+                if let p = ps.first {
+                    await shoot(LicenseSection(plugin: p).padding(20).frame(width: 420, alignment: .topLeading)
+                        .background(Theme.ground), size: NSSize(width: 420, height: 520),
+                                to: dir.appendingPathComponent("section.png"))
+                }
+                print("LICENSES ok \(lic.money(lic.collectionValue)) \(lic.money(lic.perMonth))"); fflush(stdout)
+            }
+        }
         if let k = args.firstIndex(of: "--selftest-onboarding"), k + 1 < args.count {
             let out = URL(fileURLWithPath: args[k + 1])
             Task {

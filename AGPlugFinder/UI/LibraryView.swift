@@ -339,6 +339,9 @@ struct LibraryActions: View {
             action("chart.bar", "Plugin report", detail: "Most used, never used, installed twice, disk space") {
                 ReportWindow.shared.show()
             }
+            action("creditcard", "Licenses and subscriptions", detail: licenseDetail) {
+                LicensesWindow.shared.show()
+            }
             action("square.and.arrow.up", "Share AG PlugFinder", detail: "X, WhatsApp, Messages, Instagram and more") {
                 ShareWindow.shared.show()
             }
@@ -349,6 +352,13 @@ struct LibraryActions: View {
         .frame(width: 300)
         .background(Theme.surface)
         .preferredColorScheme(.dark)
+    }
+
+    private var licenseDetail: String {
+        let lic = Licenses.shared
+        let subs = lic.plans.filter { $0.isSubscription && $0.active }.count
+        if subs > 0 { return "\(subs) subscription\(subs == 1 ? "" : "s"), \(lic.money(lic.perMonth)) a month" }
+        return lic.licenses.isEmpty ? "What you own, what renews, what it's worth" : "Collection worth \(lic.money(lic.collectionValue))"
     }
 
     private var packDetail: String {
