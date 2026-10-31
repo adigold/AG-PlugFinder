@@ -82,12 +82,14 @@ import SwiftUI
 /// Settings: where plugin descriptions come from (BL-50).
 struct InfoSourcePicker: View {
     var fetcher = PluginInfoFetcher.shared
+    #if LOCAL_MODEL
     var local = LocalModel.shared
+    #endif
     @State private var source = PluginInfoFetcher.shared.source
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            ForEach(PluginInfoFetcher.Source.allCases) { s in
+            ForEach(PluginInfoFetcher.Source.offered) { s in
                 Button { source = s; fetcher.source = s } label: {
                     HStack(alignment: .top, spacing: 12) {
                         Image(systemName: source == s ? "largecircle.fill.circle" : "circle")
@@ -122,11 +124,12 @@ struct InfoSourcePicker: View {
             case .unavailable: return "Not available right now."
             }
         case .downloaded:
-            return "Free and private, works offline. A one-time download of \(LocalModel.sizeText). Describes plugins from their name and maker, without the web."
+            return "Free and private, works offline, after a one-time download. Describes plugins from their name and maker, without the web."
         }
     }
 
     @ViewBuilder private func trailing(_ s: PluginInfoFetcher.Source) -> some View {
+        #if LOCAL_MODEL
         if s == .downloaded {
             switch local.state {
             case .notDownloaded, .failed:
@@ -142,7 +145,9 @@ struct InfoSourcePicker: View {
             case .ready:
                 Button("Remove") { local.remove() }.font(.system(size: 11))
             }
-        } else if s == .builtIn, OnDeviceInfo.status == .ready {
+        }
+        #endif
+        if s == .builtIn, OnDeviceInfo.status == .ready {
             Text("Ready").font(.system(size: 11)).foregroundStyle(.green)
         }
     }

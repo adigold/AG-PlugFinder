@@ -7,17 +7,19 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
-- [~] **BL-50** `P2 · Medium` **Free plugin info without an API key:** offer a free model for Look Up Info next to the paid one, ideally the Mac's own built-in model (no download), else a small downloadable one. Adi, 2026-10-31.
+- [~] **BL-50** `P2 · Medium` **Free plugin info without an API key:** offer a free model for Look Up Info next to the paid one, ideally the Mac's own built-in model (no download), else a small downloadable one. Adi, 2026-10-31. Built-in model shipped in 0.7.0; the downloadable model is built behind the LOCAL_MODEL switch and waits for the Metal toolchain.
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 ## Now
 
-- [~] **BL-60** `P2 · Medium` **Drag plugins onto collections:** drag a plugin's picture onto a collection chip at the top to add it to that collection. Adi, 2026-10-31.
 - [~] **BL-47** `P1 · High` **Publish 0.5.0 so Check for Update finds it:** make the AG-PlugFinder repo public (Adi chose this over a separate releases repo) and publish a signed, notarized 0.5.0 release with every feature since 0.4.0. Adi, 2026-10-31.
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
 
+- [x] **BL-62** `P1 · Medium` **Install with Homebrew:** tap adigold/homebrew-tap with the ag-plugfinder cask, README steps, release.sh updates the cask on every release. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-61** `P2 · Medium` **Magnifier on the info panel picture:** a magnifier on hover; click opens the picture large, zoom with pinch or double-click, Esc or a click outside closes it. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-60** `P2 · Medium` **Drag plugins onto collections:** drag a plugin's picture onto a collection chip at the top to add it to that collection. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-59** `P1 · High` **Release 0.6.2:** automatic update check on open, new instrument track named after the instrument. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-58** `P1 · High` **Instrument on a track that has one:** choosing an instrument while the selected track already has one makes a new instrument track named after it, for Logic's own instruments and any other instrument (tested with DLSMusicDevice). Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-57** `P1 · Medium` **Check for updates when the app opens:** check a few seconds after opening and when coming back to the app (at most hourly); a new version opens its What's New window with Install and Restart, once per version. Adi, 2026-10-31. · done 2026-10-31

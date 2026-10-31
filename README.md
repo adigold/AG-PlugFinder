@@ -35,7 +35,9 @@ You know the plugin you want. You can picture its window. But Logic's plugin men
 - **Picture size slider.** Any size from small to extra large.
 - **Suggestions for the selected track.** On a track called Vocal, Drums, Bass, Guitar, Keys or Master, the plugins that fit come first.
 - **More like this.** The info panel shows similar plugins you already own.
-- **Favorites, collections and your own notes** on every plugin, synced to your other Macs through iCloud Drive.
+- **Favorites, collections and your own notes** on every plugin, synced to your other Macs through iCloud Drive. Drag a plugin onto a collection to add it.
+- **See it large.** Click a plugin's picture to open it big and zoom in.
+- **Free descriptions.** On Macs with Apple Intelligence, plugin descriptions come free from the Mac itself, nothing to download. Or use the web lookup with your own key for the most detail.
 
 ## Add to Logic
 
@@ -106,6 +108,12 @@ Check for Update sits at the top right of the window. A new version downloads wi
 AG PlugFinder lives in the menu bar and can start when you log in.
 
 ## What's new
+
+**0.7.0**
+- Free plugin descriptions on Macs with Apple Intelligence: nothing to download, nothing leaves your Mac.
+- Click a plugin's picture to see it large, and zoom in.
+- Drag a plugin onto a collection to add it there.
+- Install with Homebrew.
 
 **0.6.2**
 - AG PlugFinder checks for a new version as soon as it opens, and shows what's new with one click to install.

@@ -23,6 +23,14 @@ final class PluginInfoFetcher {
     enum Source: String, CaseIterable, Identifiable {
         case online, builtIn, downloaded
         var id: String { rawValue }
+        /// The choices this build offers.
+        static var offered: [Source] {
+            #if LOCAL_MODEL
+            return allCases
+            #else
+            return [.online, .builtIn]
+            #endif
+        }
         var title: String {
             switch self {
             case .online: return "Most accurate"
@@ -37,7 +45,11 @@ final class PluginInfoFetcher {
             if let s = Source(rawValue: UserDefaults.standard.string(forKey: "infoSource") ?? "") { return s }
             if hasKey { return .online }
             if OnDeviceInfo.status == .ready { return .builtIn }
+            #if LOCAL_MODEL
             return LocalModel.shared.state == .ready ? .downloaded : .online
+            #else
+            return .online
+            #endif
         }
         set { UserDefaults.standard.set(newValue.rawValue, forKey: "infoSource") }
     }
@@ -47,7 +59,12 @@ final class PluginInfoFetcher {
         switch source {
         case .online: return hasKey
         case .builtIn: return OnDeviceInfo.status == .ready
-        case .downloaded: return LocalModel.shared.state == .ready
+        case .downloaded:
+            #if LOCAL_MODEL
+            return LocalModel.shared.state == .ready
+            #else
+            return false
+            #endif
         }
     }
 
@@ -116,7 +133,10 @@ final class PluginInfoFetcher {
                 case .builtIn:
                     for p in batch { results.append((p.id, await OnDeviceInfo.lookUp(p))) }
                 case .downloaded:
+                    #if LOCAL_MODEL
                     for p in batch { results.append((p.id, await LocalModel.shared.lookUp(p))) }
+                    #endif
+                    break
                 }
                 for (id, result) in results {
                     switch result {

@@ -467,8 +467,7 @@ struct PluginDetailView: View {
             insertBar
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    PluginThumbnail(plugin: plugin, radius: 16)
-                        .aspectRatio(1.5, contentMode: .fit)
+                    ZoomableThumbnail(plugin: plugin)
                     titleBlock
                     if let d = plugin.details { info(d) } else { noInfo }
                     PluginExtras(plugin: plugin, model: model)
@@ -743,5 +742,123 @@ enum PluginDrag {
     static let prefix = "agplugfinder-plugin:"
     static func ids(_ items: [String]) -> [String] {
         items.filter { $0.hasPrefix(prefix) }.map { String($0.dropFirst(prefix.count)) }
+    }
+}
+
+/// The info panel's picture: a magnifier on hover, click to see it large (BL-61).
+struct ZoomableThumbnail: View {
+    let plugin: Plugin
+    @State private var hovering = false
+
+    private var hasImage: Bool { PluginStore.shared.image(for: plugin.id) != nil }
+
+    var body: some View {
+        PluginThumbnail(plugin: plugin, radius: 16)
+            .aspectRatio(1.5, contentMode: .fit)
+            .overlay(alignment: .bottomTrailing) {
+                if hasImage {
+                    Image(systemName: "plus.magnifyingglass")
+                        .font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text)
+                        .frame(width: 32, height: 32)
+                        .background(Circle().fill(Color.black.opacity(0.65)))
+                        .padding(10)
+                        .opacity(hovering ? 1 : 0)
+                }
+            }
+            .onHover { h in
+                hovering = h
+                if hasImage { if h { NSCursor.pointingHand.push() } else { NSCursor.pop() } }
+            }
+            .onTapGesture { if hasImage { ImageZoom.show(plugin) } }
+            .help(hasImage ? "Click to see it large" : "")
+            .animation(.easeOut(duration: 0.15), value: hovering)
+    }
+}
+
+/// A large view of a plugin's picture. Pinch or scroll with ⌘ to zoom further, double-click
+/// to switch between fitting the window and full size, Esc or click outside to close.
+@MainActor
+enum ImageZoom {
+    private static var window: NSWindow?
+
+    static func show(_ plugin: Plugin) {
+        guard let image = PluginStore.shared.image(for: plugin.id) else { return }
+        window?.close()
+        let screen = (NSScreen.main ?? NSScreen.screens[0]).visibleFrame
+        // As large as most of the screen allows, up to twice the picture's own size.
+        let scale = min(2, min(screen.width * 0.8 / image.size.width, (screen.height * 0.8 - 44) / image.size.height))
+        let size = NSSize(width: max(480, image.size.width * scale), height: max(320, image.size.height * scale + 44))
+        let w = ZoomWindow(contentRect: NSRect(origin: .zero, size: size),
+                           styleMask: [.titled, .closable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
+        w.titlebarAppearsTransparent = true
+        w.titleVisibility = .hidden
+        w.isMovableByWindowBackground = true
+        w.isReleasedWhenClosed = false
+        w.backgroundColor = .black
+        w.appearance = NSAppearance(named: .darkAqua)
+        w.level = .floating
+
+        let scroll = NSScrollView()
+        scroll.allowsMagnification = true
+        scroll.minMagnification = 0.25
+        scroll.maxMagnification = 4
+        scroll.backgroundColor = .black
+        scroll.hasVerticalScroller = true
+        scroll.hasHorizontalScroller = true
+        scroll.autohidesScrollers = true
+        let imageView = NSImageView(image: image)
+        imageView.frame = NSRect(origin: .zero, size: image.size)
+        imageView.imageScaling = .scaleProportionallyUpOrDown
+        scroll.documentView = imageView
+        let container = NSView()
+        let title = NSTextField(labelWithString: "\(plugin.name)  ·  \(plugin.manufacturer)")
+        title.font = .systemFont(ofSize: 13, weight: .semibold)
+        title.textColor = .white
+        for v in [scroll, title] { v.translatesAutoresizingMaskIntoConstraints = false; container.addSubview(v) }
+        NSLayoutConstraint.activate([
+            title.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
+            title.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            scroll.topAnchor.constraint(equalTo: container.topAnchor, constant: 40),
+            scroll.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            scroll.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            scroll.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+        ])
+        w.contentView = container
+        w.center()
+        w.makeKeyAndOrderFront(nil)
+        NSApp.activate()
+        container.layoutSubtreeIfNeeded()
+        scroll.magnification = scale
+        let click = NSClickGestureRecognizer(target: ZoomToggle.shared, action: #selector(ZoomToggle.toggle(_:)))
+        click.numberOfClicksRequired = 2
+        imageView.addGestureRecognizer(click)
+        ZoomToggle.shared.fit = scale
+        window = w
+    }
+}
+
+/// Double-click switches between fitting the window and full size.
+@MainActor
+final class ZoomToggle: NSObject {
+    static let shared = ZoomToggle()
+    var fit: CGFloat = 1
+    @objc func toggle(_ g: NSClickGestureRecognizer) {
+        guard let scroll = g.view?.enclosingScrollView else { return }
+        let target: CGFloat = abs(scroll.magnification - 1) < 0.01 ? fit : 1
+        let point = g.location(in: g.view)
+        NSAnimationContext.runAnimationGroup { _ in
+            scroll.animator().setMagnification(target, centeredAt: point)
+        }
+    }
+}
+
+/// Closes on Esc and when it loses focus (a click outside).
+final class ZoomWindow: NSWindow {
+    private var wasKey = false
+    override func cancelOperation(_ sender: Any?) { close() }
+    override func becomeKey() { super.becomeKey(); wasKey = true }
+    override func resignKey() {
+        super.resignKey()
+        if wasKey { DispatchQueue.main.async { self.close() } }
     }
 }

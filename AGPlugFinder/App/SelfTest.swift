@@ -262,6 +262,37 @@ enum SelfTest {
                 print("SHARE done"); fflush(stdout)
             }
         }
+        // --selftest-ondevice <dir>: the Mac's built-in model on one plugin (nothing is saved),
+        // and a picture of the Plugin info choices.
+        if let k = args.firstIndex(of: "--selftest-ondevice"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task {
+                print("ONDEVICE status \(OnDeviceInfo.status)"); fflush(stdout)
+                if let p = PluginStore.shared.plugins.first(where: { $0.name == "ChromaVerb" }) {
+                    let t = Date()
+                    switch await OnDeviceInfo.lookUp(p) {
+                    case .success(let d):
+                        print("ONDEVICE \(String(format: "%.1f", Date().timeIntervalSince(t)))s category=\(d.category) | kind=\(d.kind) | best=\(d.bestFeature) | summary=\(d.summary) | highlights=\(d.highlights)")
+                    case .failure(let e): print("ONDEVICE failed \(e)")
+                    }
+                }
+                await shoot(Form { Section("Plugin info") { InfoSourcePicker() } }.formStyle(.grouped).frame(width: 640, height: 260),
+                            size: NSSize(width: 640, height: 260), to: dir.appendingPathComponent("info-source.png"))
+                print("ONDEVICE done"); fflush(stdout)
+            }
+        }
+        if let k = args.firstIndex(of: "--selftest-zoom"), k + 1 < args.count {
+            let out = URL(fileURLWithPath: args[k + 1])
+            Task {
+                if let p = PluginStore.shared.plugins.first(where: { $0.name == "Chaosverb" }) { ImageZoom.show(p) }
+                try? await Task.sleep(for: .seconds(1.2))
+                if let w = NSApp.windows.first(where: { $0 is ZoomWindow && $0.isVisible }) {
+                    print("ZOOM \(Int(w.frame.width))x\(Int(w.frame.height))")
+                    await capture(w, to: out)
+                }
+                print("ZOOM done"); fflush(stdout)
+            }
+        }
         if let k = args.firstIndex(of: "--selftest-features"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])
             Task { await features(dir); fflush(stdout) }

@@ -1,3 +1,7 @@
+// The downloadable model (BL-50 option 2) is built only with the LOCAL_MODEL switch, which
+// needs the mlx-swift-lm, swift-huggingface and swift-transformers packages and Xcode's Metal
+// toolchain. Shipping in a later version.
+#if LOCAL_MODEL
 import Foundation
 import Observation
 import HuggingFace
@@ -88,3 +92,4 @@ final class LocalModel {
         }
     }
 }
+#endif
