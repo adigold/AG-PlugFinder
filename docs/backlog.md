@@ -18,7 +18,6 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-69** `P1 · Medium` **Channel format, Auto or Ask me:** when Logic offers a plugin in several versions (Mono, Stereo, Mono to Stereo, Dual Mono), Auto picks the one that fits the track and Ask me leaves Logic's choice open; each plugin can have its own. Inspired by PlugSearch's Channel Mode. Adi, 2026-10-31.
 - [~] **BL-68** `P1 · High` **Faster inserting into Logic:** go straight down Logic's plug-in menu to the plugin (maker, then name) and remember the path, wait only as long as Logic needs instead of fixed pauses. Adi asked why PlugSearch is faster, 2026-10-31.
 - [ ] **BL-64** `P3 · Low` **Logic in other languages:** recognise Logic's slots and menus when Logic runs in German, French and other languages (PlugSearch does). Adi, 2026-10-31.
-- [~] **BL-65** `P1 · Medium` **Point at a slot and press a key:** with the pointer over a slot in Logic, a key inserts, replaces or removes right there, with a highlight on the slot. Adi, 2026-10-31.
 - [ ] **BL-66** `P2 · Medium` **Drag a plugin from AG PlugFinder onto Logic:** drop on a slot, a track header, or the empty area to make a new track. Adi, 2026-10-31.
 - [ ] **BL-67** `P2 · Low` **Hide plugins Logic won't load:** read which plugins Logic accepts and hide the rest. Adi, 2026-10-31.
 - [~] **BL-47** `P1 · High` **Publish 0.5.0 so Check for Update finds it:** make the AG-PlugFinder repo public (Adi chose this over a separate releases repo) and publish a signed, notarized 0.5.0 release with every feature since 0.4.0. Adi, 2026-10-31.
@@ -26,6 +25,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-65** `P1 · Medium` **Point at a slot and press a key:** with the pointer over a slot in Logic, a key inserts, replaces or removes right there, with a highlight on the slot. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-77** `P1 · High` **Categories for every maker's plugins:** third-party plugins go into the same categories as Logic's (wideners and imagers into Imaging, meters into Metering, drum and piano instruments into Drums and Keys); looked-up categories are matched to the app's own. From a user's report. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-76** `P2 · Low` **New collection from the top bar:** a + button next to the star makes a collection and shows the collections row so plugins can be dragged onto it. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-75** `P2 · Medium` **Star on every card:** a quiet gray star on each card adds the plugin to Favorites in one click; removing asks first in a themed Remove from Favorites window (also for the info panel star, ⌘D and the right-click menu). Adi, 2026-10-31. · done 2026-10-31
