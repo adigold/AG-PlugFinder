@@ -84,7 +84,13 @@ final class SnapshotQueue {
                 currentID = plugin.id
                 items[i].status = .working
                 let began = Date()
-                let result = await Self.capture(plugin, to: store.snapshotURL(for: plugin.id))
+                var result = await Self.capture(plugin, to: store.snapshotURL(for: plugin.id))
+                // A plugin that crashes inside the helper (some iZotope and Waves plugins) gets one
+                // more try loaded in its own macOS process, the way Logic keeps plugins apart.
+                if result.state == .failed, !plugin.isV3,
+                   let why = result.error, why.contains("crashed") || why.contains("no answer") {
+                    result = await Self.capture(plugin, to: store.snapshotURL(for: plugin.id), separateProcess: true)
+                }
                 store.update(plugin.id) {
                     $0.snapshotState = result.state
                     $0.snapshotError = result.error
@@ -138,7 +144,7 @@ final class SnapshotQueue {
         var generic = false
     }
 
-    nonisolated static func capture(_ plugin: Plugin, to url: URL) async -> Result {
+    nonisolated static func capture(_ plugin: Plugin, to url: URL, separateProcess: Bool = false) async -> Result {
         guard let exe = Bundle.main.executableURL else {
             return Result(state: .failed, error: "app executable not found")
         }
@@ -149,7 +155,7 @@ final class SnapshotQueue {
                 process.arguments = ["--render", String(plugin.componentType),
                                      String(plugin.componentSubType),
                                      String(plugin.componentManufacturer),
-                                     plugin.isV3 ? "1" : "0", url.path]
+                                     plugin.isV3 || separateProcess ? "1" : "0", url.path]
                 let pipe = Pipe()
                 process.standardOutput = pipe
                 process.standardError = FileHandle.nullDevice
@@ -162,17 +168,24 @@ final class SnapshotQueue {
                 let deadline = DispatchTime.now() + .seconds(40)
                 let timer = DispatchWorkItem { if process.isRunning { process.terminate() } }
                 DispatchQueue.global().asyncAfter(deadline: deadline, execute: timer)
+                // Read while it runs: a plugin that prints a lot can't fill the pipe and stall.
+                let out = pipe.fileHandleForReading.readDataToEndOfFile()
                 process.waitUntilExit()
                 timer.cancel()
-
-                let out = pipe.fileHandleForReading.readDataToEndOfFile()
-                let line = String(data: out, encoding: .utf8)?
-                    .split(separator: "\n").last.map(String.init) ?? ""
+                // The helper's tagged answer, wherever it is among the plugin's own output.
+                let lines = (String(data: out, encoding: .utf8) ?? String(decoding: out, as: UTF8.self))
+                    .split(separator: "\n").map(String.init)
+                let line = lines.last(where: { $0.hasPrefix("AGPF-RESULT ") }).map { String($0.dropFirst(12)) }
+                    ?? lines.last(where: { $0.hasPrefix("{") && $0.contains("\"status\"") }) ?? ""
                 guard let data = line.data(using: .utf8),
                       let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
                 else {
+                    // What the plugin itself last printed, to see why it stopped.
+                    let said = lines.last(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty })
+                        .map { ": " + String($0.prefix(120)) } ?? ""
                     let why = process.terminationReason == .uncaughtSignal
-                        ? "the plugin crashed or took too long" : "no answer from helper"
+                        ? "the plugin crashed or took too long"
+                        : "no answer from helper (exit \(process.terminationStatus))" + said
                     cont.resume(returning: Result(state: .failed, error: why))
                     return
                 }

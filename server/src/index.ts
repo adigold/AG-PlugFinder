@@ -137,23 +137,37 @@ app.post("/v1/categories", async (c) => {
 });
 
 // Feedback to Goldi (BL-85): saved, then sent to Adi's Telegram.
-async function telegramCall(method: string, payload: Record<string, unknown>) {
+async function telegramCall(method: string, payload: Record<string, unknown>): Promise<any> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token) return;
+  if (!token) return null;
   try {
-    await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+    const r = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
       method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload),
     });
-  } catch { /* the feedback is saved either way */ }
+    return await r.json();
+  } catch { return null; /* the feedback is saved either way */ }
 }
 
-async function telegram(text: string, buttonsFor?: number) {
+async function telegram(text: string, buttonsFor?: number): Promise<number | null> {
   const chat = process.env.TELEGRAM_CHAT_ID;
-  if (!chat) return;
-  await telegramCall("sendMessage", {
+  if (!chat) return null;
+  const r = await telegramCall("sendMessage", {
     chat_id: chat, text: text.slice(0, 4000),
     ...(buttonsFor ? { reply_markup: statusButtons(buttonsFor) } : {}),
   });
+  return r?.result?.message_id ?? null;
+}
+
+// The user's screenshot, sent as a reply to the feedback message.
+async function telegramPhoto(picture: Buffer, type: string, caption: string, replyTo: number | null) {
+  const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chat) return;
+  const form = new FormData();
+  form.append("chat_id", chat);
+  form.append("caption", caption.slice(0, 1000));
+  if (replyTo) form.append("reply_to_message_id", String(replyTo));
+  form.append("photo", new Blob([new Uint8Array(picture)], { type }), type === "image/png" ? "screenshot.png" : "screenshot.jpg");
+  try { await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: "POST", body: form }); } catch { }
 }
 
 // The three buttons under every feedback message.
@@ -167,12 +181,20 @@ function statusButtons(id: number) {
 const STATUS_TITLE: Record<string, string> = { progress: "In progress", fixed: "Fixed", closed: "Done", seen: "Seen" };
 
 app.post("/v1/feedback", async (c) => {
-  if (Number(c.req.header("content-length") ?? 0) > 600_000) return c.json({ error: "too large" }, 413);
+  if (Number(c.req.header("content-length") ?? 0) > 4_000_000) return c.json({ error: "too large" }, 413);
   let body: Record<string, unknown>;
   try { body = await c.req.json(); } catch { return c.json({ error: "bad json" }, 400); }
   const str = (k: string, max: number) => (typeof body[k] === "string" && (body[k] as string).trim()
     ? (body[k] as string).trim().slice(0, max) : null);
   const kind = ["bug", "idea", "question"].includes(body.kind as string) ? (body.kind as string) : "bug";
+  // An optional screenshot: a real PNG or JPEG, at most 2.5 MB.
+  let picture: Buffer | null = null, pictureType: string | null = null;
+  if (typeof body.picture === "string") {
+    const b = Buffer.from(body.picture, "base64");
+    pictureType = b.subarray(0, 4).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47])) ? "image/png"
+      : b.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff])) ? "image/jpeg" : null;
+    if (pictureType && b.length <= 2_500_000) picture = b; else pictureType = null;
+  }
   const message = str("message", 5000);
   const installId = str("installId", 64);
   if (!message || !installId) return c.json({ error: "missing fields" }, 400);
@@ -182,12 +204,14 @@ app.post("/v1/feedback", async (c) => {
     "select count(*)::int as n from feedback where ip_hash = $1 and created_at > now() - interval '1 day'", [ipHash]);
   if (n >= 20) return c.json({ error: "slow down" }, 429);
   const { rows: [row] } = await pool.query(
-    `insert into feedback (kind, message, install_id, app_version, macos, log, ip_hash)
-     values ($1, $2, $3, $4, $5, $6, $7) returning id`,
-    [kind, message, installId, str("appVersion", 20), str("macOS", 100), str("log", 400_000), ipHash]);
+    `insert into feedback (kind, message, install_id, app_version, macos, log, ip_hash, picture, picture_type)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning id`,
+    [kind, message, installId, str("appVersion", 20), str("macOS", 100), str("log", 400_000), ipHash,
+     picture, pictureType]);
   const label = { bug: "Bug", idea: "Idea", question: "Question" }[kind];
-  await telegram(`${label} #${row.id} · v${str("appVersion", 20) ?? "?"} · Mac ${installId.slice(0, 8)}\n\n${message}\n\n` +
+  const sent = await telegram(`${label} #${row.id} · v${str("appVersion", 20) ?? "?"} · Mac ${installId.slice(0, 8)}\n\n${message}\n\n` +
     `Tap a button, or reply "fixed ${row.id} what changed" to add a note the user sees.`, Number(row.id));
+  if (picture && pictureType) await telegramPhoto(picture, pictureType, `Screenshot for #${row.id}`, sent);
   return c.json({ ok: true, id: Number(row.id) }, 201);
 });
 

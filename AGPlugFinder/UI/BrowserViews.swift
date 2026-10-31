@@ -33,8 +33,14 @@ struct SearchField: View {
         .padding(.horizontal, 14)
         .frame(height: large ? 44 : Theme.control)
         .background(Capsule().fill(Theme.raised))
-        .onAppear { if focusOnAppear { focused = true } }
-        .onChange(of: model.query) { _, _ in focused = true }
+        .onAppear { if focusOnAppear { focused = true }; EnglishKeys.apply() }
+        .onChange(of: focused) { _, on in if on { EnglishKeys.apply() } }
+        .onChange(of: model.query) { _, q in
+            focused = true
+            // Typed with a Hebrew keyboard: read the keys as the English letters they sit on.
+            let english = EnglishKeys.fromHebrewKeys(q)
+            if english != q { model.query = english }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .focusSearch)) { _ in focused = true }
     }
 }
@@ -1202,5 +1208,33 @@ struct CategoryMenu: View {
             if alert.suppressionButton?.state == .on { d.set(true, forKey: "share.categories.always") }
             Toast.show("Shared. Thank you!")
         }
+    }
+}
+
+
+/// Plugin names are English, so the search field always types English (Adi, 2026-10-31): the
+/// Mac switches to an English keyboard while it has focus and back afterwards. If Hebrew letters
+/// still arrive, they are read as the English letters on the same keys.
+@MainActor
+enum EnglishKeys {
+    static func apply() {
+        DispatchQueue.main.async {
+            for w in NSApp.windows where w.isVisible {
+                if let tv = w.firstResponder as? NSTextView {
+                    tv.inputContext?.allowedInputSourceLocales = [NSAllRomanInputSourcesLocaleIdentifier]
+                }
+            }
+        }
+    }
+
+    private static let hebrew: [Character: Character] = [
+        "/": "q", "׳": "w", "ק": "e", "ר": "r", "א": "t", "ט": "y", "ו": "u", "ן": "i", "ם": "o", "פ": "p",
+        "ש": "a", "ד": "s", "ג": "d", "כ": "f", "ע": "g", "י": "h", "ח": "j", "ל": "k", "ך": "l", "ף": ";",
+        "ז": "z", "ס": "x", "ב": "c", "ה": "v", "נ": "b", "מ": "n", "צ": "m", "ת": ",", "ץ": ".",
+    ]
+
+    static func fromHebrewKeys(_ s: String) -> String {
+        guard s.unicodeScalars.contains(where: { (0x05D0...0x05EA).contains($0.value) }) else { return s }
+        return String(s.map { hebrew[$0] ?? $0 })
     }
 }

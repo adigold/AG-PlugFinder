@@ -11,13 +11,13 @@ enum PluginCategories {
 
     /// Words in a plugin's name, most telling first. Matched against the lowercased name.
     private static let effectWords: [(String, [String])] = [
-        ("Metering", ["tonal balance", "tonalbalance", "truebalance", "true:balance", "true balance", "truelevel", "true level", "true-level", "adptr", "metric ab", "metricab", #"\bexpose\b"#, "loudness", #"\bpaz"#, #"\blevels\b"#, #"\breference\b"#, "meter", "loudness", "lufs", "analyzer", "analyser", "scope", "spectrum", "tuner",
+        ("Metering", ["tonal balance", "tonalbalance", "truebalance", "true:balance", "true balance", "truelevel", "true level", "true-level", "adptr metric", "metric ab", "metricab", #"\bexpose\b"#, "loudness", #"\bpaz"#, #"\blevels\b"#, #"\breference\b"#, "meter", "loudness", "lufs", "analyzer", "analyser", "scope", "spectrum", "tuner",
                       "correlat", "insight", #"\bspan\b"#, "monitor"]),
         ("Imaging", ["midside", "mid side", #"\bsplit"#, "xsplit", "wider", "widen", "width", "imager", "imaging", "stereo", "spread", "panner", "binaural",
                      "haas", "microshift", "dimension", "spatial", "surround", "mid/side", "upmix"]),
         ("Pitch", ["pitch", "autotune", "auto-tune", "melodyne", "harmoni", "formant", "vocalsynth", "octav",
                    "transpos", "throat"]),
-        ("Reverb", ["spaces", "nightsky", "zrev", #"\brev\b"#, "lx-24", "im90", "abyss", "spaceblender", "wetter", "temperance", "crystalline", "lexicon", "valhalla", "reverb", "verb", "pro-r", "room", "hall", "plate", "chamber", "spring", "ambien", "convol", "shimmer"]),
+        ("Reverb", ["utopia", "spaces", "nightsky", "zrev", #"\brev\b"#, "lx-24", "im90", "abyss", "spaceblender", "wetter", "temperance", "crystalline", "lexicon", "valhalla", "reverb", "verb", "pro-r", "room", "hall", "plate", "chamber", "spring", "ambien", "convol", "shimmer"]),
         ("Delay", ["re-201", "space echo", "timeless", "timemachine", "crystallizer", "delay", "echo", "dly"]),
         ("Dynamics", [#"\bc[1-6]\b"#, #"\bl[1-4]\b"#, #"(^|[^0-9])76\b"#, "dbx", "opto", #"\bvsc"#, "dyna-mu", "kotelnikov", #"clip(per)?\b"#, #"\bott\b"#, #"\bvss"#, "alpha mix", "rvox", "climax", "loudener", "fastermaster", "renaissance axx", "mc2000", "weiss ds", "autobus", "dynassist", "rider", "linmb", "c4 ", "silika", "comp", "limit", "gate", "expander", "transient", "de-ess", "deess", "esser", "leveler",
                       "leveller", "maximiz", "clipper", "dynamic", "ducker", "envelope", "punch", "glue", "1176",

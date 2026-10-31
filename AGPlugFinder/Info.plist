@@ -10,8 +10,10 @@
 	<string>https://github.com/adigold/AG-PlugFinder/releases/latest/download/update.json</string>
 	<key>AGPFUploadKey</key>
 	<string>$(AGPF_UPLOAD_KEY)</string>
+	<key>CFBundleAllowMixedLocalizations</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<string>en</string>
 	<key>CFBundleDisplayName</key>
 	<string>AG PlugFinder</string>
 	<key>CFBundleExecutable</key>
@@ -20,6 +22,10 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>AG PlugFinder</string>
 	<key>CFBundlePackageType</key>

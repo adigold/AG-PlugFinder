@@ -10,7 +10,7 @@ final class FeedbackWindow {
 
     func show() {
         let w = window ?? {
-            let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 620),
+            let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 660),
                              styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: false)
             w.titlebarAppearsTransparent = true
             w.titleVisibility = .hidden
@@ -63,7 +63,7 @@ final class Feedback {
         }
     }
 
-    func send(kind: String, message: String, includeLog: Bool) async -> Bool {
+    func send(kind: String, message: String, includeLog: Bool, picture: Data? = nil) async -> Bool {
         guard let base = PlugDB.base, let key = PlugDB.key else { return false }
         var body: [String: Any] = [
             "kind": kind, "message": message, "installId": PlugDB.installID,
@@ -71,6 +71,7 @@ final class Feedback {
             "macOS": ProcessInfo.processInfo.operatingSystemVersionString,
         ]
         if includeLog { body["log"] = CrashReports.diagnostics() }
+        if let picture, let small = PlugDB.compact(picture) { body["picture"] = small.base64EncodedString() }
         var r = URLRequest(url: base.appendingPathComponent("v1/feedback"))
         r.httpMethod = "POST"
         r.timeoutInterval = 30
@@ -106,6 +107,7 @@ struct FeedbackView: View {
     @State private var includeLog = true
     @State private var sending = false
     @State private var result: String?
+    @State private var picture: Data?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -135,6 +137,7 @@ struct FeedbackView: View {
                         .font(.system(size: 13)).foregroundStyle(Theme.faint).padding(14).allowsHitTesting(false)
                 }
             }
+            screenshotRow
             Toggle("Include the app's log (helps find the cause)", isOn: $includeLog)
                 .toggleStyle(.checkbox).font(.system(size: 12)).foregroundStyle(Theme.muted)
             HStack {
@@ -168,9 +171,59 @@ struct FeedbackView: View {
             }
         }
         .padding(.horizontal, 24).padding(.bottom, 20)
-        .frame(width: 520, height: 620)
+        .frame(width: 520, height: 660)
+        .onDrop(of: [.image, .fileURL], isTargeted: nil) { providers in
+            for p in providers {
+                if p.canLoadObject(ofClass: NSImage.self) {
+                    _ = p.loadObject(ofClass: NSImage.self) { obj, _ in
+                        if let tiff = (obj as? NSImage)?.tiffRepresentation { DispatchQueue.main.async { picture = tiff } }
+                    }
+                    return true
+                }
+            }
+            return false
+        }
         .background(Theme.ground)
         .preferredColorScheme(.dark)
+    }
+
+    /// A screenshot: choose a file, paste one, or drop one here.
+    private var screenshotRow: some View {
+        HStack(spacing: 10) {
+            if let picture, let image = NSImage(data: picture) {
+                Image(nsImage: image).resizable().scaledToFill().frame(width: 72, height: 46)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .overlay(alignment: .topTrailing) {
+                        Button { self.picture = nil } label: {
+                            Image(systemName: "xmark.circle.fill").foregroundStyle(.white, .black.opacity(0.7))
+                        }
+                        .buttonStyle(.plain).padding(3).help("Remove the screenshot")
+                    }
+                Text("Screenshot attached").font(.system(size: 12)).foregroundStyle(Theme.muted)
+            } else {
+                QuietPill(title: "Add Screenshot…", systemImage: "photo", height: 28) { choose() }
+                QuietPill(title: "Paste", systemImage: "doc.on.clipboard", height: 28) { paste() }
+                Text("or drop an image here").font(.system(size: 11)).foregroundStyle(Theme.faint)
+            }
+            Spacer()
+        }
+        .frame(minHeight: 46)
+    }
+
+    private func choose() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.image]
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first
+        if panel.runModal() == .OK, let url = panel.url, let d = try? Data(contentsOf: url), NSImage(data: d) != nil {
+            picture = d
+        }
+    }
+
+    private func paste() {
+        let pb = NSPasteboard.general
+        if let image = NSImage(pasteboard: pb), let tiff = image.tiffRepresentation { picture = tiff }
+        else { result = "There is no image to paste. Take a screenshot with ⇧⌘4 and hold Control to copy it." }
     }
 
     private func send() {
@@ -178,9 +231,9 @@ struct FeedbackView: View {
         result = nil
         let text = message.trimmingCharacters(in: .whitespacesAndNewlines)
         Task {
-            let ok = await feedback.send(kind: kind, message: text, includeLog: includeLog)
+            let ok = await feedback.send(kind: kind, message: text, includeLog: includeLog, picture: picture)
             sending = false
-            if ok { message = ""; result = "Sent. Thank you!" }
+            if ok { message = ""; picture = nil; result = "Sent. Thank you!" }
             else { result = "Couldn't send it. Check the internet connection and try again." }
         }
     }

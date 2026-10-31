@@ -40,6 +40,9 @@ targets:
         CFBundleName: AG PlugFinder
         LSApplicationCategoryType: public.app-category.music
         LSMinimumSystemVersion: "15.0"
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en]
+        CFBundleAllowMixedLocalizations: false
         NSHumanReadableCopyright: "© 2026 Adi Goldstein"
         AGPFPluginPackURL: "https://github.com/adigold/AG-PlugFinder/releases/latest/download/plugin-pack.zip"
         AGPFPlugDBURL: "https://br-late-rain-b52anezk-plugdb.compute.c-7.us-east-2.aws.neon.tech/"

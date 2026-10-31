@@ -110,7 +110,7 @@ enum PlugDB {
 
     /// A big plugin window makes a picture of several megabytes; it is sent as a JPEG at most
     /// 1600 pixels wide, which still looks sharp in the app (about 150 to 400 KB).
-    private static func compact(_ data: Data) -> Data? {
+    static func compact(_ data: Data) -> Data? {
         guard let rep = NSBitmapImageRep(data: data) else { return nil }
         let scale = min(1, 1600 / CGFloat(max(rep.pixelsWide, 1)))
         let w = max(1, Int(CGFloat(rep.pixelsWide) * scale)), h = max(1, Int(CGFloat(rep.pixelsHigh) * scale))

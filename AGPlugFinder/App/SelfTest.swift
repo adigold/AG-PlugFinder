@@ -305,6 +305,17 @@ enum SelfTest {
                 exit(0)
             }
         }
+        // --selftest-feedback <png>: the feedback window.
+        if let k = args.firstIndex(of: "--selftest-feedback"), k + 1 < args.count {
+            Task {
+                FeedbackWindow.shared.show()
+                try? await Task.sleep(for: .seconds(2))
+                if let w = NSApp.windows.first(where: { $0.isVisible && $0.contentView is NSHostingView<FeedbackView> }) {
+                    await capture(w, to: URL(fileURLWithPath: args[k + 1]), scale: 1)
+                }
+                exit(0)
+            }
+        }
         // --selftest-category: sets a plugin's category, checks it shows and survives a rescan, then undoes it.
         if args.contains("--selftest-category") {
             Task {

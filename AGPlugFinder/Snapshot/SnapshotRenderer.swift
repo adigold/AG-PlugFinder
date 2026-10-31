@@ -74,7 +74,8 @@ enum SnapshotRenderer {
     private static func report(_ dict: [String: Any]) {
         if let data = try? JSONSerialization.data(withJSONObject: dict),
            let line = String(data: data, encoding: .utf8) {
-            print(line)
+            // Tagged, because some plugins (Waves) write their own lines to the same output.
+            print("AGPF-RESULT " + line)
             fflush(stdout)
         }
     }
