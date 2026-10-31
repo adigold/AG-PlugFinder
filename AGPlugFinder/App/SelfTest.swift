@@ -314,6 +314,12 @@ enum SelfTest {
                 print("FAV done"); fflush(stdout)
             }
         }
+        // --selftest-compact <png>: how big a picture is once shrunk for sending.
+        if let k = args.firstIndex(of: "--selftest-compact"), k + 1 < args.count {
+            let d = (try? Data(contentsOf: URL(fileURLWithPath: args[k + 1]))) ?? Data()
+            print("COMPACT \(d.count) -> \(PlugDB.compactForTest(d) ?? -1) bytes"); fflush(stdout)
+            exit(0)
+        }
         // --selftest-plugdb <id>: downloads that plugin's approved picture from the shared database.
         if let k = args.firstIndex(of: "--selftest-plugdb"), k + 1 < args.count {
             let id = args[k + 1]

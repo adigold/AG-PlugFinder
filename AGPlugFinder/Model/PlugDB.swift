@@ -90,11 +90,36 @@ enum PlugDB {
         return got
     }
 
+    /// A big plugin window makes a picture of several megabytes; it is sent as a JPEG at most
+    /// 1600 pixels wide, which still looks sharp in the app (about 150 to 400 KB).
+    private static func compact(_ data: Data) -> Data? {
+        guard let rep = NSBitmapImageRep(data: data) else { return nil }
+        let scale = min(1, 1600 / CGFloat(max(rep.pixelsWide, 1)))
+        let w = max(1, Int(CGFloat(rep.pixelsWide) * scale)), h = max(1, Int(CGFloat(rep.pixelsHigh) * scale))
+        guard let small = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: w, pixelsHigh: h, bitsPerSample: 8,
+                                           samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                                           colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)
+        else { return nil }
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: small)
+        NSGraphicsContext.current?.imageInterpolation = .high
+        NSColor.black.setFill()
+        NSRect(x: 0, y: 0, width: w, height: h).fill()
+        rep.draw(in: NSRect(x: 0, y: 0, width: w, height: h))
+        NSGraphicsContext.restoreGraphicsState()
+        let jpeg = small.representation(using: .jpeg, properties: [.compressionFactor: 0.82])
+        return jpeg.flatMap { $0.count < 2_000_000 ? $0 : nil }
+    }
+
+    #if DEBUG
+    static func compactForTest(_ d: Data) -> Int? { compact(d)?.count }
+    #endif
+
     @discardableResult
     private static func send(_ p: Plugin) async -> Bool {
         guard sharing, !p.isLogic, let base, let key, sent[p.id] != p.version else { return false }
         let file = PluginStore.shared.snapshotURL(for: p.id)
-        guard let data = try? Data(contentsOf: file), data.count < 2_000_000 else { return false }
+        guard let original = try? Data(contentsOf: file), let data = compact(original) else { return false }
         let body: [String: Any] = [
             "pluginId": p.id, "name": p.name, "manufacturer": p.manufacturer, "version": p.version,
             "category": p.category, "installId": installID,
