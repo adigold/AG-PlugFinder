@@ -99,6 +99,11 @@ enum LibraryWindow {
         NSApp.windows.first { $0.identifier?.rawValue.hasPrefix("library") == true }
     }
 
+    static func show() {
+        if let w = window, w.isVisible, w.isKeyWindow, NSApp.isActive { return }
+        toggle()
+    }
+
     static func toggle() {
         if let w = window, w.isVisible, w.isKeyWindow, NSApp.isActive {
             w.orderOut(nil)
@@ -129,12 +134,11 @@ enum LibraryWindow {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
-        HotKey.shared.register { Task { @MainActor in LibraryWindow.toggle() } }
-        HotKey.shared.registerWindowKeys(
-            openAll: { Task { @MainActor in TrackState.shared.run { _ = await LogicTrack.shared.openAll() } } },
-            closeAll: { Task { @MainActor in await LogicTrack.shared.closeAll() } })
+        MainActor.assumeIsolated {
+            HotKey.shared.apply()
+            HyperKey.applyOnLaunch()
+        }
         _ = UserLibrary.shared
-        HotKey.shared.registerPins()
         NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil,
                                                queue: .main) { _ in
             Task { @MainActor in UserLibrary.shared.pullFromCloud() }
@@ -155,6 +159,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             SelfTest.runIfRequested()
             #endif
         }
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        // Caps Lock works normally again while the app is not running.
+        MainActor.assumeIsolated { if HyperKey.enabled { HyperKey.stop() } }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }

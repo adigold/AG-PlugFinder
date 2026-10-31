@@ -80,6 +80,17 @@ enum SelfTest {
         say("done")
     }
 
+    static func mapping() -> String {
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/bin/hidutil")
+        p.arguments = ["property", "--get", "UserKeyMapping"]
+        let pipe = Pipe()
+        p.standardOutput = pipe
+        try? p.run()
+        p.waitUntilExit()
+        return String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+    }
+
     /// The real Control Option P, as the keyboard sends it.
     private static func pressHotKey() {
         let src = CGEventSource(stateID: .hidSystemState)
@@ -202,6 +213,30 @@ enum SelfTest {
                     await capture(w, to: out)
                 }
                 print("WHATSNEW done"); fflush(stdout)
+            }
+        }
+        // --selftest-shortcuts <dir>: the Shortcuts tab, conflict handling, and Caps Lock as Hyper
+        // switched on and straight back off.
+        if let k = args.firstIndex(of: "--selftest-shortcuts"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task {
+                func say(_ s: String) { print("KEYS " + s); fflush(stdout) }
+                let s = Shortcuts.shared
+                let before = ShortcutAction.allCases.map { s.combo($0) }
+                let p = s.combo(.openLibrary)!
+                let other = s.set(.quickPicker, p)
+                say("give ⌃⌥P to quick picker: took it from \(other?.rawValue ?? "none"), open library now \(s.combo(.openLibrary)?.display ?? "none")")
+                say("hyper label: \(KeyCombo(keyCode: 40, mods: KeyCombo.hyperMods, key: "K").display)")
+                for (a, c) in zip(ShortcutAction.allCases, before) { s.set(a, c) }
+                say("restored: open library \(s.label(.openLibrary)), quick picker '\(s.label(.quickPicker))'")
+                await shoot(ShortcutSettings().frame(width: 700, height: 980), size: NSSize(width: 700, height: 980),
+                            to: dir.appendingPathComponent("shortcuts.png"))
+                // Never switches the keyboard here: only checks that another app's mapping is seen
+                // and left alone.
+                let mapBefore = Self.mapping()
+                let problem = HyperKey.otherAppMapsKeys ? HyperKey.start() : "skipped"
+                say("other app maps keys: \(HyperKey.otherAppMapsKeys) | start refused: \(problem ?? "no, started") | mapping unchanged: \(mapBefore == Self.mapping())")
+                say("done")
             }
         }
         if let k = args.firstIndex(of: "--selftest-features"), k + 1 < args.count {

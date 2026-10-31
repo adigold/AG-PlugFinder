@@ -26,6 +26,9 @@ final class LogicInserter {
     static let shared = LogicInserter()
     static let bundleIDs = ["com.apple.logic10", "com.apple.logic.pro"]
 
+    /// True while a new instrument track is being made for an instrument (BL-52).
+    private var makingTrack = false
+
     /// Strip slots further right than this (from the window's left edge) are not in the Inspector.
     private let inspectorMaxX: CGFloat = 420
 
@@ -529,6 +532,15 @@ final class LogicInserter {
         guard let window: AXUIElement = projectWindow(app)
         else { return .failed("Logic has no open project window.") }
         guard let slot = instrumentSlot(in: AXNode(el: window)) else {
+            // An audio or aux track has no instrument slot: make a new instrument track for it
+            // (BL-52), unless this is that new track already.
+            if !makingTrack {
+                log("  no instrument slot: making a new instrument track")
+                makingTrack = true
+                defer { makingTrack = false }
+                if let problem = await LogicTrack.shared.newInstrumentTrack(plugin) { return .failed(problem) }
+                return .inserted
+            }
             return .failed("The selected track has no instrument slot. Select a software instrument " +
                            "track (and show the Inspector with I) to add \(plugin.name).")
         }

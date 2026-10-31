@@ -17,6 +17,8 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-52** `P1 · Medium` **Instrument on a track without one:** loading an instrument while an audio or aux track is selected makes a new instrument track and loads it there. Adi, 2026-10-31. · done 2026-10-31
+- [x] **BL-51** `P1 · High` **Shortcuts in Settings:** map every action (open window, quick picker, mini window, track panel, open/close plugin windows, remove last, number keys) to your own key combos, including a Hyper key, with Caps Lock usable as Hyper. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-49** `P1 · High` **A designed What's New window:** replace the plain list of release notes with a window of cards (icon, title, detail), a New badge on update announcements, and the same design after an update. Categories become the default chip row. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-48** `P1 · Medium` **Screenshot size slider:** a slider on the right, under the top bar, that sets how big the plugin pictures are, any size between small and extra large. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-46** `P1 · Medium` **Category shortcuts above the grid:** a Settings option to show category buttons (EQ, Reverb, Delay...) in the chip row, next to collections or on their own, so one click shows only that category. Adi, 2026-10-31. · done 2026-10-31

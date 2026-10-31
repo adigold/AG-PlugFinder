@@ -46,6 +46,10 @@ struct LibraryView: View {
         }
         .onDisappear(perform: removeKeys)
         .onReceive(NotificationCenter.default.publisher(for: .toggleMiniMode)) { _ in toggleMini() }
+        .onReceive(NotificationCenter.default.publisher(for: .showTrackPanel)) { _ in
+            if mini { toggleMini() }
+            showTrack = true
+        }
         .alert("Look up \(fetcher.missingCount()) plugins?", isPresented: $confirmLookup) {
             Button("Look Up") { fetcher.start() }
             Button("Cancel", role: .cancel) {}

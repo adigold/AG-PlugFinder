@@ -5,6 +5,8 @@ struct SettingsView: View {
         TabView {
             GeneralSettings()
                 .tabItem { Label("General", systemImage: "gearshape") }
+            ShortcutSettings()
+                .tabItem { Label("Shortcuts", systemImage: "keyboard") }
             PluginListEditor()
                 .tabItem { Label("Plugin List", systemImage: "list.bullet.rectangle") }
             UpdateSettings()
@@ -30,12 +32,11 @@ struct GeneralSettings: View {
                 Toggle("Open at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, on in LaunchAtLogin.set(on) }
                 LabeledContent("Open AG PlugFinder", value: HotKey.display)
-                LabeledContent("Plugin windows", value: "\(HotKey.openAllDisplay) opens the track's plugins side by side, \(HotKey.closeAllDisplay) closes them")
+                LabeledContent("Shortcuts", value: "Set every shortcut in the Shortcuts tab")
                 Picker("Buttons above the plugins", selection: Bindable(ViewSettings.shared).chipRow) {
                     ForEach(ViewSettings.ChipRow.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
-                LabeledContent("Number keys", value: "⌃⌥1 to ⌃⌥9 insert what you pin to them")
             }
 
             Section("Sync") {

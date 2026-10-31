@@ -1,63 +1,41 @@
 import Carbon.HIToolbox
 
-/// System-wide hotkeys, through the Carbon hotkey API, which needs no permission:
-/// Ctrl+Option+P opens the main window, Ctrl+Option+1…9 insert what is pinned to that number (BL-26).
+/// System-wide hotkeys through the Carbon hotkey API, which needs no permission. Which keys do
+/// what is set in Settings > Shortcuts (BL-51); the defaults are Control Option P (open the
+/// window), O and W (plugin windows) and 1 to 9 (number keys).
 final class HotKey {
     static let shared = HotKey()
     private var refs: [UInt32: EventHotKeyRef] = [:]
     private var handlerInstalled = false
-    fileprivate var actions: [UInt32: () -> Void] = [:]
 
-    static let display = "⌃⌥P"
-    static let openAllDisplay = "⌃⌥O"
-    static let closeAllDisplay = "⌃⌥W"
-    static func pinDisplay(_ n: Int) -> String { "⌃⌥\(n)" }
+    @MainActor static var display: String { Shortcuts.shared.label(.openLibrary).ifEmpty("the AG PlugFinder shortcut") }
+    @MainActor static var openAllDisplay: String { Shortcuts.shared.label(.openAll).ifEmpty("No shortcut") }
+    @MainActor static var closeAllDisplay: String { Shortcuts.shared.label(.closeAll).ifEmpty("No shortcut") }
+    @MainActor static func pinDisplay(_ n: Int) -> String { Shortcuts.shared.label(.pin(n)).ifEmpty("Key \(n)") }
 
-    private static let digitKeys: [Int: Int] = [
-        1: kVK_ANSI_1, 2: kVK_ANSI_2, 3: kVK_ANSI_3, 4: kVK_ANSI_4, 5: kVK_ANSI_5,
-        6: kVK_ANSI_6, 7: kVK_ANSI_7, 8: kVK_ANSI_8, 9: kVK_ANSI_9,
-    ]
-
-    func register(_ action: @escaping () -> Void) {
-        installHandler()
-        set(id: 1, key: kVK_ANSI_P, action: action)
-    }
-
-    /// Ctrl+Option+O opens the track's plugins side by side, Ctrl+Option+W closes plugin windows (BL-44).
-    func registerWindowKeys(openAll: @escaping () -> Void, closeAll: @escaping () -> Void) {
-        installHandler()
-        set(id: 2, key: kVK_ANSI_O, action: openAll)
-        set(id: 3, key: kVK_ANSI_W, action: closeAll)
-    }
-
-    /// Registers Ctrl+Option+n only for the numbers that have something pinned.
+    /// Registers every shortcut that is set.
     @MainActor
-    func registerPins() {
+    func apply() {
         installHandler()
-        for n in 1...9 {
-            let id = UInt32(10 + n)
-            if let target = UserLibrary.shared.pinTarget(n) {
-                set(id: id, key: Self.digitKeys[n]!) { Task { @MainActor in InsertRunner.run(target) } }
-            } else {
-                remove(id: id)
-            }
+        suspend()
+        for a in ShortcutAction.allCases {
+            guard let c = Shortcuts.shared.combo(a) else { continue }
+            var ref: EventHotKeyRef?
+            let hk = EventHotKeyID(signature: OSType(0x4147_5046), id: a.hotKeyID) // "AGPF"
+            RegisterEventHotKey(c.keyCode, c.mods, hk, GetApplicationEventTarget(), 0, &ref)
+            if let ref { refs[a.hotKeyID] = ref }
         }
     }
 
-    private func set(id: UInt32, key: Int, action: @escaping () -> Void) {
-        actions[id] = action
-        remove(id: id, keepAction: true)
-        var ref: EventHotKeyRef?
-        let hk = EventHotKeyID(signature: OSType(0x4147_5046), id: id) // "AGPF"
-        RegisterEventHotKey(UInt32(key), UInt32(controlKey | optionKey), hk, GetApplicationEventTarget(), 0, &ref)
-        if let ref { refs[id] = ref }
+    /// Lets every key through, while a shortcut is being recorded.
+    func suspend() {
+        for ref in refs.values { UnregisterEventHotKey(ref) }
+        refs = [:]
     }
 
-    private func remove(id: UInt32, keepAction: Bool = false) {
-        if let ref = refs[id] { UnregisterEventHotKey(ref) }
-        refs[id] = nil
-        if !keepAction { actions[id] = nil }
-    }
+    /// Pinning something to a number changes what the key does, not which keys are registered.
+    @MainActor
+    func registerPins() { if Shortcuts.shared.recording == nil { apply() } }
 
     private func installHandler() {
         guard !handlerInstalled else { return }
@@ -67,7 +45,11 @@ final class HotKey {
             GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
                               nil, MemoryLayout<EventHotKeyID>.size, nil, &hk)
             let id = hk.id
-            DispatchQueue.main.async { HotKey.shared.actions[id]?() }
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    if let a = ShortcutAction.allCases.first(where: { $0.hotKeyID == id }) { Shortcuts.shared.run(a) }
+                }
+            }
             return noErr
         }, 1, &spec, nil, nil)
         handlerInstalled = true
