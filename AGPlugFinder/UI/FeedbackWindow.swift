@@ -10,7 +10,7 @@ final class FeedbackWindow {
 
     func show() {
         let w = window ?? {
-            let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 660),
+            let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 710),
                              styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: false)
             w.titlebarAppearsTransparent = true
             w.titleVisibility = .hidden
@@ -63,7 +63,8 @@ final class Feedback {
         }
     }
 
-    func send(kind: String, message: String, includeLog: Bool, picture: Data? = nil) async -> Bool {
+    func send(kind: String, message: String, includeLog: Bool, picture: Data? = nil,
+              name: String = "", email: String = "") async -> Bool {
         guard let base = PlugDB.base, let key = PlugDB.key else { return false }
         var body: [String: Any] = [
             "kind": kind, "message": message, "installId": PlugDB.installID,
@@ -71,6 +72,8 @@ final class Feedback {
             "macOS": ProcessInfo.processInfo.operatingSystemVersionString,
         ]
         if includeLog { body["log"] = CrashReports.diagnostics() }
+        if !name.isEmpty { body["name"] = name }
+        if !email.isEmpty { body["email"] = email }
         if let picture, let small = PlugDB.compact(picture) { body["picture"] = small.base64EncodedString() }
         var r = URLRequest(url: base.appendingPathComponent("v1/feedback"))
         r.httpMethod = "POST"
@@ -108,6 +111,9 @@ struct FeedbackView: View {
     @State private var sending = false
     @State private var result: String?
     @State private var picture: Data?
+    // Optional, remembered for next time.
+    @AppStorage("feedback.name") private var name = ""
+    @AppStorage("feedback.email") private var email = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -136,6 +142,10 @@ struct FeedbackView: View {
                          : "What happened, and what did you expect?")
                         .font(.system(size: 13)).foregroundStyle(Theme.faint).padding(14).allowsHitTesting(false)
                 }
+            }
+            HStack(spacing: 10) {
+                field("Full name (optional)", $name)
+                field("Email (optional, for a reply)", $email)
             }
             screenshotRow
             Toggle("Include the app's log (helps find the cause)", isOn: $includeLog)
@@ -171,7 +181,7 @@ struct FeedbackView: View {
             }
         }
         .padding(.horizontal, 24).padding(.bottom, 20)
-        .frame(width: 520, height: 660)
+        .frame(width: 520, height: 710)
         .onDrop(of: [.image, .fileURL], isTargeted: nil) { providers in
             for p in providers {
                 if p.canLoadObject(ofClass: NSImage.self) {
@@ -185,6 +195,13 @@ struct FeedbackView: View {
         }
         .background(Theme.ground)
         .preferredColorScheme(.dark)
+    }
+
+    private func field(_ prompt: String, _ text: Binding<String>) -> some View {
+        TextField("", text: text, prompt: Text(prompt).foregroundStyle(Theme.faint))
+            .textFieldStyle(.plain).font(.system(size: 13)).foregroundStyle(Theme.text)
+            .padding(.horizontal, 12).frame(height: 34)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Theme.raised))
     }
 
     /// A screenshot: choose a file, paste one, or drop one here.
@@ -231,7 +248,9 @@ struct FeedbackView: View {
         result = nil
         let text = message.trimmingCharacters(in: .whitespacesAndNewlines)
         Task {
-            let ok = await feedback.send(kind: kind, message: text, includeLog: includeLog, picture: picture)
+            let ok = await feedback.send(kind: kind, message: text, includeLog: includeLog, picture: picture,
+                                         name: name.trimmingCharacters(in: .whitespaces),
+                                         email: email.trimmingCharacters(in: .whitespaces))
             sending = false
             if ok { message = ""; picture = nil; result = "Sent. Thank you!" }
             else { result = "Couldn't send it. Check the internet connection and try again." }

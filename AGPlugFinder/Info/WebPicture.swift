@@ -41,6 +41,20 @@ enum WebPicture {
         Toast.show("Picture changed back")
     }
 
+    /// Back to the database picture: the one built into the app for Logic's own plugins, the
+    /// community database's for every other plugin.
+    static func revertToDatabase(_ p: Plugin) {
+        guard p.isLogic else { useCommunity(p); return }
+        let current = PluginStore.shared.snapshotURL(for: p.id)
+        guard FileManager.default.fileExists(atPath: current.path) else {
+            Toast.show("\(p.name) already shows its built-in picture."); return
+        }
+        backUp(p.id)
+        try? FileManager.default.removeItem(at: current)
+        PluginStore.shared.snapshotChanged()
+        Toast.show("Back to the built-in picture for \(p.name)")
+    }
+
     /// The picture other users shared for this plugin (the community database).
     static func useCommunity(_ p: Plugin) {
         Task {
@@ -419,7 +433,10 @@ struct WebPictureView: View {
                     // Google Images in the browser; drag a picture back here, or copy it and Paste.
                     PrimaryPill(title: "Search Google Images", systemImage: "magnifyingglass", height: 30) { google(p) }
                     QuietPill(title: "Paste Image", systemImage: "doc.on.clipboard", height: 30) { paste(p) }
-                    Text("or drag a picture here").font(.system(size: 11)).foregroundStyle(Theme.faint)
+                    QuietPill(title: "Use the Database Picture", systemImage: "arrow.uturn.backward", height: 30) {
+                        WebPicture.revertToDatabase(p)
+                        if state.queue.isEmpty { state.current = nil; close() } else { state.next() }
+                    }
                     Spacer()
                     QuietPill(title: state.queue.isEmpty ? "None of These" : "Skip, Next Plugin", height: 30) {
                         if state.queue.isEmpty { state.current = nil; close() } else { state.next() }

@@ -740,10 +740,10 @@ struct PluginContextMenu: View {
             .disabled(SnapshotQueue.shared.isRunning)
             Button("Clear Screenshot") { store.clearScreenshots([plugin.id]) }
                 .disabled(store.image(for: plugin.id) == nil)
-            Button("Use the Community Picture") { WebPicture.useCommunity(plugin) }
         }
         // Every plugin, Logic's own too, can get a picture from the web.
         Button("Find Picture on the Web") { WebPicture.find([plugin]) }
+        Button("Use the Database Picture") { WebPicture.revertToDatabase(plugin) }
         if FileManager.default.fileExists(atPath: WebPicture.backupURL(plugin.id).path) {
             Button("Undo Picture Change") { WebPicture.undo(plugin) }
         }
@@ -1260,9 +1260,7 @@ struct PictureActions: View {
                     .disabled(queue.isRunning)
             }
             small("Find on the Web", "globe") { WebPicture.find([plugin]) }
-            if !plugin.isLogic {
-                small("Community Picture", "person.2") { WebPicture.useCommunity(plugin) }
-            }
+            small("Database Picture", "arrow.uturn.backward") { WebPicture.revertToDatabase(plugin) }
             if FileManager.default.fileExists(atPath: WebPicture.backupURL(plugin.id).path) {
                 small("Undo", "arrow.uturn.backward") { WebPicture.undo(plugin) }
             }

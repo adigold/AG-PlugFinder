@@ -198,18 +198,23 @@ app.post("/v1/feedback", async (c) => {
   const message = str("message", 5000);
   const installId = str("installId", 64);
   if (!message || !installId) return c.json({ error: "missing fields" }, 400);
+  const name = str("name", 120);
+  const emailRaw = str("email", 200);
+  const email = emailRaw && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw) ? emailRaw : null;
   const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const ipHash = createHash("sha256").update(ip + (process.env.UPLOAD_KEY ?? "")).digest("hex").slice(0, 32);
   const { rows: [{ n }] } = await pool.query(
     "select count(*)::int as n from feedback where ip_hash = $1 and created_at > now() - interval '1 day'", [ipHash]);
   if (n >= 20) return c.json({ error: "slow down" }, 429);
   const { rows: [row] } = await pool.query(
-    `insert into feedback (kind, message, install_id, app_version, macos, log, ip_hash, picture, picture_type)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning id`,
+    `insert into feedback (kind, message, install_id, app_version, macos, log, ip_hash, picture, picture_type, name, email)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) returning id`,
     [kind, message, installId, str("appVersion", 20), str("macOS", 100), str("log", 400_000), ipHash,
-     picture, pictureType]);
+     picture, pictureType, name, email]);
   const label = { bug: "Bug", idea: "Idea", question: "Question" }[kind];
-  const sent = await telegram(`${label} #${row.id} · v${str("appVersion", 20) ?? "?"} · Mac ${installId.slice(0, 8)}\n\n${message}\n\n` +
+  const who = [name, email].filter(Boolean).join(" · ");
+  const sent = await telegram(`${label} #${row.id} · v${str("appVersion", 20) ?? "?"} · Mac ${installId.slice(0, 8)}` +
+    (who ? `\nFrom: ${who}` : "") + `\n\n${message}\n\n` +
     `Tap a button, or reply "fixed ${row.id} what changed" to add a note the user sees.`, Number(row.id));
   if (picture && pictureType) await telegramPhoto(picture, pictureType, `Screenshot for #${row.id}`, sent);
   return c.json({ ok: true, id: Number(row.id) }, 201);
