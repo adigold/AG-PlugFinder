@@ -823,6 +823,7 @@ enum ImageZoom {
     static func show(_ plugin: Plugin) {
         guard let image = PluginStore.shared.image(for: plugin.id) else { return }
         window?.close()
+        backdrop?.orderOut(nil)
         let screen = (NSScreen.main ?? NSScreen.screens[0]).visibleFrame
         // As large as most of the screen allows, up to twice the picture's own size.
         let scale = min(2, min(screen.width * 0.8 / image.size.width, (screen.height * 0.8 - 44) / image.size.height))
@@ -864,16 +865,88 @@ enum ImageZoom {
         ])
         w.contentView = container
         w.center()
+        let target = w.frame
+        // It grows out of the picture that was clicked: starts small at the pointer.
+        let mouse = NSEvent.mouseLocation
+        let startW = max(120, min(220, target.width * 0.18))
+        let startH = startW * target.height / target.width
+        let start = NSRect(x: mouse.x - startW / 2, y: mouse.y - startH / 2, width: startW, height: startH)
+        source = start
+        showBackdrop(on: NSScreen.screens.first { $0.frame.contains(mouse) } ?? NSScreen.main)
+        w.setFrame(start, display: false)
+        w.alphaValue = 0
         w.makeKeyAndOrderFront(nil)
         NSApp.activate()
         container.layoutSubtreeIfNeeded()
-        scroll.magnification = scale
+        scroll.magnification = max(0.25, scale * startW / target.width)
+        NSAnimationContext.runAnimationGroup { c in
+            c.duration = 0.42
+            c.timingFunction = CAMediaTimingFunction(controlPoints: 0.2, 0.9, 0.25, 1)
+            c.allowsImplicitAnimation = true
+            w.animator().setFrame(target, display: true)
+            w.animator().alphaValue = 1
+            scroll.animator().magnification = scale
+        }
         let click = NSClickGestureRecognizer(target: ZoomToggle.shared, action: #selector(ZoomToggle.toggle(_:)))
         click.numberOfClicksRequired = 2
         imageView.addGestureRecognizer(click)
         ZoomToggle.shared.fit = scale
         window = w
     }
+
+    /// Where the picture grew from; it shrinks back there when closed.
+    static var source: NSRect = .zero
+    private static var backdrop: NSWindow?
+
+    /// The screen behind the picture, blurred and dimmed; a click on it closes the picture.
+    private static func showBackdrop(on screen: NSScreen?) {
+        guard let screen else { return }
+        let b = backdrop ?? {
+            let b = BackdropWindow(contentRect: screen.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+            b.isOpaque = false
+            b.backgroundColor = .clear
+            b.level = .floating
+            b.isReleasedWhenClosed = false
+            b.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            let blur = NSVisualEffectView()
+            blur.material = .fullScreenUI
+            blur.blendingMode = .behindWindow
+            blur.state = .active
+            let dim = NSView()
+            dim.wantsLayer = true
+            dim.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.35).cgColor
+            dim.autoresizingMask = [.width, .height]
+            blur.addSubview(dim)
+            b.contentView = blur
+            dim.frame = blur.bounds
+            backdrop = b
+            return b
+        }()
+        b.setFrame(screen.frame, display: false)
+        b.alphaValue = 0
+        b.orderFront(nil)
+        NSAnimationContext.runAnimationGroup { c in
+            c.duration = 0.3
+            b.animator().alphaValue = 1
+        }
+    }
+
+    static func hideBackdrop() {
+        guard let b = backdrop else { return }
+        NSAnimationContext.runAnimationGroup({ c in
+            c.duration = 0.22
+            b.animator().alphaValue = 0
+        }, completionHandler: { b.orderOut(nil) })
+    }
+
+    static func close() { (window as? ZoomWindow)?.animatedClose() }
+}
+
+/// The blurred screen behind an enlarged picture. It never takes focus; a click closes the picture.
+final class BackdropWindow: NSWindow {
+    override var canBecomeKey: Bool { false }
+    override var canBecomeMain: Bool { false }
+    override func mouseDown(with event: NSEvent) { MainActor.assumeIsolated { ImageZoom.close() } }
 }
 
 /// Double-click switches between fitting the window and full size.
@@ -891,14 +964,30 @@ final class ZoomToggle: NSObject {
     }
 }
 
-/// Closes on Esc and when it loses focus (a click outside).
+/// Closes on Esc and when it loses focus (a click outside), shrinking back to where it came from.
 final class ZoomWindow: NSWindow {
     private var wasKey = false
-    override func cancelOperation(_ sender: Any?) { close() }
+    private var closing = false
+    override func cancelOperation(_ sender: Any?) { animatedClose() }
     override func becomeKey() { super.becomeKey(); wasKey = true }
     override func resignKey() {
         super.resignKey()
-        if wasKey { DispatchQueue.main.async { self.close() } }
+        if wasKey { DispatchQueue.main.async { self.animatedClose() } }
+    }
+
+    func animatedClose() {
+        guard !closing else { return }
+        closing = true
+        MainActor.assumeIsolated {
+            ImageZoom.hideBackdrop()
+            let back = ImageZoom.source
+            NSAnimationContext.runAnimationGroup({ c in
+                c.duration = 0.24
+                c.timingFunction = CAMediaTimingFunction(controlPoints: 0.4, 0, 0.8, 0.4)
+                if back.width > 0 { self.animator().setFrame(back, display: true) }
+                self.animator().alphaValue = 0
+            }, completionHandler: { self.close() })
+        }
     }
 }
 

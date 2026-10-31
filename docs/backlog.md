@@ -26,6 +26,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-81** `P2 · Low` **Enlarged picture, smoother:** the screen behind it is blurred and dimmed, the picture grows out from where it was clicked and shrinks back when closed. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-79** `P1 · Medium` **Select several plugins with ⌘-click:** take pictures of all of them at once (Ariel's request), plus add them to Favorites or a collection. Adi, 2026-10-31. Also: Take missing pictures now retries the failed ones (Ariel: refresh). · done 2026-10-31
 - [x] **BL-78** `P3 · Low` **Plugin count label:** smaller, and reads "141 plugins found" so it isn't mistaken for the version. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-65** `P1 · Medium` **Point at a slot and press a key:** with the pointer over a slot in Logic, a key inserts, replaces or removes right there, with a highlight on the slot. Adi, 2026-10-31. · done 2026-10-31
