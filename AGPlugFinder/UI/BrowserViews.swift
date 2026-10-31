@@ -731,6 +731,8 @@ struct PluginContextMenu: View {
             .disabled(SnapshotQueue.shared.isRunning)
             Button("Clear Screenshot") { store.clearScreenshots([plugin.id]) }
                 .disabled(store.image(for: plugin.id) == nil)
+            Button("Find Picture on the Web") { WebPicture.find([plugin]) }
+                .disabled(!WebPicture.available)
         }
         Button(plugin.details == nil ? "Look Up Info" : "Look Up Info Again") {
             PluginInfoFetcher.shared.start(ids: [plugin.id])
@@ -1104,6 +1106,8 @@ struct PickedMenu: View {
         let n = model.picked.count
         Button("Take Pictures of \(n) Plugins") { PickedActions.takePictures(model) }
         Button("Clear \(n) Pictures") { PluginStore.shared.clearScreenshots(Array(model.picked)) }
+        Button("Find \(n) Pictures on the Web") { WebPicture.find(PickedActions.plugins(model)) }
+            .disabled(!WebPicture.available)
         Divider()
         Button("Add \(n) to Favorites") { PickedActions.favorite(model) }
         Menu("Add \(n) to Collection") {
@@ -1166,6 +1170,7 @@ struct CategoryMenu: View {
     }
 
     private func set(_ category: String?) {
+        let before = Dictionary(uniqueKeysWithValues: ids.map { id in (id, store.plugins.first { $0.id == id }?.userCategory) })
         for id in ids { store.update(id) { $0.userCategory = category } }
         Toast.show(category.map { ids.count > 1 ? "\(ids.count) plugins moved to \($0)" : "Moved to \($0)" }
                    ?? "Back to the automatic category")
@@ -1181,10 +1186,17 @@ struct CategoryMenu: View {
             " will be in \(category) for everyone who has \(plugins.count == 1 ? "it" : "them"), once other users agree. Only the plugin names and the category are sent."
         alert.addButton(withTitle: "Share")
         alert.addButton(withTitle: "Just for Me")
+        alert.addButton(withTitle: "Cancel")
         alert.showsSuppressionButton = true
         alert.suppressionButton?.title = "Always share my categories without asking"
-        let share = alert.runModal() == .alertFirstButtonReturn
-        if share {
+        let answer = alert.runModal()
+        if answer == .alertThirdButtonReturn {
+            // Cancel: the category goes back to what it was.
+            for (id, old) in before { store.update(id) { $0.userCategory = old } }
+            Toast.show("Category not changed")
+            return
+        }
+        if answer == .alertFirstButtonReturn {
             PlugDB.shareCategory(plugins, category)
             if alert.suppressionButton?.state == .on { d.set(true, forKey: "share.categories.always") }
             Toast.show("Shared. Thank you!")

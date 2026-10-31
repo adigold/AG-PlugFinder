@@ -293,6 +293,18 @@ enum SelfTest {
                 print("ZOOM done"); fflush(stdout)
             }
         }
+        // --selftest-webpicture <name> <file>: finds that plugin's picture on the web (not saved in the app).
+        if let k = args.firstIndex(of: "--selftest-webpicture"), k + 2 < args.count {
+            Task {
+                // "Name|Maker" tries any plugin, even one not on this Mac.
+                let parts = args[k + 1].split(separator: "|").map(String.init)
+                guard var p = PluginStore.shared.plugins.first(where: { $0.name == parts[0] }) ?? PluginStore.shared.plugins.first(where: { !$0.isLogic })
+                else { print("WEB no plugin"); exit(1) }
+                if parts.count == 2 { p.name = parts[0]; p.manufacturer = parts[1] }
+                print("WEB \(p.name): \(await WebPicture.probe(p, to: URL(fileURLWithPath: args[k + 2])))"); fflush(stdout)
+                exit(0)
+            }
+        }
         // --selftest-category: sets a plugin's category, checks it shows and survives a rescan, then undoes it.
         if args.contains("--selftest-category") {
             Task {

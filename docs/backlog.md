@@ -8,7 +8,6 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 ## Inbox
 
 - [ ] **BL-83** `P2 · Medium` **Admin dashboard for the shared database:** one private page for Adi: how many Macs and versions, pictures in and approved (with a look at each and reject), crash reports and error logs, category votes and agreement, uploads per day. Signed-in only. Adi, 2026-10-31.
-- [ ] **BL-80** `P2 · Medium` **Find a plugin's picture on the web when taking it fails:** look up the maker's own product image, Adi approves before it is shared. Ariel's and Adi's idea, 2026-10-31.
 - [~] **BL-50** `P2 · Medium` **Free plugin info without an API key:** offer a free model for Look Up Info next to the paid one, ideally the Mac's own built-in model (no download), else a small downloadable one. Adi, 2026-10-31. Built-in model shipped in 0.7.0; the downloadable model is built behind the LOCAL_MODEL switch and waits for the Metal toolchain.
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
@@ -27,6 +26,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-80** `P2 · Medium` **Find a plugin's picture on the web when taking it fails:** look up the maker's own product image, right-click Find Picture on the Web (one or several), with the user's own API key; the product page's own picture is used and checked. Ariel's and Adi's idea, 2026-10-31. · done 2026-10-31
 - [x] **BL-82** `P1 · High` **Set a plugin's category yourself:** right-click a plugin (or several picked with ⌘-click) and choose its category; the user's choice always wins over the guess, and they can share it with the community (category_votes). From Ariel's report. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-81** `P2 · Low` **Enlarged picture, smoother:** the screen behind it is blurred and dimmed, the picture grows out from where it was clicked and shrinks back when closed. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-79** `P1 · Medium` **Select several plugins with ⌘-click:** take pictures of all of them at once (Ariel's request), plus add them to Favorites or a collection. Adi, 2026-10-31. Also: Take missing pictures now retries the failed ones (Ariel: refresh). · done 2026-10-31
