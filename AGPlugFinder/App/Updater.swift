@@ -85,9 +85,19 @@ final class Updater {
     func start() {
         showWhatsNewIfJustUpdated()
         guard feedURL != nil else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { [weak self] in
+        // Right after the app opens (a few seconds, so launch stays quick)…
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
             Task { @MainActor in
                 guard let self, self.autoCheck else { return }
+                await self.check()
+            }
+        }
+        // …and whenever the user comes back to the app, at most once an hour.
+        NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil,
+                                               queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, self.autoCheck, !self.busy,
+                      Date().timeIntervalSince(self.lastChecked ?? .distantPast) > 3600 else { return }
                 await self.check()
             }
         }
@@ -128,6 +138,7 @@ final class Updater {
             }
             if Self.isNewer(release.version, than: currentVersion), osIsSupported(release.minOS) {
                 state = .available(release)
+                announce(release, userInitiated: userInitiated)
             } else {
                 state = .upToDate
             }
@@ -264,6 +275,16 @@ final class Updater {
         p.standardOutput = FileHandle.nullDevice
         p.standardError = FileHandle.nullDevice
         try p.run()
+    }
+
+    /// A newly found version opens its What's New window with Install and Restart, once per
+    /// version, so it is seen without nagging. "Check for Update" always opens it.
+    private func announce(_ release: Release, userInitiated: Bool) {
+        let key = "update.announcedVersion"
+        guard userInitiated || UserDefaults.standard.string(forKey: key) != release.version else { return }
+        UserDefaults.standard.set(release.version, forKey: key)
+        NSLog("AG PlugFinder: announcing version \(release.version)")
+        WhatsNewWindow.shared.show(version: release.version, notes: release.notes)
     }
 
     // MARK: What's new
