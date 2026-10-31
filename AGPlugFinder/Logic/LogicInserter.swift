@@ -865,6 +865,42 @@ enum LogicProbe {
                         }
                         result = steps.joined(separator: " / ")
                     }
+                case "pointer-probe":
+                    // Read only: hovers over each slot and an insert bar, reports what the
+                    // pointer shortcut would see there, then puts the pointer back.
+                    if let (_, app) = t.logic(), let strip = t.leftStrip(app) {
+                        let saved = CGEvent(source: nil)?.location
+                        var spots: [(String, CGRect)] = t.slots(in: strip).map { ("slot \($0.name)", $0.group.frame) }
+                        if let bar = strip.first(maxNodes: 600, where: { $0.desc == "insert bar" }) {
+                            spots.append(("insert bar", CGRect(x: bar.frame.minX, y: bar.frame.midY + 1, width: bar.frame.width, height: 0)))
+                        }
+                        if let empty = strip.findAll(maxNodes: 600, where: { $0.role == "AXButton" && ($0.help.hasPrefix("Audio Effect slot") || $0.help.hasPrefix("MIDI Effect slot")) && $0.desc != "insert bar" }).first {
+                            spots.append(("empty \(empty.help.prefix(18))", empty.frame))
+                        }
+                        var lines: [String] = []
+                        for (label, f) in spots {
+                            CGWarpMouseCursorPosition(CGPoint(x: f.midX, y: f.midY))
+                            try? await Task.sleep(for: .milliseconds(120))
+                            let r = PointerSlot.target()
+                            lines.append("\(label) => \(r.map { "\($0.kind.rawValue) occupant=\($0.occupant ?? "-") bypass=\($0.bypass != nil)" } ?? "nothing")")
+                        }
+                        if let saved { CGWarpMouseCursorPosition(saved) }
+                        result = lines.joined(separator: " | ")
+                    }
+                case "pointer-insert":
+                    // Hovers over the empty audio effect slot and inserts there the way the
+                    // pointer shortcut does, then puts the pointer back.
+                    if let (_, app) = t.logic(), let strip = t.leftStrip(app), let p = plugin(rest[0]),
+                       let empty = strip.findAll(maxNodes: 600, where: { $0.role == "AXButton" && $0.help.hasPrefix("Audio Effect slot") && $0.desc != "insert bar" }).first {
+                        let saved = CGEvent(source: nil)?.location
+                        CGWarpMouseCursorPosition(CGPoint(x: empty.frame.midX, y: empty.frame.midY))
+                        try? await Task.sleep(for: .milliseconds(120))
+                        if let target = PointerSlot.target() {
+                            if let saved { CGWarpMouseCursorPosition(saved) }
+                            result = await t.insert(p, at: target) ?? "ok"
+                        } else { result = "no target" }
+                        if let saved { CGWarpMouseCursorPosition(saved) }
+                    }
                 case "strip-command": result = "\(await t.stripCommand(rest[0]))"
                 case "remove": if let s = slot(rest[0]) { result = "\(await t.remove(s))" }
                 case "remove-last": result = await t.removeLastAdded() ?? "nothing"

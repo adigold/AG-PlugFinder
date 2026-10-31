@@ -6,6 +6,7 @@ import ApplicationServices
 /// pointer instead of looking in one place.
 struct PointerTarget {
     let kind: SlotKind
+    var point: CGPoint = .zero  // where the pointer was, to find the slot again later
     let occupant: String?      // the plugin in it now, nil when empty
     let press: AXNode          // opens the slot's plug-in menu (list button, empty slot or insert bar)
     let bypass: AXNode?
@@ -14,9 +15,9 @@ struct PointerTarget {
 
 @MainActor
 enum PointerSlot {
-    static func target() -> PointerTarget? {
+    static func target(at point: CGPoint? = nil) -> PointerTarget? {
         guard AXAccess.isTrusted, let logic = LogicInserter.shared.logicApp,
-              let p = CGEvent(source: nil)?.location else { return nil }
+              let p = point ?? CGEvent(source: nil)?.location else { return nil }
         let app = AXNode(el: AXUIElementCreateApplication(logic.processIdentifier))
         AXUIElementSetMessagingTimeout(app.el, 1.0)
         var hit: AXUIElement?
@@ -24,7 +25,7 @@ enum PointerSlot {
         else { return nil }
         var node = AXNode(el: hit)
         for _ in 0..<4 {
-            if let t = classify(node) { return t }
+            if var t = classify(node, at: p) { t.point = p; return t }
             guard let parent: AXUIElement = node.attr(kAXParentAttribute) else { break }
             node = AXNode(el: parent)
         }
@@ -34,11 +35,11 @@ enum PointerSlot {
     private static func kind(fromHelp help: String) -> SlotKind? {
         if help.hasPrefix("Audio Effect slot") { return .audioFX }
         if help.hasPrefix("MIDI Effect slot") { return .midiFX }
-        if help.localizedCaseInsensitiveContains("instrument slot") { return .instrument }
+        if help.hasPrefix("Instrument slot") || help.localizedCaseInsensitiveContains("instrument slot") { return .instrument }
         return nil
     }
 
-    private static func classify(_ n: AXNode) -> PointerTarget? {
+    private static func classify(_ n: AXNode, at p: CGPoint) -> PointerTarget? {
         // The thin line between two audio effects: inserts right there.
         if n.desc == "insert bar" {
             return PointerTarget(kind: .audioFX, occupant: nil, press: n, bypass: nil, frame: n.frame)
@@ -53,9 +54,19 @@ enum PointerSlot {
            n.children.contains(where: { $0.desc == "bypass" }),
            let parent: AXUIElement = n.attr(kAXParentAttribute) {
             let strip = AXNode(el: parent)
-            let k = LogicTrack.shared.slots(in: strip).first { CFEqual($0.group.el, n.el) }?.kind ?? .audioFX
+            let frame = n.frame
+            // Logic wraps each filled slot in a group whose help names the slot's kind.
+            let k = kind(fromHelp: strip.help) ?? kind(fromHelp: n.help) ?? .audioFX
+            // The top edge of an audio effect: the insert bar just above it, so the new plugin
+            // goes in before this one instead of replacing it. The bar itself is 1 pixel tall.
+            if k == .audioFX, p.y - frame.minY <= 4,
+               let bar = (strip.children + ((strip.attr(kAXParentAttribute) as AXUIElement?).map { AXNode(el: $0).children } ?? []))
+                   .first(where: { $0.desc == "insert bar" && abs($0.frame.midY - frame.minY) <= 4 }) {
+                return PointerTarget(kind: .audioFX, occupant: nil, press: bar, bypass: nil,
+                                     frame: CGRect(x: frame.minX, y: frame.minY - 2, width: frame.width, height: 4))
+            }
             return PointerTarget(kind: k, occupant: n.desc, press: list,
-                                 bypass: n.children.first { $0.desc == "bypass" }, frame: n.frame)
+                                 bypass: n.children.first { $0.desc == "bypass" }, frame: frame)
         }
         return nil
     }
@@ -104,7 +115,10 @@ extension LogicTrack {
         }
         guard let (logic, app) = logic() else { return "Logic Pro isn't open." }
         await LogicInserter.shared.bringForward(logic)
-        guard let menu = await LogicInserter.shared.openMenu(on: t.press, app: app, legacy: plugin.isLegacy == true) else {
+        // Logic rebuilds its controls when it comes forward: find the slot again at that spot.
+        let press = PointerSlot.target(at: t.point).map(\.press) ?? t.press
+        LogicInserter.shared.log("POINTER press \(press.role) desc=\(press.desc) help=\(press.help.prefix(30)) frame=\(press.frame) actions=\(press.actions) at \(t.point)")
+        guard let menu = await LogicInserter.shared.openMenu(on: press, app: app, legacy: plugin.isLegacy == true) else {
             return "Logic's plug-in menu did not open for that slot."
         }
         guard await choose(plugin, menu: menu, app: app, pid: logic.processIdentifier) else {
@@ -118,9 +132,10 @@ extension LogicTrack {
     func remove(at t: PointerTarget) async -> String? {
         guard let name = t.occupant else { return "Point at a slot with a plugin in it to remove it." }
         guard let (logic, app) = logic() else { return "Logic Pro isn't open." }
-        logic.activate()
+        await LogicInserter.shared.bringForward(logic)
+        let press = PointerSlot.target(at: t.point).map(\.press) ?? t.press
         for _ in 1...2 {
-            t.press.perform(kAXPressAction)
+            press.perform(kAXPressAction)
             if let menu = await LogicInserter.shared.waitForMenu(app: app, timeout: 2.5),
                let none = menu.first(maxNodes: 200, where: { $0.title == "No Plug-in" }) {
                 none.perform(kAXPressAction)
