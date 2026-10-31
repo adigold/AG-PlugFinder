@@ -282,14 +282,44 @@ final class LogicTrack {
         } else {
             targetY = audio[dest].frame.maxY - 2
         }
+        // Safety: only press when Logic says the plugin under the pointer is the one being moved.
+        let start = CGPoint(x: grab.midX, y: grab.midY)
+        var hit: AXUIElement?
+        AXUIElementCopyElementAtPosition(app.el, Float(start.x), Float(start.y), &hit)
+        let hitNode = hit.map(AXNode.init)
+        let hitParent = (hitNode?.attr(kAXParentAttribute) as AXUIElement?).map(AXNode.init)
+        guard hitNode?.desc == "open", hitParent?.desc == audio[from].name else {
+            inserter.log("TRACK move refused: under the pointer is \(hitNode?.desc ?? "nothing") in \(hitParent?.desc ?? "nothing")")
+            return false
+        }
+        let before = audio.map(\.name)
+        var expected = before
+        expected.insert(expected.remove(at: from), at: dest)
+
         let saved = Mouse.location
-        Mouse.drag(from: CGPoint(x: grab.midX, y: grab.midY), to: CGPoint(x: grab.midX, y: targetY), steps: 16, hold: 250_000)
+        Mouse.drag(from: start, to: CGPoint(x: grab.midX, y: targetY), steps: 16, hold: 250_000)
         Mouse.restore(saved)
         try? await Task.sleep(for: .milliseconds(500))
         await LogicCapture.closePluginWindows(app, pid: logic.processIdentifier)
         let order = read()?.plugins.filter { $0.kind == .audioFX }.map(\.name) ?? []
         inserter.log("TRACK move \(p.name) \(from)→\(dest), grab y=\(Int(grab.midY)) drop y=\(Int(targetY)); now \(order.joined(separator: " | "))")
-        return order.firstIndex(of: p.name) == dest
+        if order == expected { return true }
+        // Safety: anything else than the asked-for order is put back with Logic's own Undo.
+        if order != before {
+            logic.activate()
+            var undone = false
+            if let bar: AXUIElement = app.attr(kAXMenuBarAttribute),
+               let edit = AXNode(el: bar).children.first(where: { $0.title == "Edit" }),
+               let menu = edit.children.first(where: { $0.role == AXRole.menu }),
+               let undo = menu.children.first(where: { $0.identifier == "undo:" }), undo.isEnabled {
+                inserter.log("TRACK pressing \(undo.title)")
+                undone = undo.perform(kAXPressAction)
+            }
+            try? await Task.sleep(for: .milliseconds(500))
+            let after = read()?.plugins.filter { $0.kind == .audioFX }.map(\.name) ?? []
+            inserter.log("TRACK move undone=\(undone): \(after.joined(separator: " | "))")
+        }
+        return false
     }
 
     // MARK: Insert before or after (BL-39)

@@ -55,6 +55,7 @@ You know the plugin you want. You can picture its window. But Logic's plugin men
 </p>
 
 - **See what is on the track**, in order, with an on and off switch for each plugin.
+- **Drag to reorder.** Drag effects in the panel and the order changes in Logic too.
 - **Open, replace or remove** any plugin. A replacement goes into the same slot, so your chain order stays.
 - **Save the track as a chain**, then add it to any other track later.
 - **Remove the last plugin you added**, or clear every effect from the track.
@@ -98,7 +99,11 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 ## What's new
 
-**0.6.0** (coming next)
+**0.6.1**
+- Drag effects in the track panel to change their order in Logic.
+- Share AG PlugFinder on X, WhatsApp, Messages, Instagram, Telegram, Facebook, LinkedIn or by email, with a ready-made picture.
+
+**0.6.0**
 - Set your own shortcut for every action, including Hyper key shortcuts, and use Caps Lock as a Hyper key.
 - A designed What's New window with everything a new version brings.
 - A slider for the picture size.
