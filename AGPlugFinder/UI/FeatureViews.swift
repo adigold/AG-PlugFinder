@@ -42,7 +42,7 @@ struct CollectionBar: View {
     var body: some View {
         let showCollections = view.chipRow.showsCollections && !library.collections.isEmpty
         let showCategories = view.chipRow.showsCategories
-        if showCollections || showCategories || model.suggestion != nil || showSizeSlider {
+        if showCollections || showCategories || model.suggestion != nil || showSizeSlider || model.soundHint != nil {
             VStack(alignment: .leading, spacing: 0) {
                 if showCollections || showCategories || showSizeSlider {
                     HStack(spacing: 8) {
@@ -59,6 +59,13 @@ struct CollectionBar: View {
                 }
                 // On its own row under the chips, so it never squeezes them (Adi, 2026-10-31).
                 suggestionNote
+                if let hint = model.soundHint {
+                    HStack(spacing: 7) {
+                        Image(systemName: "waveform").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.accent)
+                        Text(hint).font(.system(size: 12)).foregroundStyle(Theme.muted).lineLimit(1)
+                    }
+                    .padding(.horizontal, 20).padding(.top, 2).padding(.bottom, 8)
+                }
             }
             .onChange(of: view.chipRow) { _, row in
                 if !row.showsCategories { model.category = nil }

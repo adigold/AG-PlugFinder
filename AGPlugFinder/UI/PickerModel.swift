@@ -47,6 +47,19 @@ final class PickerModel {
     var showAccessibilityButton = false
     var isBusy = false
 
+    /// Shown under the pills when plugins were found by the sound described (BL-98).
+    var soundHint: String? {
+        let words = query.lowercased().split(separator: " ").map(String.init)
+        let soundWords = SoundSearch.words(query)
+        guard !soundWords.isEmpty else { return nil }
+        let any = results.contains { p in
+            let name = PluginStore.nameHay(p), desc = PluginStore.descriptionHay(p)
+            return !words.allSatisfy { name.contains($0) } && !words.allSatisfy { desc.contains($0) }
+                && SoundSearch.score(p, words: soundWords) > 0
+        }
+        return any ? "Also showing plugins that sound like “\(query.trimmingCharacters(in: .whitespaces))”" : nil
+    }
+
     var results: [Plugin] {
         let only = collectionID.flatMap { id in UserLibrary.shared.collections.first { $0.id == id } }
             .map { Set($0.pluginIDs) }

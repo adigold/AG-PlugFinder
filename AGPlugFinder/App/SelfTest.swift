@@ -461,6 +461,15 @@ enum SelfTest {
                 print("LICENSES ok \(lic.money(lic.collectionValue)) \(lic.money(lic.perMonth))"); fflush(stdout)
             }
         }
+        // --selftest-search "warm tape|wide|punchy drums": what each search finds (BL-98).
+        if let k = args.firstIndex(of: "--selftest-search"), k + 1 < args.count {
+            for q in args[k + 1].split(separator: "|").map(String.init) {
+                let m = PickerModel()
+                m.query = q
+                print("SEARCH \(q) -> \(m.results.prefix(8).map(\.name).joined(separator: ", ")) | hint: \(m.soundHint ?? "-")")
+            }
+            print("SEARCH done"); fflush(stdout)
+        }
         if let k = args.firstIndex(of: "--selftest-menu-actions"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])
             Task { await menuActions(dir) }

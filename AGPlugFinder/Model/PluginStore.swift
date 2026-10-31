@@ -206,8 +206,17 @@ final class PluginStore {
                 let hay = Self.descriptionHay(p)
                 return words.allSatisfy { hay.contains($0) }
             }
-            if !described.isEmpty {
-                return sortList(list, sort) + sortList(described, sort)
+            // Then plugins that fit the sound described (BL-98), best fit first.
+            let taken = named.union(described.map(\.id))
+            let soundWords = SoundSearch.words(query)
+            let bySound = pool.compactMap { p -> (Plugin, Int)? in
+                guard !taken.contains(p.id) else { return nil }
+                let s = SoundSearch.score(p, words: soundWords)
+                return s > 0 ? (p, s + min(5, UserLibrary.shared.useCount[p.id] ?? 0) + (favorites.contains(p.id) ? 3 : 0)) : nil
+            }
+            .sorted { $0.1 == $1.1 ? $0.0.name < $1.0.name : $0.1 > $1.1 }.map(\.0)
+            if !described.isEmpty || !bySound.isEmpty {
+                return sortList(list, sort) + sortList(described, sort) + bySound
             }
         }
         list = sortList(list, sort)

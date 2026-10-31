@@ -1249,14 +1249,14 @@ struct CategoryMenu: View {
         let d = UserDefaults.standard
         if d.bool(forKey: "share.categories.always") { PlugDB.shareCategory(plugins, category); return }
         let alert = NSAlert()
-        alert.messageText = "Share this with other users?"
-        alert.informativeText = (plugins.count == 1 ? plugins[0].name : "These \(plugins.count) plugins") +
-            " will be in \(category) for everyone who has \(plugins.count == 1 ? "it" : "them"), once other users agree. Only the plugin names and the category are sent."
-        alert.addButton(withTitle: "Share")
-        alert.addButton(withTitle: "Just for Me")
+        let what = plugins.count == 1 ? plugins[0].name : "these \(plugins.count) plugins"
+        alert.messageText = "Move \(what) to \(category) for everyone, or only on this Mac?"
+        alert.informativeText = "Everyone: other AG PlugFinder users will see \(plugins.count == 1 ? "it" : "them") in \(category) too, once other users agree. Only the plugin names and the category are sent.\n\nOnly This Mac: the change stays with you."
+        alert.addButton(withTitle: "Everyone")
+        alert.addButton(withTitle: "Only This Mac")
         alert.addButton(withTitle: "Cancel")
         alert.showsSuppressionButton = true
-        alert.suppressionButton?.title = "Always share my categories without asking"
+        alert.suppressionButton?.title = "Always choose Everyone without asking"
         let answer = alert.runModal()
         if answer == .alertThirdButtonReturn {
             // Cancel: the category goes back to what it was.
@@ -1267,7 +1267,7 @@ struct CategoryMenu: View {
         if answer == .alertFirstButtonReturn {
             PlugDB.shareCategory(plugins, category)
             if alert.suppressionButton?.state == .on { d.set(true, forKey: "share.categories.always") }
-            Toast.show("Shared. Thank you!")
+            Toast.show("Moved for everyone. Thank you!")
         }
     }
 }
