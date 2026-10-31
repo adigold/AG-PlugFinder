@@ -7,11 +7,12 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
-- [ ] **BL-50** `P2 · Medium` **Free plugin info without an API key:** offer a free model for Look Up Info next to the paid one, ideally the Mac's own built-in model (no download), else a small downloadable one. Adi, 2026-10-31.
+- [~] **BL-50** `P2 · Medium` **Free plugin info without an API key:** offer a free model for Look Up Info next to the paid one, ideally the Mac's own built-in model (no download), else a small downloadable one. Adi, 2026-10-31.
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 ## Now
 
+- [~] **BL-59** `P1 · High` **Release 0.6.2:** automatic update check on open, new instrument track named after the instrument. Adi, 2026-10-31.
 - [~] **BL-47** `P1 · High` **Publish 0.5.0 so Check for Update finds it:** make the AG-PlugFinder repo public (Adi chose this over a separate releases repo) and publish a signed, notarized 0.5.0 release with every feature since 0.4.0. Adi, 2026-10-31.
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 

@@ -38,7 +38,7 @@ You know the plugin you want. You can picture its window. But Logic's plugin men
 ## Add to Logic
 
 - **Return puts it on the track.** Instruments go into the instrument slot, effects into the first free insert, MIDI effects into the MIDI slot. Legacy Logic plugins too.
-- **No instrument slot? You get a new track.** Pick an instrument while an audio track is selected, and a new instrument track is made for it.
+- **Always a proper instrument track.** Pick an instrument while an audio track, or a track that already has an instrument, is selected, and a new instrument track is made for it, named after the instrument.
 - **Chains.** Save a chain like EQ, Compressor, DeEsser and Reverb, and add the whole chain at once.
 - **Number keys.** Pin a plugin or a chain to a number and add it from anywhere in Logic.
 - **Insert before or after** another plugin on the track.
@@ -98,6 +98,10 @@ Check for Update sits at the top right of the window. A new version downloads wi
 AG PlugFinder lives in the menu bar and can start when you log in.
 
 ## What's new
+
+**0.6.2**
+- AG PlugFinder checks for a new version as soon as it opens, and shows what's new with one click to install.
+- Choosing an instrument while the track already has one makes a new instrument track for it, named after the instrument.
 
 **0.6.1**
 - Drag effects in the track panel to change their order in Logic.
