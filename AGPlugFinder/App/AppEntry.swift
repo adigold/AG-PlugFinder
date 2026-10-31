@@ -164,7 +164,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = UserLibrary.shared
         NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil,
                                                queue: .main) { _ in
-            Task { @MainActor in UserLibrary.shared.pullFromCloud() }
+            Task { @MainActor in UserLibrary.shared.pullFromCloud(); Licenses.shared.pullFromCloud() }
         }
         Task { @MainActor in Updater.shared.start() }
         // Offers to send the report when the app closed unexpectedly last time (BL-73).

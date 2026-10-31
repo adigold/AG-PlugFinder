@@ -77,7 +77,7 @@ final class Licenses {
     var licenses: [String: LicenseInfo] = [:] { didSet { changed() } }
     var plans: [LicensePlan] = [] { didSet { changed() } }
     var currency: String {
-        didSet { UserDefaults.standard.set(currency, forKey: "licenses.currency") }
+        didSet { UserDefaults.standard.set(currency, forKey: "licenses.currency"); changed() }
     }
 
     /// The currencies offered in the chooser, most used first (BL-92).
@@ -95,7 +95,11 @@ final class Licenses {
     private struct Saved: Codable {
         var licenses: [String: LicenseInfo] = [:]
         var plans: [LicensePlan] = []
+        // For iCloud sync (BL-95); missing in files saved before it.
+        var updatedAt: Date? = nil
+        var currency: String? = nil
     }
+    private var updatedAt = Date.distantPast
 
     /// The self-test fills in sample data: it then saves to a temporary file and sets no reminders.
     static var testMode = CommandLine.arguments.contains("--selftest-licenses")
@@ -107,6 +111,7 @@ final class Licenses {
         currency = UserDefaults.standard.string(forKey: "licenses.currency").flatMap { Self.currencies.contains($0) ? $0 : nil }
             ?? (Self.currencies.contains(local) ? local : "USD")
         load()
+        pullFromCloud()
     }
 
     // MARK: Look-ups
@@ -235,23 +240,78 @@ final class Licenses {
 
     private func changed() {
         guard !loading else { return }
-        let enc = JSONEncoder()
-        enc.outputFormatting = [.prettyPrinted, .sortedKeys]
-        enc.dateEncodingStrategy = .iso8601
-        if let data = try? enc.encode(Saved(licenses: licenses, plans: plans)) {
-            try? data.write(to: fileURL, options: .atomic)
-        }
+        updatedAt = Date()
+        save(to: fileURL)
+        pushToCloud()
         LicenseReminders.reschedule()
     }
 
-    private func load() {
+    private func save(to url: URL) {
+        let enc = JSONEncoder()
+        enc.outputFormatting = [.prettyPrinted, .sortedKeys]
+        enc.dateEncodingStrategy = .iso8601
+        if let data = try? enc.encode(Saved(licenses: licenses, plans: plans, updatedAt: updatedAt, currency: currency)) {
+            try? data.write(to: url, options: .atomic)
+        }
+    }
+
+    private static func read(_ url: URL) -> Saved? {
         let dec = JSONDecoder()
         dec.dateDecodingStrategy = .iso8601
-        guard let data = try? Data(contentsOf: fileURL), let s = try? dec.decode(Saved.self, from: data) else { return }
+        guard let data = try? Data(contentsOf: url) else { return nil }
+        return try? dec.decode(Saved.self, from: data)
+    }
+
+    private func apply(_ s: Saved) {
         loading = true
         licenses = s.licenses
         plans = s.plans
+        if let c = s.currency, Self.currencies.contains(c), c != currency { currency = c }
+        updatedAt = s.updatedAt ?? .distantPast
         loading = false
+    }
+
+    private func load() {
+        guard let s = Self.read(fileURL) else { return }
+        apply(s)
+    }
+
+    // MARK: iCloud sync (BL-95)
+
+    /// Same switch and same iCloud Drive folder as the library sync. License keys are not in
+    /// this file: they stay in each Mac's own Keychain.
+    static var cloudFile: URL? {
+        guard !testMode else { return nil }
+        return UserLibrary.cloudFile?.deletingLastPathComponent().appendingPathComponent("licenses.json")
+    }
+
+    private func pushToCloud() {
+        guard UserLibrary.shared.syncEnabled, let cloud = Self.cloudFile else { return }
+        try? FileManager.default.createDirectory(at: cloud.deletingLastPathComponent(), withIntermediateDirectories: true)
+        save(to: cloud)
+        UserDefaults.standard.set(true, forKey: "licenses.synced")
+    }
+
+    /// Takes the iCloud copy when it is newer (at launch and when the app comes to the front).
+    /// The first time a Mac syncs, its entries and the iCloud ones are merged, so nothing is lost.
+    func pullFromCloud() {
+        guard UserLibrary.shared.syncEnabled, let cloud = Self.cloudFile else { return }
+        guard let s = Self.read(cloud) else {
+            if !licenses.isEmpty || !plans.isEmpty { pushToCloud() }
+            return
+        }
+        if !UserDefaults.standard.bool(forKey: "licenses.synced") {
+            var merged = s
+            for (k, v) in licenses where merged.licenses[k] == nil { merged.licenses[k] = v }
+            for p in plans where !merged.plans.contains(where: { $0.id == p.id }) { merged.plans.append(p) }
+            apply(merged)
+            changed()
+            return
+        }
+        guard (s.updatedAt ?? .distantPast) > updatedAt.addingTimeInterval(1) else { return }
+        apply(s)
+        save(to: fileURL)
+        LicenseReminders.reschedule()
     }
 
     /// Called at launch: a renewal date that has passed moves on by one period (the

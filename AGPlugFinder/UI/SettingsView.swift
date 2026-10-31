@@ -46,8 +46,8 @@ struct GeneralSettings: View {
                     .onChange(of: sync) { _, on in UserLibrary.shared.syncEnabled = on }
                     .disabled(UserLibrary.cloudFile == nil)
                 Text(UserLibrary.cloudFile == nil
-                     ? "Turn on iCloud Drive in System Settings to sync favorites, collections, chains, notes, number keys and hidden plugins."
-                     : "Favorites, collections, chains, notes, number keys and hidden plugins"
+                     ? "Turn on iCloud Drive in System Settings to sync favorites, collections, chains, notes, number keys, hidden plugins and licenses."
+                     : "Favorites, collections, chains, notes, number keys, hidden plugins, licenses and subscriptions. License keys stay on each Mac"
                         + (UserLibrary.shared.lastSynced.map { ". Last synced \($0.formatted(.relative(presentation: .named)))." } ?? "."))
                     .font(.caption).foregroundStyle(.secondary)
             }

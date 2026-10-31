@@ -577,7 +577,9 @@ struct LicensesView: View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Licenses and subscriptions").font(.system(size: 22, weight: .bold)).foregroundStyle(Theme.text)
-                Text("Kept on this Mac only. License keys are stored in your Keychain.")
+                Text(UserLibrary.shared.syncEnabled && Licenses.cloudFile != nil
+                     ? "Synced with your other Macs through iCloud Drive. License keys stay in this Mac's Keychain."
+                     : "Kept on this Mac only. License keys are stored in your Keychain.")
                     .font(.system(size: 12)).foregroundStyle(Theme.faint)
             }
             Spacer()
