@@ -90,7 +90,7 @@ final class Licenses {
     }
 
     /// The self-test fills in sample data: it then saves to a temporary file and sets no reminders.
-    static var testMode = false
+    static var testMode = CommandLine.arguments.contains("--selftest-licenses")
 
     private init() {
         fileURL = Self.testMode ? FileManager.default.temporaryDirectory.appendingPathComponent("licenses-test.json")
