@@ -409,6 +409,17 @@ enum SelfTest {
                 fflush(stdout)
             }
         }
+        // --selftest-chipbar <file>: the chip row with a track suggestion under it.
+        if let k = args.firstIndex(of: "--selftest-chipbar"), k + 1 < args.count {
+            let out = URL(fileURLWithPath: args[k + 1])
+            Task {
+                let m = PickerModel()
+                m.suggestion = ("Vintage B3 Organ", [])
+                await shoot(CollectionBar(model: m, showSizeSlider: true).frame(width: 1000).background(Theme.ground),
+                            size: NSSize(width: 1000, height: 90), to: out)
+                print("CHIPBAR ok"); fflush(stdout)
+            }
+        }
         // --selftest-licenses <dir>: sample licenses (never the real file), then pictures of the windows.
         if let k = args.firstIndex(of: "--selftest-licenses"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])

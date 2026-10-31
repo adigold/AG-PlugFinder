@@ -43,18 +43,23 @@ struct CollectionBar: View {
         let showCollections = view.chipRow.showsCollections && !library.collections.isEmpty
         let showCategories = view.chipRow.showsCategories
         if showCollections || showCategories || model.suggestion != nil || showSizeSlider {
-            HStack(spacing: 8) {
-                if showCollections || showCategories {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) { chips(showCollections, showCategories) }
+            VStack(alignment: .leading, spacing: 0) {
+                if showCollections || showCategories || showSizeSlider {
+                    HStack(spacing: 8) {
+                        if showCollections || showCategories {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) { chips(showCollections, showCategories) }
+                            }
+                            .layoutPriority(1)
+                        }
+                        Spacer(minLength: 8)
+                        if showSizeSlider { SizeSlider().padding(.leading, 10) }
                     }
-                    .layoutPriority(1)
+                    .padding(.horizontal, 18).frame(height: 44)
                 }
-                Spacer(minLength: 8)
+                // On its own row under the chips, so it never squeezes them (Adi, 2026-10-31).
                 suggestionNote
-                if showSizeSlider { SizeSlider().padding(.leading, 10) }
             }
-            .padding(.horizontal, 18).frame(height: 44)
             .onChange(of: view.chipRow) { _, row in
                 if !row.showsCategories { model.category = nil }
                 if !row.showsCollections { model.collectionID = nil }
@@ -89,6 +94,7 @@ struct CollectionBar: View {
             }
             .fixedSize()
             .help("Plugins that fit the selected Logic track come first while the search is empty")
+            .padding(.horizontal, 20).padding(.top, 2).padding(.bottom, 8)
         }
     }
 
