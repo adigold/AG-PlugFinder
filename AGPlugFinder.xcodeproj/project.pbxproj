@@ -51,6 +51,7 @@
 		EA7D18667B3A2958C5433C0B /* UpdateWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F81E8A2D388B60472551735 /* UpdateWindow.swift */; };
 		EDB9BE6E1825D71E46A3A49F /* SnapshotQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522F310F8121F51CEEC4502A /* SnapshotQueue.swift */; };
 		EF653A7BEB1F498F492ABA1E /* UserLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1211458E32500BCFB817B799 /* UserLibrary.swift */; };
+		F0139F7726A197C0F1D334FD /* PlugDB.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8400D6D1B92CAB96090263 /* PlugDB.swift */; };
 		F03AC7DB259F432CAD156DC2 /* PickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5404214EB311D626E97267AD /* PickerView.swift */; };
 		F187F1FBF38723B078A30291 /* SnapshotRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F77814834E56DA4A623391 /* SnapshotRenderer.swift */; };
 /* End PBXBuildFile section */
@@ -97,6 +98,7 @@
 		B6F77814834E56DA4A623391 /* SnapshotRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotRenderer.swift; sourceTree = "<group>"; };
 		B8EBF150252A9B6AF992139C /* ViewSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSettings.swift; sourceTree = "<group>"; };
 		BAEE35F63AB0E34FFC94CEBE /* PointerSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointerSlot.swift; sourceTree = "<group>"; };
+		BB8400D6D1B92CAB96090263 /* PlugDB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlugDB.swift; sourceTree = "<group>"; };
 		BFBFF2C38A98C6768DF05100 /* AX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AX.swift; sourceTree = "<group>"; };
 		C6EC4140429A7774ED898F02 /* LocalModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalModel.swift; sourceTree = "<group>"; };
 		CC0BC245023DFE7ED68CE6AA /* BrowserViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserViews.swift; sourceTree = "<group>"; };
@@ -151,6 +153,7 @@
 			isa = PBXGroup;
 			children = (
 				79020B749BE713B285FFCF69 /* LogicCatalog.swift */,
+				BB8400D6D1B92CAB96090263 /* PlugDB.swift */,
 				B431D534CB99B5A459D3517F /* Plugin.swift */,
 				D71657EEC5ED1CB8747992C3 /* PluginPack.swift */,
 				1F96300B45F6AC9AB4D9D915 /* PluginScanner.swift */,
@@ -329,6 +332,7 @@
 				E854273C1E3933DE20D03BA7 /* PickerModel.swift in Sources */,
 				D11B1A084B198C0461413B26 /* PickerPanel.swift in Sources */,
 				F03AC7DB259F432CAD156DC2 /* PickerView.swift in Sources */,
+				F0139F7726A197C0F1D334FD /* PlugDB.swift in Sources */,
 				7CA982ACA4D63FEE79A2B743 /* Plugin.swift in Sources */,
 				0475C34975ACC0546A86129F /* PluginInfoFetcher.swift in Sources */,
 				BBBBCD96B562310ED1BA33DC /* PluginListEditor.swift in Sources */,
@@ -393,7 +397,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8000;
+				CURRENT_PROJECT_VERSION = 9000;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 4HJV6RPCLU;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -414,7 +418,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.8.0;
+				MARKETING_VERSION = 0.9.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -498,7 +502,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8000;
+				CURRENT_PROJECT_VERSION = 9000;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4HJV6RPCLU;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -513,7 +517,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.8.0;
+				MARKETING_VERSION = 0.9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

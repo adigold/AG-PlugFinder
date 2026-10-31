@@ -7,8 +7,8 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    MARKETING_VERSION: "0.8.0"
-    CURRENT_PROJECT_VERSION: "8000"
+    MARKETING_VERSION: "0.9.0"
+    CURRENT_PROJECT_VERSION: "9000"
     DEVELOPMENT_TEAM: 4HJV6RPCLU
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "Developer ID Application"
@@ -42,6 +42,8 @@ targets:
         LSMinimumSystemVersion: "15.0"
         NSHumanReadableCopyright: "© 2026 Adi Goldstein"
         AGPFPluginPackURL: "https://github.com/adigold/AG-PlugFinder/releases/latest/download/plugin-pack.zip"
+        AGPFPlugDBURL: "https://br-late-rain-b52anezk-plugdb.compute.c-7.us-east-2.aws.neon.tech/"
+        AGPFUploadKey: "$(AGPF_UPLOAD_KEY)"
         AGPFUpdateFeedURL: "https://github.com/adigold/AG-PlugFinder/releases/latest/download/update.json"
         NSAccessibilityUsageDescription: "AG PlugFinder places the plugin you pick into an empty insert slot in Logic Pro."
     settings:

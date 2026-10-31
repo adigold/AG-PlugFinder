@@ -163,6 +163,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in UserLibrary.shared.pullFromCloud() }
         }
         Task { @MainActor in Updater.shared.start() }
+        // Shares pictures taken before sharing existed, a little after launch (BL-71).
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(30))
+            PlugDB.shareExisting()
+        }
 
         Task { @MainActor in
             let store = PluginStore.shared

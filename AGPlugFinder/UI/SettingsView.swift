@@ -82,6 +82,14 @@ struct GeneralSettings: View {
                 }
             }
 
+            Section("Help other users") {
+                Toggle("Share plugin pictures", isOn: Binding(
+                    get: { PlugDB.sharing },
+                    set: { PlugDB.sharing = $0; if $0 { PlugDB.shareExisting() } }))
+                Text("Pictures the app takes of your plugins are shared, with each plugin's name and maker, so other users get them without waiting. Nothing else about you or your Mac is sent.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
             Section("Plugin info") {
                 InfoSourcePicker()
                 if PluginInfoFetcher.shared.source == .online {

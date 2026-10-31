@@ -81,7 +81,10 @@ final class SnapshotQueue {
                     $0.snapshotError = result.error
                     if let p = result.params { $0.parameterCount = p }
                 }
-                if result.state == .done { store.snapshotChanged() }
+                if result.state == .done {
+                    store.snapshotChanged()
+                    if let p = store.plugins.first(where: { $0.id == plugin.id }) { PlugDB.share(p) }
+                }
                 items[i].seconds = Date().timeIntervalSince(began)
                 switch result.state {
                 case .done: items[i].status = result.generic ? .generic : .done

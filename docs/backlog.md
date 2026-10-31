@@ -7,12 +7,12 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
-- [ ] **BL-71** `P2 · Medium` **Shared plugin database:** users can choose to share plugin pictures and info; Adi approves them; everyone downloads them so the same plugin is never scanned twice. Neon database (Adi's choice) behind a small API with auth; pictures in the database or blob storage. Adi, 2026-10-31.
 - [~] **BL-50** `P2 · Medium` **Free plugin info without an API key:** offer a free model for Look Up Info next to the paid one, ideally the Mac's own built-in model (no download), else a small downloadable one. Adi, 2026-10-31. Built-in model shipped in 0.7.0; the downloadable model is built behind the LOCAL_MODEL switch and waits for the Metal toolchain.
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 ## Now
 
+- [~] **BL-71** `P2 · Medium` **Shared plugin database:** users can choose to share plugin pictures and info; Adi approves them; everyone downloads them so the same plugin is never scanned twice. Neon database (Adi's choice) behind a small API with auth; pictures in the database or blob storage. Adi, 2026-10-31. Collecting shipped in 0.9.0 (upload on by default, approval with `npm run review`); downloading approved pictures still to build.
 - [~] **BL-70** `P1 · Medium` **Clear a track with Logic's own command:** Remove All Effect Plug-ins from the channel strip's Setting menu in one step instead of one by one; also Bypass All, Remove Bypassed and Remove All Sends. Adi, 2026-10-31.
 - [~] **BL-69** `P1 · Medium` **Channel format, Auto or Ask me:** when Logic offers a plugin in several versions (Mono, Stereo, Mono to Stereo, Dual Mono), Auto picks the one that fits the track and Ask me leaves Logic's choice open; each plugin can have its own. Inspired by PlugSearch's Channel Mode. Adi, 2026-10-31.
 - [~] **BL-68** `P1 · High` **Faster inserting into Logic:** go straight down Logic's plug-in menu to the plugin (maker, then name) and remember the path, wait only as long as Logic needs instead of fixed pauses. Adi asked why PlugSearch is faster, 2026-10-31.

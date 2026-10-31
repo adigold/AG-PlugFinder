@@ -1,19 +1,36 @@
-import { db } from "../src/db.js";
+import { readFileSync } from "node:fs";
+import { neon } from "@neondatabase/serverless";
 
-// End-to-end check: write a test submission, read it back, delete it.
-const sql = db();
-const [{ now }] = await sql`select now()`;
-console.log("connected, server time", now);
-const picture = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
-const [row] = await sql`
-  insert into submissions (au_type, au_subtype, au_maker, name, manufacturer, picture, picture_type)
-  values ('aufx', 'test', 'AGPF', 'Check Plugin', 'AG', ${picture}, 'image/jpeg')
-  returning id, status`;
-console.log("inserted submission", row);
-const [back] = await sql`select name, length(picture) as bytes from submissions where id = ${row.id}`;
-console.log("read back", back);
-await sql`delete from submissions where id = ${row.id}`;
-const [{ count }] = await sql`select count(*)::int as count from submissions where id = ${row.id}`;
-console.log("deleted, remaining", count);
-const tables = await sql`select table_name from information_schema.tables where table_schema = 'public' order by 1`;
-console.log("tables", tables.map((t) => t.table_name).join(", "));
+// End-to-end check of the deployed function: wrong key refused, a real picture uploaded,
+// approved, found by lookup and downloaded byte for byte, then everything removed again.
+const base = process.env.NEON_FUNCTION_PLUGDB_BASE_URL!.replace(/\/$/, "");
+const key = process.env.UPLOAD_KEY!;
+const sql = neon(process.env.DATABASE_URL!);
+const id = "aufx-TEST-AGPF";
+const picture = readFileSync(process.argv[2]);
+const headers = { "content-type": "application/json", "x-agpf-key": key };
+
+const say = (label: string, value: unknown) => console.log(label.padEnd(26), value);
+say("home", (await fetch(base + "/")).status);
+say("upload with wrong key", (await fetch(base + "/v1/pictures", { method: "POST", headers: { ...headers, "x-agpf-key": "nope" }, body: "{}" })).status);
+say("upload not a picture", (await fetch(base + "/v1/pictures", { method: "POST", headers,
+  body: JSON.stringify({ pluginId: id, name: "Check", manufacturer: "AG", installId: "check", picture: Buffer.from("hello world".repeat(30)).toString("base64") }) })).status);
+const up = await fetch(base + "/v1/pictures", { method: "POST", headers,
+  body: JSON.stringify({ pluginId: id, name: "Check Plugin", manufacturer: "AG", version: "1.0", installId: "check",
+                         appVersion: "test", picture: picture.toString("base64") }) });
+say("upload real picture", `${up.status} ${await up.text()}`);
+const [w] = await sql`select id, status, length(picture) as bytes from submissions where plugin_id = ${id}`;
+say("waiting in database", w);
+const before = await (await fetch(base + "/v1/lookup", { method: "POST", headers, body: JSON.stringify({ ids: [id] }) })).json();
+say("lookup before approval", JSON.stringify(before));
+await sql`update submissions set status = 'approved' where id = ${w.id}`;
+await sql`insert into plugins (plugin_id, name, manufacturer, version, picture, picture_type, submission_id)
+          select plugin_id, name, manufacturer, version, picture, picture_type, id from submissions where id = ${w.id}`;
+const after = await (await fetch(base + "/v1/lookup", { method: "POST", headers, body: JSON.stringify({ ids: [id] }) })).json();
+say("lookup after approval", JSON.stringify(after));
+const got = Buffer.from(await (await fetch(`${base}/v1/pictures/${id}`, { headers })).arrayBuffer());
+say("download matches upload", got.equals(picture) ? `yes (${got.length} bytes)` : "NO");
+await sql`delete from plugins where plugin_id = ${id}`;
+await sql`delete from submissions where plugin_id = ${id}`;
+const [{ n }] = await sql`select (select count(*) from plugins) + (select count(*) from submissions) as n`;
+say("cleaned up, rows left", n);

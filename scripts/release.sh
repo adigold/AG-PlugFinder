@@ -30,8 +30,10 @@ DOWNLOAD_BASE="https://github.com/$REPO/releases/download/v$VERSION"
 BUILDNUM=$(echo "$VERSION" | awk -F. '{print $1*1000000 + $2*1000 + $3}')
 rm -rf "$BUILD" && mkdir -p "$BUILD" dist
 xcodegen generate >/dev/null
+# The shared plugin database key lives only in server/.env.local (gitignored), never in the repo.
+AGPF_UPLOAD_KEY=$(grep "^UPLOAD_KEY=" server/.env.local 2>/dev/null | cut -d= -f2)
 xcodebuild -project AGPlugFinder.xcodeproj -scheme AGPlugFinder -configuration Release \
-  -derivedDataPath "$BUILD/dd" MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILDNUM" \
+  AGPF_UPLOAD_KEY="$AGPF_UPLOAD_KEY" -derivedDataPath "$BUILD/dd" MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILDNUM" \
   build | grep -E "error:|BUILD" || true
 APP="$BUILD/dd/Build/Products/Release/$APP_NAME.app"
 [ -d "$APP" ] || { echo "Build failed"; exit 1; }
