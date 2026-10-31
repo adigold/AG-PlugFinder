@@ -73,6 +73,19 @@ enum CrashReports {
             .replacingOccurrences(of: NSUserName(), with: "user")
     }
 
+    /// The app's recent Logic log and the plugins whose picture failed, with names scrubbed.
+    static func diagnostics() -> String {
+        let logURL = PluginStore.shared.supportDir.appendingPathComponent("Insert log.txt")
+        var text = (try? String(contentsOf: logURL, encoding: .utf8)).map { $0.split(separator: "\n").suffix(300).joined(separator: "\n") } ?? ""
+        let failed = PluginStore.shared.plugins.filter { $0.snapshotState == .failed }
+        if !failed.isEmpty {
+            text += "\n\n=== Pictures that failed (\(failed.count)) ===\n" + failed.prefix(400)
+                .map { "\($0.manufacturer) · \($0.name) [\($0.id)\($0.isV3 ? " v3" : "")]: \($0.snapshotError ?? "?")" }
+                .joined(separator: "\n")
+        }
+        return scrub(text)
+    }
+
     private static func send(crash: URL?, note: String) async -> Bool {
         guard let base = PlugDB.base, let key = PlugDB.key else { return false }
         let logURL = PluginStore.shared.supportDir.appendingPathComponent("Insert log.txt")

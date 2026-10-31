@@ -136,6 +136,112 @@ app.post("/v1/categories", async (c) => {
   return c.json({ ok: true, saved }, 201);
 });
 
+// Feedback to Goldi (BL-85): saved, then sent to Adi's Telegram.
+async function telegramCall(method: string, payload: Record<string, unknown>) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload),
+    });
+  } catch { /* the feedback is saved either way */ }
+}
+
+async function telegram(text: string, buttonsFor?: number) {
+  const chat = process.env.TELEGRAM_CHAT_ID;
+  if (!chat) return;
+  await telegramCall("sendMessage", {
+    chat_id: chat, text: text.slice(0, 4000),
+    ...(buttonsFor ? { reply_markup: statusButtons(buttonsFor) } : {}),
+  });
+}
+
+// The three buttons under every feedback message.
+function statusButtons(id: number) {
+  return { inline_keyboard: [[
+    { text: "In progress", callback_data: `fb:progress:${id}` },
+    { text: "Fixed", callback_data: `fb:fixed:${id}` },
+    { text: "Done", callback_data: `fb:closed:${id}` },
+  ]] };
+}
+const STATUS_TITLE: Record<string, string> = { progress: "In progress", fixed: "Fixed", closed: "Done", seen: "Seen" };
+
+app.post("/v1/feedback", async (c) => {
+  if (Number(c.req.header("content-length") ?? 0) > 600_000) return c.json({ error: "too large" }, 413);
+  let body: Record<string, unknown>;
+  try { body = await c.req.json(); } catch { return c.json({ error: "bad json" }, 400); }
+  const str = (k: string, max: number) => (typeof body[k] === "string" && (body[k] as string).trim()
+    ? (body[k] as string).trim().slice(0, max) : null);
+  const kind = ["bug", "idea", "question"].includes(body.kind as string) ? (body.kind as string) : "bug";
+  const message = str("message", 5000);
+  const installId = str("installId", 64);
+  if (!message || !installId) return c.json({ error: "missing fields" }, 400);
+  const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ipHash = createHash("sha256").update(ip + (process.env.UPLOAD_KEY ?? "")).digest("hex").slice(0, 32);
+  const { rows: [{ n }] } = await pool.query(
+    "select count(*)::int as n from feedback where ip_hash = $1 and created_at > now() - interval '1 day'", [ipHash]);
+  if (n >= 20) return c.json({ error: "slow down" }, 429);
+  const { rows: [row] } = await pool.query(
+    `insert into feedback (kind, message, install_id, app_version, macos, log, ip_hash)
+     values ($1, $2, $3, $4, $5, $6, $7) returning id`,
+    [kind, message, installId, str("appVersion", 20), str("macOS", 100), str("log", 400_000), ipHash]);
+  const label = { bug: "Bug", idea: "Idea", question: "Question" }[kind];
+  await telegram(`${label} #${row.id} · v${str("appVersion", 20) ?? "?"} · Mac ${installId.slice(0, 8)}\n\n${message}\n\n` +
+    `Tap a button, or reply "fixed ${row.id} what changed" to add a note the user sees.`, Number(row.id));
+  return c.json({ ok: true, id: Number(row.id) }, 201);
+});
+
+// The user's own feedback and its status, for the app to show.
+app.post("/v1/feedback/mine", async (c) => {
+  let body: Record<string, unknown>;
+  try { body = await c.req.json(); } catch { return c.json({ error: "bad json" }, 400); }
+  const installId = typeof body.installId === "string" ? body.installId.slice(0, 64) : "";
+  if (!installId) return c.json({ error: "missing fields" }, 400);
+  const { rows } = await pool.query(
+    `select id, kind, left(message, 300) as message, status, note, created_at, updated_at
+     from feedback where install_id = $1 order by created_at desc limit 50`, [installId]);
+  return c.json({ items: rows });
+});
+
+// Adi's replies to the bot: "fixed 12 note", "seen 12", "closed 12". Only from Adi's chat, and
+// only with Telegram's secret header, so nobody else can change a status.
+app.post("/telegram/hook", async (c) => {
+  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (!secret || c.req.header("x-telegram-bot-api-secret-token") !== secret) return c.text("no", 401);
+  const update = await c.req.json().catch(() => ({})) as any;
+  // A tap on one of the three buttons.
+  const cb = update?.callback_query;
+  if (cb) {
+    const m = /^fb:(progress|fixed|closed):(\d+)$/.exec(String(cb.data ?? ""));
+    if (m && String(cb.from?.id) === process.env.TELEGRAM_CHAT_ID) {
+      const { rows } = await pool.query(
+        `update feedback set status = $1, updated_at = now() where id = $2 returning id`, [m[1], Number(m[2])]);
+      await telegramCall("answerCallbackQuery", { callback_query_id: cb.id, text: rows[0] ? `#${m[2]}: ${STATUS_TITLE[m[1]]}` : `No feedback #${m[2]}` });
+      if (rows[0] && cb.message) {
+        const text = String(cb.message.text ?? "").replace(/\n\nStatus: .*$/s, "") + `\n\nStatus: ${STATUS_TITLE[m[1]]}`;
+        await telegramCall("editMessageText", { chat_id: cb.message.chat.id, message_id: cb.message.message_id,
+          text, reply_markup: statusButtons(Number(m[2])) });
+      }
+    } else {
+      await telegramCall("answerCallbackQuery", { callback_query_id: cb.id });
+    }
+    return c.text("ok");
+  }
+  const msg = update?.message;
+  if (!msg || String(msg.chat?.id) !== process.env.TELEGRAM_CHAT_ID) return c.text("ok");
+  const m = /^\/?(fixed|done|seen|closed|close|progress)\s+#?(\d+)\s*(.*)$/is.exec(String(msg.text ?? "").trim());
+  if (!m) {
+    await telegram("Tap a button under a feedback message, or reply: fixed 12 what changed.");
+    return c.text("ok");
+  }
+  const status = { fixed: "fixed", done: "closed", seen: "seen", closed: "closed", close: "closed", progress: "progress" }[m[1].toLowerCase()]!;
+  const { rows } = await pool.query(
+    `update feedback set status = $1, note = coalesce(nullif($2, ''), note), updated_at = now()
+     where id = $3 returning id, left(message, 80) as message`, [status, m[3].trim(), Number(m[2])]);
+  await telegram(rows[0] ? `#${rows[0].id} marked ${STATUS_TITLE[status]}: ${rows[0].message}` : `No feedback #${m[2]}.`);
+  return c.text("ok");
+});
+
 // Which of these plugins already have an approved picture (so the app need not take one).
 app.post("/v1/lookup", async (c) => {
   let ids: unknown;

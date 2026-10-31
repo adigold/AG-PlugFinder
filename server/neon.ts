@@ -5,7 +5,12 @@ export default defineConfig({
     plugdb: {
       name: "AG PlugFinder plugin database",
       source: "src/index.ts",
-      env: { UPLOAD_KEY: process.env.UPLOAD_KEY! },
+      env: {
+        UPLOAD_KEY: process.env.UPLOAD_KEY!,
+        TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN!,
+        TELEGRAM_CHAT_ID: process.env.TELEGRAM_CHAT_ID!,
+        TELEGRAM_WEBHOOK_SECRET: process.env.TELEGRAM_WEBHOOK_SECRET!,
+      },
     },
   },
 });

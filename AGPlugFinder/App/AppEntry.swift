@@ -73,6 +73,7 @@ struct MenuBarContent: View {
             Task { await updater.check(userInitiated: true) }
         }
         Button("Share AG PlugFinder…") { ShareWindow.shared.show() }
+        Button("Send Feedback to Goldi…") { FeedbackWindow.shared.show() }
         Button("Send Error Log to Goldi…") { CrashReports.sendLogs() }
         Divider()
         Button("Settings…") {
@@ -168,6 +169,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(3))
             CrashReports.checkOnLaunch()
+        }
+        // Tells the user when something they reported was fixed (BL-85).
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(8))
+            await Feedback.shared.announceFixed()
         }
         // Shares pictures taken before sharing existed, a little after launch (BL-71).
         Task { @MainActor in
