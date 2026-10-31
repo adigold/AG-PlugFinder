@@ -151,6 +151,7 @@ struct LibraryView: View {
                               active: pinned) { togglePin() }
                 BarIconButton(systemImage: "rectangle.compress.vertical", help: "Mini window") { toggleMini() }
                 Rectangle().fill(Theme.raised).frame(width: 1, height: 18).padding(.horizontal, 6)
+                BarIconButton(systemImage: "questionmark.bubble", help: "Send feedback to Goldi") { FeedbackWindow.shared.show() }
                 VersionBadge()
             }
             .fixedSize()

@@ -53,7 +53,6 @@ struct ViewControls: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            BarIconButton(systemImage: "questionmark.bubble", help: "Send feedback to Goldi") { FeedbackWindow.shared.show() }
             BarIconButton(systemImage: "plus.rectangle.on.rectangle", help: "New collection") { newCollection() }
             BarIconButton(systemImage: view.favoritesOnly ? "star.fill" : "star",
                           help: "Favorites only (⌘F)", active: view.favoritesOnly,
