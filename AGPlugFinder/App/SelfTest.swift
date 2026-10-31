@@ -461,6 +461,15 @@ enum SelfTest {
                 print("LICENSES ok \(lic.money(lic.collectionValue)) \(lic.money(lic.perMonth))"); fflush(stdout)
             }
         }
+        // --selftest-unused <file>: the Plugins you don't use screen (BL-99).
+        if let k = args.firstIndex(of: "--selftest-unused"), k + 1 < args.count {
+            let out = URL(fileURLWithPath: args[k + 1])
+            Task {
+                ReportWindow.pendingTab = "Unused"
+                await shoot(ReportView(), size: NSSize(width: 760, height: 640), to: out)
+                print("UNUSED ok"); fflush(stdout)
+            }
+        }
         // --selftest-search "warm tape|wide|punchy drums": what each search finds (BL-98).
         if let k = args.firstIndex(of: "--selftest-search"), k + 1 < args.count {
             for q in args[k + 1].split(separator: "|").map(String.init) {

@@ -337,7 +337,10 @@ struct LibraryActions: View {
                 Task { await pack.install() }
             }
             Rectangle().fill(Theme.rule).frame(height: 1).padding(.vertical, 6)
-            action("chart.bar", "Plugin report", detail: "Most used, never used, installed twice, disk space") {
+            action("archivebox", "Plugins you don't use", detail: "Never used, how much space and money they take") {
+                ReportWindow.shared.show(tab: "Unused")
+            }
+            action("chart.bar", "Plugin report", detail: "Most used, unused, installed twice, disk space") {
                 ReportWindow.shared.show()
             }
             action("creditcard", "Licenses and subscriptions", detail: licenseDetail) {

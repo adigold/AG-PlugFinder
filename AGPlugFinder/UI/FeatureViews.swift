@@ -558,7 +558,7 @@ extension String {
 final class ReportWindow {
     static let shared = ReportWindow()
     private lazy var window: NSWindow = {
-        let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 620, height: 560),
+        let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 760, height: 640),
                          styleMask: [.titled, .closable, .resizable, .fullSizeContentView],
                          backing: .buffered, defer: false)
         w.titlebarAppearsTransparent = true
@@ -573,11 +573,20 @@ final class ReportWindow {
         return w
     }()
 
-    func show() { window.makeKeyAndOrderFront(nil); NSApp.activate() }
+    static let openTab = Notification.Name("report.openTab")
+    /// The tab to open on, for a window that is made right now and not listening yet.
+    static var pendingTab: String?
+
+    func show(tab: String? = nil) {
+        ReportWindow.pendingTab = tab
+        _ = window
+        window.makeKeyAndOrderFront(nil); NSApp.activate()
+        if let tab { NotificationCenter.default.post(name: Self.openTab, object: tab) }
+    }
 }
 
 struct ReportView: View {
-    enum Tab: String, CaseIterable { case mostUsed = "Most used", never = "Never used", twice = "Installed twice", disk = "Disk space" }
+    enum Tab: String, CaseIterable { case mostUsed = "Most used", never = "Unused", twice = "Installed twice", disk = "Disk space" }
     @State private var tab: Tab = .mostUsed
     @State private var sizes: [(maker: String, bytes: Int64, count: Int)] = []
     var store = PluginStore.shared
@@ -589,23 +598,34 @@ struct ReportView: View {
             HStack(spacing: 6) {
                 ForEach(Tab.allCases, id: \.self) { t in Chip(title: t.rawValue, on: tab == t) { tab = t } }
             }
-            ScrollView {
-                VStack(spacing: 0) {
-                    switch tab {
-                    case .mostUsed: mostUsed
-                    case .never: never
-                    case .twice: twice
-                    case .disk: disk
+            if tab == .never {
+                UnusedView()
+            } else {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        switch tab {
+                        case .mostUsed: mostUsed
+                        case .never: EmptyView()
+                        case .twice: twice
+                        case .disk: disk
+                        }
                     }
                 }
+                .background(RoundedRectangle(cornerRadius: Theme.radiusInner).fill(Theme.surface))
             }
-            .background(RoundedRectangle(cornerRadius: Theme.radiusInner).fill(Theme.surface))
         }
         .padding(.horizontal, 26).padding(.top, 40).padding(.bottom, 22)
         .frame(minWidth: 520, minHeight: 420)
         .background(Theme.ground)
         .preferredColorScheme(.dark)
         .task(id: tab) { if tab == .disk && sizes.isEmpty { sizes = await Self.diskByMaker() } }
+        .onAppear {
+            if let raw = ReportWindow.pendingTab, let t = Tab(rawValue: raw) { tab = t }
+            ReportWindow.pendingTab = nil
+        }
+        .onReceive(NotificationCenter.default.publisher(for: ReportWindow.openTab)) { n in
+            if let raw = n.object as? String, let t = Tab(rawValue: raw) { tab = t }
+        }
     }
 
     private func row(_ left: String, _ sub: String, _ right: String) -> some View {

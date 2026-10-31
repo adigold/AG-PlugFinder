@@ -36,6 +36,7 @@
 		7A24730DB3744E8D9FC7BE9E /* InsertRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF177B31F8EB43737223CB1 /* InsertRunner.swift */; };
 		7C7F0A0658B68ED1C4AD62B6 /* SnapshotProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3489490CA53609C463DF80B1 /* SnapshotProgressView.swift */; };
 		7CA982ACA4D63FEE79A2B743 /* Plugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B431D534CB99B5A459D3517F /* Plugin.swift */; };
+		7CE7EB07DACF256281FCCDFA /* UnusedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EEA5CFC97F1DDE421DD06B0 /* UnusedView.swift */; };
 		7F4F4F8080F79CF039A760C4 /* LogicScreenshots in Resources */ = {isa = PBXBuildFile; fileRef = 356DA54D6AF0A0ECD8B21135 /* LogicScreenshots */; };
 		8091CB98BE54644D13D73DA3 /* OnDeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFFB100FD4998C193C7BEA94 /* OnDeviceInfo.swift */; };
 		8E8D3A87A231BD3E8D683B69 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AED26F1AE92B46F89A94CE6 /* LibraryView.swift */; };
@@ -102,6 +103,7 @@
 		8BF177B31F8EB43737223CB1 /* InsertRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsertRunner.swift; sourceTree = "<group>"; };
 		925D8B9B25BDB22A89D24468 /* LogicCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicCapture.swift; sourceTree = "<group>"; };
 		972CDC623675D6EAE7C6B741 /* PickerPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerPanel.swift; sourceTree = "<group>"; };
+		9EEA5CFC97F1DDE421DD06B0 /* UnusedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnusedView.swift; sourceTree = "<group>"; };
 		9F81E8A2D388B60472551735 /* UpdateWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateWindow.swift; sourceTree = "<group>"; };
 		B19606CDC7F0663446B24FE2 /* SelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfTest.swift; sourceTree = "<group>"; };
 		B30B196AF35A2DA1C5B50F07 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -215,6 +217,7 @@
 				55FD3617B4BC576C117D7A0D /* ShortcutSettings.swift */,
 				3489490CA53609C463DF80B1 /* SnapshotProgressView.swift */,
 				196B1A3B9E2A22D37513FD3C /* TrackViews.swift */,
+				9EEA5CFC97F1DDE421DD06B0 /* UnusedView.swift */,
 				F023E1377B6D025990A4AD1D /* UpdateViews.swift */,
 				9F81E8A2D388B60472551735 /* UpdateWindow.swift */,
 				B8EBF150252A9B6AF992139C /* ViewSettings.swift */,
@@ -380,6 +383,7 @@
 				F187F1FBF38723B078A30291 /* SnapshotRenderer.swift in Sources */,
 				27361D78B2DAFA838ACB8226 /* SoundSearch.swift in Sources */,
 				E29AE07D50724A6CC9AB1F9E /* TrackViews.swift in Sources */,
+				7CE7EB07DACF256281FCCDFA /* UnusedView.swift in Sources */,
 				450CA6479EE050AEE218A77A /* UpdateViews.swift in Sources */,
 				EA7D18667B3A2958C5433C0B /* UpdateWindow.swift in Sources */,
 				2A1392243813F1CFAF3CA9CC /* Updater.swift in Sources */,

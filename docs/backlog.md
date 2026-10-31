@@ -12,8 +12,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 ## Now
-- [~] **BL-99** `P1 · High` **Never used plugins:** a clear view of plugins installed but never inserted, with disk space and what was paid (from Licenses); hide them in one click or show them in Finder to uninstall. Adi, 2026-10-31.
-- [ ] **BL-100** `P2 · Medium` **Wish list and price alerts:** add plugins you want (name, maker, store link, target price); the app checks the store page's price and tells you when it drops or reaches your target; wish list total next to the collection value. Adi, 2026-10-31.
+- [~] **BL-100** `P2 · Medium` **Wish list and price alerts:** add plugins you want (name, maker, store link, target price); the app checks the store page's price and tells you when it drops or reaches your target; wish list total next to the collection value. Adi, 2026-10-31.
 - [ ] **BL-101** `P2 · Medium` **Project plugin report:** for the open Logic project, which plugins it uses, on which tracks, and which are missing on this Mac; export a list for a collaborator. Adi, 2026-10-31.
 - [ ] **BL-102** `P2 · Medium` **Plugin presets:** the user's saved Logic settings for each plugin, shown in its info panel; insert a plugin with a chosen setting loaded, from the picker or a number key; synced. Adi, 2026-10-31.
 
@@ -31,6 +30,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
+- [x] **BL-99** `P1 · High` **Never used plugins:** a clear view of plugins installed but never inserted, with disk space and what was paid (from Licenses); hide them in one click or show them in Finder to uninstall. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-98** `P1 · High` **Smart search by sound:** search with words like "warm tape", "wide shimmer reverb", "punchy drums"; matches descriptions, kinds, categories and sound words, ranked, with a short "matched by sound" hint. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-103** `P2 · Medium` **Category change asks: everyone or only this Mac:** the question after changing a category now names the choice plainly (Everyone / Only This Mac / Cancel). Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-97** `P2 · Medium` **Selection box:** drag on empty space in the plugin grid or list to draw a box; every plugin it touches is picked. ⌘ or ⇧ adds to the plugins already picked; a click on empty space clears them. Adi, 2026-10-31. · done 2026-10-31
