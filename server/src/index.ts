@@ -293,7 +293,7 @@ app.post("/v1/lookup", async (c) => {
   if (!Array.isArray(ids) || ids.length > 2000) return c.json({ error: "bad ids" }, 400);
   const clean = ids.filter((i): i is string => typeof i === "string" && ID.test(i));
   const { rows } = await pool.query(
-    "select plugin_id, version, category from plugins where plugin_id = any($1)", [clean]);
+    "select plugin_id, version, category, picture_rev from plugins where plugin_id = any($1)", [clean]);
   return c.json({ available: rows });
 });
 

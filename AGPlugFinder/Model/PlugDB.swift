@@ -71,6 +71,41 @@ enum PlugDB {
         Task { _ = try? await URLSession.shared.data(for: request) }
     }
 
+    /// The revision of each database picture this Mac has. A picture replaced in the database
+    /// gets a higher one, and is then downloaded again (Adi, 2026-10-31).
+    static var pictureRev: [String: Int] {
+        get { UserDefaults.standard.dictionary(forKey: "share.pictureRev") as? [String: Int] ?? [:] }
+        set { UserDefaults.standard.set(newValue, forKey: "share.pictureRev") }
+    }
+
+    /// At launch: pictures that were replaced in the database since this Mac got (or took) its
+    /// own are downloaded again. The old one is kept, so Undo brings it back. Silent on failure.
+    static func refreshReplacedPictures() async {
+        guard let base, let key else { return }
+        let store = PluginStore.shared
+        let ids = store.plugins.filter { !$0.isLogic }.map(\.id)
+        guard !ids.isEmpty else { return }
+        var request = URLRequest(url: base.appendingPathComponent("v1/lookup"))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 15
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(key, forHTTPHeaderField: "X-AGPF-Key")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: ["ids": Array(ids.prefix(2000))])
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              (response as? HTTPURLResponse)?.statusCode == 200,
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let rows = json["available"] as? [[String: Any]] else { return }
+        let seen = pictureRev
+        let newer = rows.compactMap { r -> String? in
+            guard let id = r["plugin_id"] as? String, let rev = r["picture_rev"] as? Int, rev > (seen[id] ?? 0) else { return nil }
+            return id
+        }
+        guard !newer.isEmpty else { return }
+        for id in newer { WebPicture.backUp(id) }
+        let got = await fetchApproved(newer)
+        if !got.isEmpty { NSLog("AG PlugFinder: \(got.count) pictures replaced from the database") }
+    }
+
     /// Downloads the community's categories and applies them (BL-104). The user's own choice
     /// always wins; silent on any failure.
     static func applyCommunityCategories() async {
@@ -145,6 +180,7 @@ enum PlugDB {
             let png: Data? = bytes.starts(with: [0x89, 0x50, 0x4E, 0x47]) ? bytes
                 : NSImage(data: bytes).flatMap { $0.tiffRepresentation }.flatMap { NSBitmapImageRep(data: $0)?.representation(using: .png, properties: [:]) }
             guard let png, (try? png.write(to: url)) != nil else { continue }
+            pictureRev[id] = entry["picture_rev"] as? Int ?? 0
             store.update(id) { $0.snapshotState = .done; $0.snapshotError = nil }
             if let p = store.plugin(id) { sent[id] = p.version }   // came from the database: nothing to send back
             got.insert(id)

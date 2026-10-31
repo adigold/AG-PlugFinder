@@ -210,6 +210,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // share the user's own earlier changes.
             Task { @MainActor in
                 await PlugDB.applyCommunityCategories()
+                await PlugDB.refreshReplacedPictures()
                 try? await Task.sleep(for: .seconds(12))
                 if OnboardingWindow.isDone { PlugDB.offerEarlierCategories() }
             }
