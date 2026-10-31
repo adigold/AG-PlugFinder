@@ -66,6 +66,29 @@ app.post("/v1/pictures", async (c) => {
   return c.json({ ok: true }, 201);
 });
 
+// A crash report or error log the user chose to send to Goldi (BL-73).
+app.post("/v1/reports", async (c) => {
+  const length = Number(c.req.header("content-length") ?? 0);
+  if (!length || length > 3_000_000) return c.json({ error: "too large" }, 413);
+  let body: Record<string, unknown>;
+  try { body = await c.req.json(); } catch { return c.json({ error: "bad json" }, 400); }
+  const str = (k: string, max: number) => (typeof body[k] === "string" ? (body[k] as string).slice(0, max) : null);
+  const kind = body.kind === "crash" ? "crash" : "log";
+  const installId = str("installId", 64);
+  if (!installId) return c.json({ error: "missing fields" }, 400);
+  const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ipHash = createHash("sha256").update(ip + (process.env.UPLOAD_KEY ?? "")).digest("hex").slice(0, 32);
+  const { rows: [{ n }] } = await pool.query(
+    "select count(*)::int as n from reports where ip_hash = $1 and created_at > now() - interval '1 day'", [ipHash]);
+  if (n >= 20) return c.json({ error: "slow down" }, 429);
+  await pool.query(
+    `insert into reports (kind, install_id, app_version, macos, note, report, log, ip_hash)
+     values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [kind, installId, str("appVersion", 20), str("macOS", 100), str("note", 2000),
+     str("report", 1_600_000), str("log", 400_000), ipHash]);
+  return c.json({ ok: true }, 201);
+});
+
 // Which of these plugins already have an approved picture (so the app need not take one).
 app.post("/v1/lookup", async (c) => {
   let ids: unknown;

@@ -73,6 +73,7 @@ struct MenuBarContent: View {
             Task { await updater.check(userInitiated: true) }
         }
         Button("Share AG PlugFinder…") { ShareWindow.shared.show() }
+        Button("Send Error Log to Goldi…") { CrashReports.sendLogs() }
         Divider()
         Button("Settings…") {
             NSApp.activate()
@@ -163,6 +164,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in UserLibrary.shared.pullFromCloud() }
         }
         Task { @MainActor in Updater.shared.start() }
+        // Offers to send the report when the app closed unexpectedly last time (BL-73).
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(3))
+            CrashReports.checkOnLaunch()
+        }
         // Shares pictures taken before sharing existed, a little after launch (BL-71).
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(30))

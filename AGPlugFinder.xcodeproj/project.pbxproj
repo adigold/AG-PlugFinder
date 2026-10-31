@@ -37,6 +37,7 @@
 		8E8D3A87A231BD3E8D683B69 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AED26F1AE92B46F89A94CE6 /* LibraryView.swift */; };
 		931ACACD35A71211C23FDE8B /* LocalModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6EC4140429A7774ED898F02 /* LocalModel.swift */; };
 		9970AF4632E51CEE778BA8EE /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FC6C5138045E623B2A0134 /* Migration.swift */; };
+		A244E15B48EF37970CDC78F4 /* CrashReports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0135B483A0FBDF4DAD8DCC91 /* CrashReports.swift */; };
 		A31521FE2FB09048BD460EB8 /* Shortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04543FB792952D69782A9314 /* Shortcuts.swift */; };
 		ABF6017627F4BF04469803C6 /* ViewSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8EBF150252A9B6AF992139C /* ViewSettings.swift */; };
 		B1E65F4E61D464E5340D09D2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFB8804982519104A3E9C10 /* SettingsView.swift */; };
@@ -57,6 +58,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0135B483A0FBDF4DAD8DCC91 /* CrashReports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReports.swift; sourceTree = "<group>"; };
 		04543FB792952D69782A9314 /* Shortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shortcuts.swift; sourceTree = "<group>"; };
 		0A06B5A571B3FD73B01B759C /* HotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKey.swift; sourceTree = "<group>"; };
 		1211458E32500BCFB817B799 /* UserLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserLibrary.swift; sourceTree = "<group>"; };
@@ -132,6 +134,7 @@
 			isa = PBXGroup;
 			children = (
 				543D77325B5A182229531F62 /* AppEntry.swift */,
+				0135B483A0FBDF4DAD8DCC91 /* CrashReports.swift */,
 				0A06B5A571B3FD73B01B759C /* HotKey.swift */,
 				23FC6C5138045E623B2A0134 /* Migration.swift */,
 				B19606CDC7F0663446B24FE2 /* SelfTest.swift */,
@@ -315,6 +318,7 @@
 				6A189FEC2349289FD418F81D /* AppEntry.swift in Sources */,
 				E80952E50B926A41F630F61F /* BrowserViews.swift in Sources */,
 				3C4BCBCC68DB9EFD408B3897 /* ChannelFormat.swift in Sources */,
+				A244E15B48EF37970CDC78F4 /* CrashReports.swift in Sources */,
 				C531734DE546A332930B0C09 /* DesignSystem.swift in Sources */,
 				B9F5D62FC7F6DB07E854998D /* FeatureViews.swift in Sources */,
 				29635C0C264E29F51E293901 /* HotKey.swift in Sources */,

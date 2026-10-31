@@ -12,6 +12,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 ## Now
 
+- [~] **BL-73** `P1 · High` **Crash reports to Goldi:** after AG PlugFinder closed unexpectedly, the next launch offers "Send the report to Goldi"; also a Send error log button any time. Reports go to the shared database for Adi to read. Adi, 2026-10-31.
 - [~] **BL-71** `P2 · Medium` **Shared plugin database:** users can choose to share plugin pictures and info; Adi approves them; everyone downloads them so the same plugin is never scanned twice. Neon database (Adi's choice) behind a small API with auth; pictures in the database or blob storage. Adi, 2026-10-31. Collecting shipped in 0.9.0 (upload on by default, approval with `npm run review`); downloading approved pictures still to build.
 - [~] **BL-70** `P1 · Medium` **Clear a track with Logic's own command:** Remove All Effect Plug-ins from the channel strip's Setting menu in one step instead of one by one; also Bypass All, Remove Bypassed and Remove All Sends. Adi, 2026-10-31.
 - [~] **BL-69** `P1 · Medium` **Channel format, Auto or Ask me:** when Logic offers a plugin in several versions (Mono, Stereo, Mono to Stereo, Dual Mono), Auto picks the one that fits the track and Ask me leaves Logic's choice open; each plugin can have its own. Inspired by PlugSearch's Channel Mode. Adi, 2026-10-31.
@@ -25,6 +26,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-74** `P2 · Medium` **Shortcuts for the track panel actions:** Save as chain, Remove all effects, Remove the ones turned off and Remove all sends can each get a key in Settings > Shortcuts. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-72** `P1 · High` **Plugin popups during the picture scan:** a plugin's own popup ("Too many parameters in process", Absynth 5 MFX) is closed at once and noted; a plugin that failed is not tried again on every scan. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-63** `P2 · Low` **Menu bar icon:** the app's own three-bar mark instead of a generic puzzle piece. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-62** `P1 · Medium` **Install with Homebrew:** tap adigold/homebrew-tap with the ag-plugfinder cask, README steps, release.sh updates the cask on every release. Adi, 2026-10-31. · done 2026-10-31

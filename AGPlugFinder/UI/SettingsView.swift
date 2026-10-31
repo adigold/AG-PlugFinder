@@ -80,6 +80,9 @@ struct GeneralSettings: View {
                     }
                     Text(diagnosticsNote).font(.caption).foregroundStyle(.secondary)
                 }
+                HStack {
+                    Button("Send Error Log to Goldi…") { CrashReports.sendLogs() }
+                }
             }
 
             Section("Help other users") {

@@ -8,7 +8,8 @@
     "check": "tsx --env-file=.env.local scripts/check.ts",
     "review": "tsx --env-file=.env.local scripts/review.ts",
     "dev": "neon dev",
-    "deploy": "neon deploy --env .env.local"
+    "deploy": "neon deploy --env .env.local",
+    "reports": "tsx --env-file=.env.local scripts/reports.ts"
   },
   "keywords": [],
   "author": "",

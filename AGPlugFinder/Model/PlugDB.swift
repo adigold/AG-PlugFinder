@@ -6,10 +6,10 @@ import Foundation
 /// with a random id for this Mac. Every failure is silent: sharing never gets in the way.
 @MainActor
 enum PlugDB {
-    private static var base: URL? {
+    static var base: URL? {
         (Bundle.main.object(forInfoDictionaryKey: "AGPFPlugDBURL") as? String).flatMap(URL.init(string:))
     }
-    private static var key: String? {
+    static var key: String? {
         (Bundle.main.object(forInfoDictionaryKey: "AGPFUploadKey") as? String).flatMap { $0.isEmpty || $0.hasPrefix("$(") ? nil : $0 }
     }
 
@@ -18,7 +18,7 @@ enum PlugDB {
         set { UserDefaults.standard.set(newValue, forKey: "share.pictures") }
     }
 
-    private static var installID: String {
+    static var installID: String {
         if let id = UserDefaults.standard.string(forKey: "share.installID") { return id }
         let id = UUID().uuidString
         UserDefaults.standard.set(id, forKey: "share.installID")

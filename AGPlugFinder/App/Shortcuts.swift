@@ -5,6 +5,7 @@ import Observation
 /// Everything AG PlugFinder can do from the keyboard (BL-51).
 enum ShortcutAction: String, CaseIterable, Identifiable, Codable {
     case openLibrary, quickPicker, miniWindow, trackPanel, openAll, closeAll, removeLast
+    case saveChain, removeAllEffects, removeTurnedOff, removeAllSends
     case pin1, pin2, pin3, pin4, pin5, pin6, pin7, pin8, pin9
 
     var id: String { rawValue }
@@ -24,6 +25,10 @@ enum ShortcutAction: String, CaseIterable, Identifiable, Codable {
         case .openAll: return "Open the track's plugins side by side"
         case .closeAll: return "Close plugin windows"
         case .removeLast: return "Remove the last plugin added"
+        case .saveChain: return "Save the track as a chain"
+        case .removeAllEffects: return "Remove all effects"
+        case .removeTurnedOff: return "Remove the effects turned off"
+        case .removeAllSends: return "Remove all sends"
         default: return "Insert what is pinned to \(pinNumber ?? 0)"
         }
     }
@@ -31,7 +36,8 @@ enum ShortcutAction: String, CaseIterable, Identifiable, Codable {
     var group: String {
         switch self {
         case .openLibrary, .quickPicker, .miniWindow: return "Windows"
-        case .trackPanel, .openAll, .closeAll, .removeLast: return "The selected track"
+        case .trackPanel, .openAll, .closeAll, .removeLast, .saveChain, .removeAllEffects, .removeTurnedOff,
+             .removeAllSends: return "The selected track"
         default: return "Number keys"
         }
     }
@@ -45,7 +51,8 @@ enum ShortcutAction: String, CaseIterable, Identifiable, Codable {
         case .openLibrary: return KeyCombo(keyCode: UInt32(kVK_ANSI_P), mods: co, key: "P")
         case .openAll: return KeyCombo(keyCode: UInt32(kVK_ANSI_O), mods: co, key: "O")
         case .closeAll: return KeyCombo(keyCode: UInt32(kVK_ANSI_W), mods: co, key: "W")
-        case .quickPicker, .miniWindow, .trackPanel, .removeLast: return nil
+        case .quickPicker, .miniWindow, .trackPanel, .removeLast, .saveChain, .removeAllEffects, .removeTurnedOff,
+             .removeAllSends: return nil
         default:
             let digits = [kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5,
                           kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9]
@@ -184,6 +191,39 @@ final class Shortcuts {
             Task {
                 if let name = await LogicTrack.shared.removeLastAdded() { Toast.show("Removed \(name)") }
                 else { Toast.show("Nothing to remove on the selected track.", warning: true) }
+                TrackState.shared.refreshSoon()
+            }
+        case .saveChain:
+            TrackState.shared.refresh()
+            let state = TrackState.shared
+            let (ids, missing) = state.asChain()
+            guard !ids.isEmpty else { Toast.show("No plugins from your library on the selected track.", warning: true); return }
+            NSApp.activate()
+            guard let name = NamePrompt.ask("Save track as chain", placeholder: "Name",
+                                            initial: "\(state.track ?? "Track") chain") else { return }
+            UserLibrary.shared.newChain(named: name, with: ids)
+            Toast.show(missing.isEmpty ? "Saved \(name): \(ids.count) plugins"
+                                       : "Saved \(name). Not in your library: \(missing.joined(separator: ", "))",
+                       warning: !missing.isEmpty)
+        case .removeAllEffects:
+            Task {
+                if let n = await LogicTrack.shared.clearEffects() {
+                    Toast.show(n == 0 ? "No effects on the selected track." : "Removed \(n) effect\(n == 1 ? "" : "s"). Undo in Logic with ⌘Z.")
+                } else {
+                    Toast.show("Logic's Remove All Effect Plug-ins wasn't available. Show the Inspector (I) and try again.", warning: true)
+                }
+                TrackState.shared.refreshSoon()
+            }
+        case .removeTurnedOff:
+            Task {
+                let ok = await LogicTrack.shared.stripCommand("Remove Bypassed Plug-ins")
+                Toast.show(ok ? "Removed the effects that were turned off." : "No effects turned off on the selected track.", warning: !ok)
+                TrackState.shared.refreshSoon()
+            }
+        case .removeAllSends:
+            Task {
+                let ok = await LogicTrack.shared.stripCommand("Remove All Sends")
+                Toast.show(ok ? "Removed all sends." : "No sends on the selected track.", warning: !ok)
                 TrackState.shared.refreshSoon()
             }
         default:
