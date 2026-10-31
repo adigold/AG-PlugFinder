@@ -512,7 +512,10 @@ struct PluginDetailView: View {
             insertBar
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    ZoomableThumbnail(plugin: plugin)
+                    VStack(spacing: 8) {
+                        ZoomableThumbnail(plugin: plugin)
+                        PictureActions(plugin: plugin)
+                    }
                     titleBlock
                     if let d = plugin.details { info(d) } else { noInfo }
                     PluginExtras(plugin: plugin, model: model)
@@ -737,11 +740,12 @@ struct PluginContextMenu: View {
             .disabled(SnapshotQueue.shared.isRunning)
             Button("Clear Screenshot") { store.clearScreenshots([plugin.id]) }
                 .disabled(store.image(for: plugin.id) == nil)
-            Button("Find Picture on the Web") { WebPicture.find([plugin]) }
             Button("Use the Community Picture") { WebPicture.useCommunity(plugin) }
-            if FileManager.default.fileExists(atPath: WebPicture.backupURL(plugin.id).path) {
-                Button("Undo Picture Change") { WebPicture.undo(plugin) }
-            }
+        }
+        // Every plugin, Logic's own too, can get a picture from the web.
+        Button("Find Picture on the Web") { WebPicture.find([plugin]) }
+        if FileManager.default.fileExists(atPath: WebPicture.backupURL(plugin.id).path) {
+            Button("Undo Picture Change") { WebPicture.undo(plugin) }
         }
         Button(plugin.details == nil ? "Look Up Info" : "Look Up Info Again") {
             PluginInfoFetcher.shared.start(ids: [plugin.id])
@@ -1238,5 +1242,49 @@ enum EnglishKeys {
     static func fromHebrewKeys(_ s: String) -> String {
         guard s.unicodeScalars.contains(where: { (0x05D0...0x05EA).contains($0.value) }) else { return s }
         return String(s.map { hebrew[$0] ?? $0 })
+    }
+}
+
+
+/// Everything about the picture, right under it in the info panel (Adi, 2026-10-31).
+struct PictureActions: View {
+    let plugin: Plugin
+    var store = PluginStore.shared
+    var queue = SnapshotQueue.shared
+
+    var body: some View {
+        let hasImage = store.image(for: plugin.id) != nil
+        FlowRow(spacing: 6) {
+            if !plugin.isLogic {
+                small(hasImage ? "Retake" : "Take Picture", "camera") { queue.recapture(plugin.id) }
+                    .disabled(queue.isRunning)
+            }
+            small("Find on the Web", "globe") { WebPicture.find([plugin]) }
+            if !plugin.isLogic {
+                small("Community Picture", "person.2") { WebPicture.useCommunity(plugin) }
+            }
+            if FileManager.default.fileExists(atPath: WebPicture.backupURL(plugin.id).path) {
+                small("Undo", "arrow.uturn.backward") { WebPicture.undo(plugin) }
+            }
+            if !plugin.isLogic, hasImage {
+                small("Clear", "trash") { store.clearScreenshots([plugin.id]) }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func small(_ title: String, _ icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: icon).font(.system(size: 10, weight: .medium))
+                Text(title).font(.system(size: 11))
+            }
+            .padding(.horizontal, 9).frame(height: 24)
+            .foregroundStyle(Theme.muted)
+            .background(Capsule().fill(Theme.raised))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(PressScale())
+        .help(title)
     }
 }

@@ -12,9 +12,8 @@ enum WebPicture {
 
     /// Opens the chooser for each plugin in turn.
     static func find(_ plugins: [Plugin]) {
-        let list = plugins.filter { !$0.isLogic }
-        guard !list.isEmpty else { return }
-        WebPictureWindow.shared.show(list)
+        guard !plugins.isEmpty else { return }
+        WebPictureWindow.shared.show(plugins)
     }
 
     /// Where the picture before a change is kept, so it can be put back.
