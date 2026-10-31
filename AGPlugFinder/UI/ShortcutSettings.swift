@@ -17,18 +17,24 @@ struct ShortcutSettings: View {
         Form {
             Section {
                 if HyperKey.otherAppMapsKeys && !hyper {
-                    Text("Your keyboard already has a Hyper key from another app, so Hyper shortcuts work here as they are. Click a shortcut below and press it with your Hyper key.")
+                    LabeledContent("Hyper key") {
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                            Text("Ready, from another app")
+                        }
+                    }
+                    Text("Another app already turns Caps Lock into a Hyper key, and it works here too. Click a shortcut below, hold Caps Lock and press a key. To let AG PlugFinder handle Caps Lock instead, switch off the Hyper key in that app first.")
+                        .font(.caption).foregroundStyle(.secondary)
+                } else {
+                    Toggle("Use Caps Lock as a Hyper key", isOn: $hyper)
+                        .onChange(of: hyper) { _, on in
+                            if on, let problem = HyperKey.start() { note = problem; hyper = false; return }
+                            HyperKey.enabled = on
+                            note = nil
+                        }
+                    Text("Hold Caps Lock and press a key to use Hyper shortcuts. Hyper is Control, Option, Shift and Command together, so it never clashes with Logic's own key commands. Caps Lock works normally again when you turn this off or quit AG PlugFinder.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
-                Toggle("Use Caps Lock as a Hyper key", isOn: $hyper)
-                    .disabled(HyperKey.otherAppMapsKeys && !hyper)
-                    .onChange(of: hyper) { _, on in
-                        if on, let problem = HyperKey.start() { note = problem; hyper = false; return }
-                        HyperKey.enabled = on
-                        note = nil
-                    }
-                Text("Hold Caps Lock and press a key to use Hyper shortcuts. Hyper is Control, Option, Shift and Command together, so it never clashes with Logic's own key commands. Caps Lock works normally again when you turn this off or quit AG PlugFinder.")
-                    .font(.caption).foregroundStyle(.secondary)
                 if let note { Text(note).font(.caption).foregroundStyle(.orange) }
             }
             ForEach(groups, id: \.0) { group in
