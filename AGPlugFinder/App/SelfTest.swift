@@ -244,6 +244,24 @@ enum SelfTest {
                 .split(separator: "\n").map { String($0.dropFirst(2)) } ?? []
             Task { await readmeShots(URL(fileURLWithPath: args[k + 1]), notes: lines) }
         }
+        // --share-shots <dir>: the social preview card (1280 by 640) and the Share window.
+        if let k = args.firstIndex(of: "--share-shots"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task {
+                let r = ImageRenderer(content: ShareCard().frame(width: 1280, height: 640))
+                r.scale = 1
+                if let img = r.nsImage, let tiff = img.tiffRepresentation,
+                   let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
+                    try? png.write(to: dir.appendingPathComponent("social-preview.png"))
+                }
+                ShareWindow.shared.show()
+                try? await Task.sleep(for: .seconds(1.2))
+                if let w = NSApp.windows.first(where: { $0.isVisible && ($0.contentView as? NSHostingView<ShareView>) != nil }) {
+                    await capture(w, to: dir.appendingPathComponent("share-window.png"))
+                }
+                print("SHARE done"); fflush(stdout)
+            }
+        }
         if let k = args.firstIndex(of: "--selftest-features"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])
             Task { await features(dir); fflush(stdout) }

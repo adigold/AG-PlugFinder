@@ -335,6 +335,9 @@ struct LibraryActions: View {
             action("chart.bar", "Plugin report", detail: "Most used, never used, installed twice, disk space") {
                 ReportWindow.shared.show()
             }
+            action("square.and.arrow.up", "Share AG PlugFinder", detail: "X, WhatsApp, Messages, Instagram and more") {
+                ShareWindow.shared.show()
+            }
             action("rectangle.stack", "Screenshot progress", detail: nil) { SnapshotProgressWindow.shared.show() }
             action("gearshape", "Settings and plugin list", detail: nil) { openSettings() }
         }

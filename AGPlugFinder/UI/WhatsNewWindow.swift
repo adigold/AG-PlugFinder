@@ -206,6 +206,7 @@ struct WhatsNewView: View {
                 QuietPill(title: "Later", height: 34) { close() }
                 PrimaryPill(title: "Install and Restart", height: 36) { close(); updater.install() }
             } else {
+                QuietPill(title: "Share AG PlugFinder", systemImage: "square.and.arrow.up", height: 34) { ShareWindow.shared.show() }
                 Spacer()
                 PrimaryPill(title: justUpdated ? "Start Using It" : "Close", height: 36) {
                     if justUpdated { updater.whatsNew = nil }

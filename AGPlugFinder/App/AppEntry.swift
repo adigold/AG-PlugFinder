@@ -72,6 +72,7 @@ struct MenuBarContent: View {
         Button(updater.state == .upToDate ? "You're updated (v\(updater.currentVersion))" : "Check for Update…") {
             Task { await updater.check(userInitiated: true) }
         }
+        Button("Share AG PlugFinder…") { ShareWindow.shared.show() }
         Divider()
         Button("Settings…") {
             NSApp.activate()

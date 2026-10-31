@@ -20,10 +20,12 @@
 		2E95C518E15D9AE1CE0BD68C /* PluginStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FD7E657F3026F318121A9D6 /* PluginStore.swift */; };
 		3BBC1A8A91E10880B239C18D /* AX.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFBFF2C38A98C6768DF05100 /* AX.swift */; };
 		450CA6479EE050AEE218A77A /* UpdateViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F023E1377B6D025990A4AD1D /* UpdateViews.swift */; };
+		48B6DCB114257559637BA3E5 /* Share in Resources */ = {isa = PBXBuildFile; fileRef = B65B4103D33CABD66BA2B1EA /* Share */; };
 		55042213A5FBB48BD7609817 /* LogicInserter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE2A7565B4582595AC03716 /* LogicInserter.swift */; };
 		5DCD29A96935375138A77B64 /* ShortcutSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55FD3617B4BC576C117D7A0D /* ShortcutSettings.swift */; };
 		614EE6DB31B4D355967EE472 /* LogicCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79020B749BE713B285FFCF69 /* LogicCatalog.swift */; };
 		6A189FEC2349289FD418F81D /* AppEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543D77325B5A182229531F62 /* AppEntry.swift */; };
+		7219F4928E487650D9BD675F /* ShareWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73BE9C76C349750CE02E0E1B /* ShareWindow.swift */; };
 		798772CCE9D7FB6C1CC04281 /* LogicTrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 510649A05002EFFF609F883A /* LogicTrack.swift */; };
 		7A24730DB3744E8D9FC7BE9E /* InsertRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF177B31F8EB43737223CB1 /* InsertRunner.swift */; };
 		7C7F0A0658B68ED1C4AD62B6 /* SnapshotProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3489490CA53609C463DF80B1 /* SnapshotProgressView.swift */; };
@@ -75,6 +77,7 @@
 		5FD7E657F3026F318121A9D6 /* PluginStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginStore.swift; sourceTree = "<group>"; };
 		65D1DB32E57A0017C2D34478 /* FeatureViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureViews.swift; sourceTree = "<group>"; };
 		68C0948383AEB9D0BE90BBA8 /* WhatsNewWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewWindow.swift; sourceTree = "<group>"; };
+		73BE9C76C349750CE02E0E1B /* ShareWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareWindow.swift; sourceTree = "<group>"; };
 		79020B749BE713B285FFCF69 /* LogicCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicCatalog.swift; sourceTree = "<group>"; };
 		81B74FA4A5CFB65E2CFEDE04 /* AGPlugFinder.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AGPlugFinder.entitlements; sourceTree = "<group>"; };
 		88B603335B7ED50468B310DE /* PickerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerModel.swift; sourceTree = "<group>"; };
@@ -85,6 +88,7 @@
 		B19606CDC7F0663446B24FE2 /* SelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfTest.swift; sourceTree = "<group>"; };
 		B30B196AF35A2DA1C5B50F07 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B431D534CB99B5A459D3517F /* Plugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plugin.swift; sourceTree = "<group>"; };
+		B65B4103D33CABD66BA2B1EA /* Share */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Share; path = Bundled/Share; sourceTree = SOURCE_ROOT; };
 		B6F77814834E56DA4A623391 /* SnapshotRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotRenderer.swift; sourceTree = "<group>"; };
 		B8EBF150252A9B6AF992139C /* ViewSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSettings.swift; sourceTree = "<group>"; };
 		BFBFF2C38A98C6768DF05100 /* AX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AX.swift; sourceTree = "<group>"; };
@@ -109,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				356DA54D6AF0A0ECD8B21135 /* LogicScreenshots */,
+				B65B4103D33CABD66BA2B1EA /* Share */,
 			);
 			path = Bundled;
 			sourceTree = "<group>";
@@ -169,6 +174,7 @@
 				5404214EB311D626E97267AD /* PickerView.swift */,
 				DDD1C34D4EFF0692962BAAE7 /* PluginListEditor.swift */,
 				2AFB8804982519104A3E9C10 /* SettingsView.swift */,
+				73BE9C76C349750CE02E0E1B /* ShareWindow.swift */,
 				55FD3617B4BC576C117D7A0D /* ShortcutSettings.swift */,
 				3489490CA53609C463DF80B1 /* SnapshotProgressView.swift */,
 				196B1A3B9E2A22D37513FD3C /* TrackViews.swift */,
@@ -279,6 +285,7 @@
 			files = (
 				17273346968303AADBE29BB4 /* Assets.xcassets in Resources */,
 				7F4F4F8080F79CF039A760C4 /* LogicScreenshots in Resources */,
+				48B6DCB114257559637BA3E5 /* Share in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -315,6 +322,7 @@
 				2E95C518E15D9AE1CE0BD68C /* PluginStore.swift in Sources */,
 				22C05D51D8B31A9562FB3476 /* SelfTest.swift in Sources */,
 				B1E65F4E61D464E5340D09D2 /* SettingsView.swift in Sources */,
+				7219F4928E487650D9BD675F /* ShareWindow.swift in Sources */,
 				5DCD29A96935375138A77B64 /* ShortcutSettings.swift in Sources */,
 				A31521FE2FB09048BD460EB8 /* Shortcuts.swift in Sources */,
 				7C7F0A0658B68ED1C4AD62B6 /* SnapshotProgressView.swift in Sources */,
