@@ -27,6 +27,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
+- [x] **BL-96** `P2 · Medium` **Sync in the welcome wizard:** a Sync step after Open at login offers iCloud sync of the library and licenses; on a second Mac it brings everything over. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-95** `P2 · Medium` **Licenses sync through iCloud Drive:** licenses, subscriptions, bundles and the currency sync with the user's other Macs, using the existing sync switch; the first sync merges both sides. License keys stay in each Mac's Keychain. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-94** `P2 · Medium` **+ Single License button:** next to + Subscription and + Bundle; choose a plugin from a searchable list and fill in its license. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-93** `P2 · Medium` **Date picker in the app's style:** the plain Mac date field and calendar replaced by a pill with the date and a dark month calendar with quick choices. Adi, 2026-10-31. · done 2026-10-31

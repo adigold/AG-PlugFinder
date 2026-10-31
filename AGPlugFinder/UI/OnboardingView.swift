@@ -38,11 +38,14 @@ final class OnboardingWindow {
 }
 
 struct OnboardingView: View {
-    enum Step: Int, CaseIterable { case welcome, logic, login, info, scan }
+    enum Step: Int, CaseIterable { case welcome, logic, login, sync, info, scan }
 
-    @State private var step: Step = .welcome
+    @State private var step: Step
+
+    init(start: Step = .welcome) { _step = State(initialValue: start) }
     @State private var trusted = AXAccess.isTrusted
     @State private var launchAtLogin = true
+    @State private var sync = UserLibrary.cloudFile != nil && UserLibrary.shared.syncEnabled
     @State private var apiKey = ""
     @State private var keySaved = Keychain.read() != nil
     @State private var scanStarted = false
@@ -58,6 +61,7 @@ struct OnboardingView: View {
                 case .welcome: welcome
                 case .logic: logic
                 case .login: login
+                case .sync: syncStep
                 case .info: info
                 case .scan: scan
                 }
@@ -146,6 +150,27 @@ struct OnboardingView: View {
         }
     }
 
+    /// iCloud sync (BL-96): on a second Mac, everything from the first one arrives here.
+    private var syncStep: some View {
+        let drive = UserLibrary.cloudFile != nil
+        return VStack(spacing: 16) {
+            stepIcon("icloud")
+            Text("Same library on every Mac").font(.system(size: 22, weight: .bold))
+            Text("Sync your favorites, collections, chains, notes, number keys, licenses and subscriptions with your other Macs through iCloud Drive. No account needed, it uses your Apple ID.")
+                .font(.system(size: 13)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+            Toggle(isOn: $sync) {
+                Text("Sync with my other Macs").font(.system(size: 14, weight: .medium))
+            }
+            .toggleStyle(.switch)
+            .disabled(!drive)
+            .padding(14)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Theme.surface))
+            Text(drive ? "License keys stay on each Mac. You can change this any time in Settings."
+                       : "iCloud Drive is off on this Mac. Turn it on in System Settings, then switch sync on in Settings.")
+                .font(.system(size: 11)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+        }
+    }
+
     private var info: some View {
         VStack(spacing: 14) {
             stepIcon("sparkles")
@@ -221,6 +246,7 @@ struct OnboardingView: View {
         case .welcome: title = "Get Started"
         case .logic: title = "Continue"; disabled = !trusted
         case .login: title = "Continue"
+        case .sync: title = "Continue"
         case .info: title = "Continue"
         case .scan:
             if !scanStarted { title = "Scan My Plugins" }
@@ -242,6 +268,12 @@ struct OnboardingView: View {
         switch step {
         case .login:
             LaunchAtLogin.set(launchAtLogin)
+            go(1)
+        case .sync:
+            if UserLibrary.cloudFile != nil {
+                UserLibrary.shared.syncEnabled = sync
+                if sync { UserLibrary.shared.pullFromCloud(); Licenses.shared.pullFromCloud() }
+            }
             go(1)
         case .scan:
             if !scanStarted {

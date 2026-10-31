@@ -461,6 +461,13 @@ enum SelfTest {
                 print("LICENSES ok \(lic.money(lic.collectionValue)) \(lic.money(lic.perMonth))"); fflush(stdout)
             }
         }
+        if let k = args.firstIndex(of: "--selftest-onboarding-sync"), k + 1 < args.count {
+            let out = URL(fileURLWithPath: args[k + 1])
+            Task {
+                await shoot(OnboardingView(start: .sync), size: NSSize(width: 640, height: 500), to: out)
+                print("ONBOARDSYNC ok"); fflush(stdout)
+            }
+        }
         if let k = args.firstIndex(of: "--selftest-onboarding"), k + 1 < args.count {
             let out = URL(fileURLWithPath: args[k + 1])
             Task {
