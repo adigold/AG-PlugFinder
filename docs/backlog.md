@@ -12,12 +12,12 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 ## Now
 
-- [~] **BL-54** `P1 · High` **Release 0.6.0:** shortcuts, Hyper key, What's New window, size slider, new instrument track, categories by default. Adi wants to see the What's New window after updating. Adi, 2026-10-31.
 - [~] **BL-47** `P1 · High` **Publish 0.5.0 so Check for Update finds it:** make the AG-PlugFinder repo public (Adi chose this over a separate releases repo) and publish a signed, notarized 0.5.0 release with every feature since 0.4.0. Adi, 2026-10-31.
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
 
+- [x] **BL-54** `P1 · High` **Release 0.6.0:** shortcuts, Hyper key, What's New window, size slider, new instrument track, categories by default. Adi wants to see the What's New window after updating. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-53** `P1 · Medium` **A great GitHub README:** explain everything the app does and what is new, with a GIF and screenshots taken from the app's own windows, then push. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-52** `P1 · Medium` **Instrument on a track without one:** loading an instrument while an audio or aux track is selected makes a new instrument track and loads it there. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-51** `P1 · High` **Shortcuts in Settings:** map every action (open window, quick picker, mini window, track panel, open/close plugin windows, remove last, number keys) to your own key combos, including a Hyper key, with Caps Lock usable as Hyper. Adi, 2026-10-31. · done 2026-10-31
