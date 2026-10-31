@@ -331,6 +331,17 @@ enum SelfTest {
                 fflush(stdout); exit(0)
             }
         }
+        // --selftest-small <png>: small cards with their stars; the size setting is put back after.
+        if let k = args.firstIndex(of: "--selftest-small"), k + 1 < args.count {
+            Task {
+                let v = ViewSettings.shared, old = v.tileWidth
+                v.setTileWidth(130)
+                await shoot(PluginGrid(model: PickerModel()) {}.background(Theme.ground), size: NSSize(width: 700, height: 360),
+                            to: URL(fileURLWithPath: args[k + 1]))
+                v.setTileWidth(old)
+                exit(0)
+            }
+        }
         // --selftest-picked <png>: the grid with three plugins picked and the bar at the bottom.
         if let k = args.firstIndex(of: "--selftest-picked"), k + 1 < args.count {
             let out = URL(fileURLWithPath: args[k + 1])

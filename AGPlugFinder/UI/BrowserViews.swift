@@ -281,6 +281,12 @@ struct PluginTile: View {
         VStack(alignment: .leading, spacing: 10) {
             PluginThumbnail(plugin: plugin)
                 .aspectRatio(1.6, contentMode: .fit)
+                // Small cards have no room beside the name: the star sits on the picture's corner.
+                .overlay(alignment: .topTrailing) {
+                    if view.tileWidth < 170 || !(view.showName || view.showDetails) {
+                        FavoriteStar(plugin: plugin, cardHovered: hovering).scaleEffect(0.85).padding(-4)
+                    }
+                }
 
             if view.showName || view.showDetails {
                 HStack(alignment: .bottom, spacing: 4) {
