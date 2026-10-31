@@ -283,7 +283,7 @@ struct PluginTile: View {
                 .aspectRatio(1.6, contentMode: .fit)
                 // Small cards have no room beside the name: the star sits on the picture's corner.
                 .overlay(alignment: .topTrailing) {
-                    if view.tileWidth < 170 || !(view.showName || view.showDetails) {
+                    if view.tileWidth < ViewSettings.smallestCards || !(view.showName || view.showDetails) {
                         FavoriteStar(plugin: plugin, cardHovered: hovering).scaleEffect(0.85).padding(-4)
                     }
                 }
@@ -307,7 +307,7 @@ struct PluginTile: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     // The star sits in the bottom-right corner, beside the text; small cards
                     // have no room for it (the info panel's star still works).
-                    if view.tileWidth >= 170 {
+                    if view.tileWidth >= ViewSettings.smallestCards {
                         FavoriteStar(plugin: plugin, cardHovered: hovering).padding(-6)
                     }
                 }

@@ -57,6 +57,8 @@ final class ViewSettings {
     /// Picture width from the size slider (BL-48), any width between small and extra large.
     var tileWidth: CGFloat { didSet { save("tileWidth", Double(tileWidth)) } }
     static let tileRange: ClosedRange<CGFloat> = 110...420
+    /// Below this the cards are the smallest size: the star moves onto the picture's corner.
+    static let smallestCards: CGFloat = 150
     private var settingWidth = false
 
     /// Moves the slider; the S M L XL chips light up for the nearest size.
