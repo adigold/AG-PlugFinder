@@ -365,6 +365,12 @@ struct ChainsPanel: View {
     var close: () -> Void
     var library = UserLibrary.shared
     @State private var editing: String?
+    @State private var listHeight: CGFloat = 0
+
+    init(close: @escaping () -> Void, editing: String? = nil) {
+        self.close = close
+        _editing = State(initialValue: editing)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -381,12 +387,14 @@ struct ChainsPanel: View {
                 Text("A chain is a list of plugins you add to a track in one go, like EQ, Compressor, DeEsser and Reverb for vocals. Start one here, or right-click a plugin and choose Add to Chain.")
                     .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).fixedSize(horizontal: false, vertical: true)
             }
+            // The list is as tall as its chains, up to 460, so an open chain is never cut off (BL-146).
             ScrollView {
                 VStack(spacing: 8) {
                     ForEach(library.chains) { chain in card(chain) }
                 }
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { listHeight = $0 }
             }
-            .frame(maxHeight: 460)
+            .frame(height: min(max(listHeight, 1), 460))
         }
         .padding(18).frame(width: 380).background(Theme.surface).preferredColorScheme(Theme.scheme)
     }

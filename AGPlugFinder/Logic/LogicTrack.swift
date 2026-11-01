@@ -550,6 +550,23 @@ final class LogicTrack {
         return min(a.count, b.count) >= 4 && (b.hasPrefix(a) || a.hasPrefix(b))
     }
 
+    /// Logic shortens names in a narrow insert slot: "SilvComp" is Silver Compressor, "SpecGate"
+    /// Spectral Gate, "ChanEQ" Channel EQ (BL-145). Each piece must start the matching word.
+    nonisolated static func shortName(_ slot: String, matches plugin: String) -> Bool {
+        var parts: [String] = [], cur = ""
+        for ch in slot {
+            guard ch.isLetter || ch.isNumber else { if !cur.isEmpty { parts.append(cur); cur = "" }; continue }
+            if let last = cur.last, (ch.isUppercase && last.isLowercase) || (ch.isNumber != last.isNumber) {
+                parts.append(cur); cur = ""
+            }
+            cur.append(ch)
+        }
+        if !cur.isEmpty { parts.append(cur) }
+        let words = plugin.split { !$0.isLetter && !$0.isNumber }.map { $0.lowercased() }
+        guard parts.count >= 2, parts.count == words.count else { return false }
+        return zip(parts, words).allSatisfy { $1.hasPrefix($0.lowercased()) }
+    }
+
     /// Names Logic uses for a slot it hasn't drawn.
     static let placeholderNames: Set<String> = ["input", "audio plug-in", "MIDI plug-in", "plug-in"]
 

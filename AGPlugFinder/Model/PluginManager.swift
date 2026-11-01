@@ -212,18 +212,25 @@ final class PluginManager {
 
     // MARK: Removal
 
-    /// Moves the chosen plugins into "Removed Plugins <date>" on the Desktop, one folder per
-    /// format, keeping them whole so they can be dragged back. System folders ask for the Mac's
-    /// password once. Returns the folder and what could not be moved.
-    func moveToDesktop(_ chosen: [Item], leftovers: [String] = []) -> (folder: URL, moved: Int, failed: [String], extras: Int) {
+    /// The folder the next removal goes into: "Removed Plugins <date>" on the Desktop, numbered
+    /// when an earlier removal the same day already used it.
+    func nextFolder() -> URL {
         let fm = FileManager.default
         let stamp = Date().formatted(.iso8601.year().month().day().dateSeparator(.dash))
         var folder = fm.homeDirectoryForCurrentUser.appendingPathComponent("Desktop/Removed Plugins \(stamp)")
         var n = 2
         while fm.fileExists(atPath: folder.path), (try? fm.contentsOfDirectory(atPath: folder.path))?.isEmpty == false && n < 50 {
-            // Keep earlier removals of the same day apart.
             folder = fm.homeDirectoryForCurrentUser.appendingPathComponent("Desktop/Removed Plugins \(stamp) (\(n))"); n += 1
         }
+        return folder
+    }
+
+    /// Moves the chosen plugins into "Removed Plugins <date>" on the Desktop, one folder per
+    /// format, keeping them whole so they can be dragged back. System folders ask for the Mac's
+    /// password once. Returns the folder and what could not be moved.
+    func moveToDesktop(_ chosen: [Item], leftovers: [String] = []) -> (folder: URL, moved: Int, failed: [String], extras: Int) {
+        let fm = FileManager.default
+        let folder = nextFolder()
         var moved = 0, extras = 0, failed: [String] = []
         // (source, destination, plugin name or nil for a leftover)
         var jobs: [(URL, URL, String?)] = []

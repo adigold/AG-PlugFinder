@@ -7,8 +7,6 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
-- [ ] **BL-144** `P1 · High` **Plugin Manager in Settings:** scan AU, VST, VST3, AAX and CLAP; find duplicates (same plugin twice, old beside new, formats Logic does not use, offered never pre-selected); remove by moving the files into a dated folder on the Desktop and telling the user; uses install receipts like Audio Plugin Uninstaller (Adi wants REA used on that app once it is on the Mac). Adi, 2026-11-01.
-
 - [ ] **BL-135** `P1 · High` **Rename the app to Retrive.me:** new name everywhere users see it. Adi, 2026-11-01.
 - [ ] **BL-136** `P1 · High` **retrive.me website:** a site for the app on the new domain (Cloudflare DNS). Adi, 2026-11-01.
 
@@ -38,6 +36,10 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-147** `P1 · High` **Plugin Manager Move button did nothing:** the confirm dialog over the Settings window took no clicks, so nothing moved; the question now shows on the Plugin Manager page itself, names the Desktop folder it creates, and the button says Create Folder and Move. Adi, 2026-11-01. · done 2026-11-01
+- [x] **BL-146** `P2 · Medium` **Chains popover cuts off an open chain:** opening an empty chain (Goldi) shows the key row clipped at the bottom; the list must grow to fit. Adi, 2026-11-01. · done 2026-11-01
+- [x] **BL-145** `P1 · High` **Save as chain misses Logic's short names:** a Drum Kit Designer track with SpecGate, SilvGate and SilvComp said "None of these plugins are in your library"; Logic shortens names in narrow slots (Spectral Gate, Silver Gate, Silver Compressor), so match those too, and say "no effects to save" when a track has only an instrument. Adi, 2026-11-01. · done 2026-11-01
+- [x] **BL-144** `P1 · High` **Plugin Manager in Settings:** scan AU, VST, VST3, AAX and CLAP; find duplicates (same plugin twice, old beside new, formats Logic does not use, offered never pre-selected); remove by moving the files into a dated folder on the Desktop and telling the user; uses install receipts like Audio Plugin Uninstaller (Adi wants REA used on that app once it is on the Mac). Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-143** `P2 · Low` **Dismiss Fix Failed Screenshots:** an x on the button hides it until more screenshots fail. Adi, 2026-11-01. Built: an x beside the button hides it until more screenshots fail than when it was hidden; if some get fixed meanwhile, new failures bring it back. · done 2026-11-01
 - [x] **BL-142** `P1 · Medium` **Rescan removes uninstalled plugins:** plugins the user removed from the Audio Units folder disappear from the app on a scan. Adi, 2026-11-01. Built: a scan drops plugins whose file is gone even if macOS still lists them (never most of the list at once); the Components folders are watched so a manual delete rescans by itself; the app says how many were removed. Example from Adi: Tuned Plugins and Universal Audio rows in Plugin List. · done 2026-11-01
 - [x] **BL-141** `P2 · Low` **Pill defaults:** new users get Show Both, Order Most plugins, Wrap to more rows, Regular, Counts on; Reset to Default restores the same. Choices people already made stay. Adi, 2026-11-01. · done 2026-11-01

@@ -45,7 +45,8 @@ final class TrackState {
         var ids: [String] = [], missing: [String] = []
         for p in plugins where p.kind != .instrument {
             let exact = store.plugins.filter { $0.name.caseInsensitiveCompare(p.name) == .orderedSame }
-            let same = exact.isEmpty ? store.plugins.filter { LogicTrack.sameName(p.name, $0.name) } : exact
+            var same = exact.isEmpty ? store.plugins.filter { LogicTrack.sameName(p.name, $0.name) } : exact
+            if same.isEmpty { same = store.plugins.filter { LogicTrack.shortName(p.name, matches: $0.name) } }
             if let m = same.first(where: { $0.slotKind == p.kind && $0.isLogic })
                 ?? same.first(where: { $0.slotKind == p.kind }) ?? same.first { ids.append(m.id) }
             else { missing.append(p.name) }
@@ -194,7 +195,10 @@ struct TrackPanel: View {
     private func saveChain() {
         let (ids, missing) = state.asChain()
         guard !ids.isEmpty else {
-            Toast.show("None of these plugins are in your library.", warning: true); return
+            Toast.show(state.plugins.contains { $0.kind != .instrument }
+                       ? "None of this track's effects are installed on this Mac."
+                       : "This track has no effects to save. A chain holds effects only.", warning: true)
+            return
         }
         close()
         guard let name = NamePrompt.ask("Save track as chain", placeholder: "Name",

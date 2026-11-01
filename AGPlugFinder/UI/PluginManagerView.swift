@@ -10,6 +10,12 @@ struct PluginManagerView: View {
     @State private var search = ""
     @State private var formats: Set<PluginManager.Format> = []
     @State private var withLeftovers = true
+    /// The question and the answer show on this page itself, not in a separate window, so
+    /// nothing can get stuck behind the Settings window (Adi's report, 2026-11-01).
+    @State private var asking: [PluginManager.Item]?
+    @State private var done: (folder: URL, moved: Int, failed: [String], extras: Int)?
+
+    init(asking: [PluginManager.Item]? = nil) { _asking = State(initialValue: asking) }
 
     var body: some View {
         let notes = manager.notes()
@@ -69,6 +75,7 @@ struct PluginManagerView: View {
         .padding(20)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Theme.ground)
+        .overlay { if asking != nil || done != nil { card } }
         .onAppear { if manager.lastScan == nil { manager.scan() } }
     }
 
@@ -194,19 +201,79 @@ struct PluginManagerView: View {
 
     private func remove(_ chosen: [PluginManager.Item]) {
         guard !chosen.isEmpty else { return }
+        done = nil
+        asking = chosen
+    }
+
+    private func plural(_ n: Int, _ word: String) -> String { "\(n) \(word)\(n == 1 ? "" : "s")" }
+
+    /// The question before moving, then what happened, over a dimmed list.
+    private var card: some View {
+        ZStack {
+            Color.black.opacity(0.4).contentShape(Rectangle()).onTapGesture {}
+            VStack(alignment: .leading, spacing: 12) {
+                if let chosen = asking { question(chosen) } else if let r = done { answer(r) }
+            }
+            .padding(22)
+            .frame(width: 440, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.surface))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.edge, lineWidth: 1))
+            .shadow(color: .black.opacity(0.35), radius: 24, y: 8)
+        }
+    }
+
+    @ViewBuilder private func question(_ chosen: [PluginManager.Item]) -> some View {
+        let folder = manager.nextFolder()
         let system = chosen.filter(\.system).count
         let extra = withLeftovers ? manager.leftovers(for: chosen) : []
         let names = chosen.prefix(5).map { "\($0.name).\($0.url.pathExtension)" }.joined(separator: ", ") + (chosen.count > 5 ? "…" : "")
-        guard Dialog.confirm("Move \(chosen.count) plugin\(chosen.count == 1 ? "" : "s") to your Desktop?",
-                             message: "\(names)\n\nThey go into a Removed Plugins folder on your Desktop. Drag them back to their folder to put them back."
-                                + (extra.isEmpty ? "" : " \(extra.count) other file\(extra.count == 1 ? "" : "s") from the same installer go along, in Other Files, under the folders they came from.")
-                                + (system > 0 ? " \(system) are in the system folder, so your Mac asks for its password once." : ""),
-                             ok: "Move to Desktop") else { return }
-        let r = manager.moveToDesktop(chosen, leftovers: extra)
-        let failed = r.failed.isEmpty ? "" : " \(r.failed.count) could not be moved: \(r.failed.prefix(4).joined(separator: ", "))."
-        let open = Dialog.show("Moved \(r.moved) plugin\(r.moved == 1 ? "" : "s") to your Desktop",
-                               message: "They are in “\(r.folder.lastPathComponent)” on your Desktop.\(r.extras > 0 ? " \(r.extras) other file\(r.extras == 1 ? "" : "s") from their installers are in Other Files." : "")\(failed) To put one back, drag it to its folder in Library/Audio/Plug-Ins.",
-                               choices: [Dialog.Choice(title: "OK", cancel: true), Dialog.Choice(title: "Show Folder", primary: true)])
-        if open.index == 1 { NSWorkspace.shared.open(r.folder) }
+        Text("Move \(plural(chosen.count, "plugin")) off your plugin folders?").font(.system(size: Theme.ts(16), weight: .bold)).foregroundStyle(Theme.text)
+        Text(names).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).fixedSize(horizontal: false, vertical: true)
+        HStack(spacing: 10) {
+            Image(systemName: "folder.badge.plus").font(.system(size: Theme.ts(20))).foregroundStyle(Theme.accent)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("This creates a folder on your Desktop").font(.system(size: Theme.ts(12), weight: .semibold)).foregroundStyle(Theme.text)
+                Text("“\(folder.lastPathComponent)”").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
+            }
+        }
+        .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Theme.raised))
+        Text("The plugins go into it, one folder per format, so nothing is deleted. To put one back, drag it to its folder in Library/Audio/Plug-Ins."
+             + (extra.isEmpty ? "" : " \(plural(extra.count, "other file")) from the same installer go along, in Other Files.")
+             + (system > 0 ? " \(system) \(system == 1 ? "is" : "are") in the Mac's shared folder, so your Mac asks for its password once." : ""))
+            .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint).fixedSize(horizontal: false, vertical: true)
+        HStack(spacing: 10) {
+            Spacer()
+            Button("Cancel") { asking = nil }
+                .buttonStyle(.plain).font(.system(size: Theme.ts(13), weight: .medium)).foregroundStyle(Theme.text)
+                .padding(.horizontal, 16).frame(height: 32).background(Capsule().fill(Theme.raised))
+                .keyboardShortcut(.cancelAction)
+            PrimaryPill(title: "Create Folder and Move", systemImage: "folder.badge.plus", height: 32) {
+                asking = nil
+                // After this click is finished, so the password prompt (if any) comes up cleanly.
+                DispatchQueue.main.async { done = manager.moveToDesktop(chosen, leftovers: extra) }
+            }
+            .keyboardShortcut(.defaultAction)
+        }
+        .padding(.top, 4)
+    }
+
+    @ViewBuilder private func answer(_ r: (folder: URL, moved: Int, failed: [String], extras: Int)) -> some View {
+        Text(r.moved > 0 ? "Moved \(plural(r.moved, "plugin")) to your Desktop" : "Nothing was moved")
+            .font(.system(size: Theme.ts(16), weight: .bold)).foregroundStyle(Theme.text)
+        Text((r.moved > 0 ? "They are in “\(r.folder.lastPathComponent)” on your Desktop." : "")
+             + (r.extras > 0 ? " \(plural(r.extras, "other file")) from their installers are in Other Files." : "")
+             + (r.failed.isEmpty ? "" : " \(r.failed.count) could not be moved: \(r.failed.prefix(4).joined(separator: ", ")). If your Mac asked for its password, it may have been cancelled."))
+            .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).fixedSize(horizontal: false, vertical: true)
+        HStack(spacing: 10) {
+            Spacer()
+            if r.moved > 0 || r.extras > 0 {
+                Button("Show Folder") { NSWorkspace.shared.open(r.folder) }
+                    .buttonStyle(.plain).font(.system(size: Theme.ts(13), weight: .medium)).foregroundStyle(Theme.text)
+                    .padding(.horizontal, 16).frame(height: 32).background(Capsule().fill(Theme.raised))
+            }
+            PrimaryPill(title: "Done", height: 32) { done = nil }.keyboardShortcut(.defaultAction)
+        }
+        .padding(.top, 4)
     }
 }

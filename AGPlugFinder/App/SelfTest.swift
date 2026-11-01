@@ -596,11 +596,53 @@ enum SelfTest {
                 // Ticks rows in memory to picture the footer; nothing is moved.
                 if args.contains("--selectall") { m.selected = Set(m.items.map(\.id)); print("PM leftovers for all: \(m.leftovers(for: m.items).count)") }
                 let w = NSWindow(contentRect: NSRect(x: 80, y: 80, width: 780, height: 580), styleMask: [.titled], backing: .buffered, defer: false)
-                w.contentView = NSHostingView(rootView: PluginManagerView())
+                let ask = args.contains("--ask") ? Array(m.items.filter { !$0.format.usedByLogic }.prefix(3)) : nil
+                w.contentView = NSHostingView(rootView: PluginManagerView(asking: ask))
                 w.makeKeyAndOrderFront(nil)
                 try? await Task.sleep(for: .seconds(1.2))
                 await capture(w, to: dir.appendingPathComponent("pm.png"), scale: 1)
                 print("PM done"); fflush(stdout)
+            }
+        }
+        // --selftest-shortnames: Logic's shortened slot names matched to installed plugins (BL-145).
+        if args.contains("--selftest-shortnames") {
+            Task {
+                try? await Task.sleep(for: .seconds(2))
+                for slot in ["SpecGate", "SilvGate", "SilvComp", "ChanEQ", "Compressor", "Drum Kit"] {
+                    let hits = PluginStore.shared.plugins.filter { LogicTrack.shortName(slot, matches: $0.name) }.map(\.name)
+                    print("SHORT \(slot) -> \(hits)")
+                }
+                // An empty chain opened, as in Adi's report; in memory only, nothing is saved.
+                if let k = args.firstIndex(of: "--shoot"), k + 1 < args.count {
+                    UserLibrary.shared.readOnly = true
+                    let c = UserLibrary.shared.newChain(named: "Goldi")
+                    let w = NSWindow(contentRect: NSRect(x: 80, y: 80, width: 380, height: 600), styleMask: [.borderless], backing: .buffered, defer: false)
+                    w.contentView = NSHostingView(rootView: ChainsPanel(close: {}, editing: c.id).fixedSize())
+                    w.setContentSize(w.contentView!.fittingSize)
+                    w.makeKeyAndOrderFront(nil)
+                    try? await Task.sleep(for: .seconds(1))
+                    w.setContentSize(w.contentView!.fittingSize)
+                    try? await Task.sleep(for: .seconds(0.5))
+                    await capture(w, to: URL(fileURLWithPath: args[k + 1]), scale: 1)
+                }
+                print("SHORT done"); fflush(stdout)
+            }
+        }
+        // --selftest-pmmove: moves one fake plugin the test made itself, with the button's own code (BL-144).
+        if args.contains("--selftest-pmmove") {
+            Task {
+                let fm = FileManager.default
+                let fake = fm.homeDirectoryForCurrentUser.appendingPathComponent("Library/Audio/Plug-Ins/VST3/ZZ PM Test.vst3/Contents")
+                try? fm.createDirectory(at: fake, withIntermediateDirectories: true)
+                fm.createFile(atPath: fake.appendingPathComponent("Info.plist").path, contents: Data("<plist><dict/></plist>".utf8))
+                let m = PluginManager.shared
+                m.scan()
+                while m.scanning || m.lastScan == nil { try? await Task.sleep(for: .milliseconds(200)) }
+                let pick = m.items.filter { $0.name == "ZZ PM Test" }
+                print("PMMOVE found \(pick.count)")
+                let r = m.moveToDesktop(pick)
+                print("PMMOVE moved=\(r.moved) failed=\(r.failed) folder=\(r.folder.path) exists=\(fm.fileExists(atPath: r.folder.path))")
+                print("PMMOVE done"); fflush(stdout)
             }
         }
         // --selftest-makerurl: where Maker's Website goes for a few plugins (BL-129).
