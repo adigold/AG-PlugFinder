@@ -93,6 +93,13 @@ You know the plugin you want. You can picture its window. But Logic's plugin men
 - **Find it on the web** when a plugin's own window can't be opened. Pictures appear as they are found; click the one that shows the plugin.
 - **Shared.** Pictures and categories are shared with other users, with each plugin's name and maker, so they get them without waiting. Nothing else about you or your Mac is sent. Turn it off in Settings.
 
+## Plugin Manager
+
+- **Every plugin, every format.** Audio Units, VST, VST3, AAX and CLAP, from your folders and the Mac's, with size, version and install date.
+- **Duplicates.** Spots a plugin installed twice, an older version beside a newer one, and copies in formats Logic doesn't load. Nothing is ever ticked for you.
+- **By installer.** See which installer put each plugin there, with the other files it left in your Library folders.
+- **Nothing is deleted.** Removing moves the files into a dated folder on your Desktop, so you can always put them back.
+
 ## Sync
 
 Favorites, collections, chains, notes, number keys, hidden plugins, pills, licenses and subscriptions sync with your other Macs through iCloud Drive, and you see the sync happen when you turn it on. License keys stay on each Mac.
@@ -149,6 +156,13 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.32**
+
+- **New:** Plugin Manager, in Settings. Every plugin on your Mac in every format: Audio Units, VST, VST3, AAX and CLAP.
+- **New:** Find duplicates. The Plugin Manager shows plugins installed twice, older versions beside newer ones, and formats Logic doesn't load. Nothing is ticked for you.
+- **New:** See plugins by installer, including the other files each installer left in your Library folders.
+- **New:** Removing a plugin moves it into a folder on your Desktop instead of deleting it, so you can always put it back.
+
 **0.9.31**
 
 - **Improved:** Plugins you remove from your Mac disappear from the app by themselves, and the app tells you how many were removed.
@@ -158,14 +172,14 @@ Everything each version brought, newest first. The same notes appear in the app'
 
 - **Improved:** New pill defaults. Collections and categories show together, ordered by most plugins, with counts, and wrap onto more rows when there are many. Reset to Default in Edit Pills brings back this look. Settings you already chose stay as they are.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.29)</summary>
+
 **0.9.29**
 
 - **New:** Channel Strip pill. R-Channel, SSL strips, bx_console, Console 1, UltraChannel and other channel strips have their own category.
 - **New:** Import from Logic, in Settings. Brings in the plugins you starred in Logic's Plug-in Manager and the categories you made there, as collections. Nothing in Logic changes.
 - **New:** The info panel tells you when Logic recorded crashes with a plugin.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.28)</summary>
 
 **0.9.28**
 
