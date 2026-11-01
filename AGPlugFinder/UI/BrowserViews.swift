@@ -1231,7 +1231,7 @@ enum PickedActions {
     }
 
     static func takePictures(_ model: PickerModel) {
-        let ids = Set(plugins(model).filter { !$0.isLogic }.map(\.id))
+        let ids = Set(plugins(model).filter { !$0.isBuiltIn }.map(\.id))
         guard !ids.isEmpty else { Toast.show("Logic's own plugins already have their pictures.", warning: true); return }
         guard !SnapshotQueue.shared.isRunning else { Toast.show("Pictures are already being taken. Try again when it finishes.", warning: true); return }
         SnapshotQueue.shared.start(only: ids)
@@ -1409,7 +1409,9 @@ struct PictureActions: View {
     var body: some View {
         let hasImage = store.image(for: plugin.id) != nil
         FlowRow(spacing: 6) {
-            if !plugin.isLogic {
+            // Logic's and Ableton's own come with their pictures (BL-164): nothing to take here.
+            let builtIn = plugin.kind == .logic || plugin.kind == .ableton
+            if !builtIn {
                 small(hasImage ? "Retake" : "Take Picture", "camera") { queue.recapture(plugin.id) }
                     .disabled(queue.isRunning)
             }
@@ -1419,7 +1421,7 @@ struct PictureActions: View {
             if FileManager.default.fileExists(atPath: WebPicture.backupURL(plugin.id).path) {
                 small("Undo", "arrow.uturn.backward") { WebPicture.undo(plugin) }
             }
-            if !plugin.isLogic, hasImage {
+            if !builtIn, hasImage {
                 small("Clear", "trash") { store.clearScreenshots([plugin.id]) }
             }
         }

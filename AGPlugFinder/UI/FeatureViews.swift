@@ -594,7 +594,7 @@ struct ReportView: View {
     }
 
     @ViewBuilder private var never: some View {
-        let unused = store.plugins.filter { !$0.isLogic && (library.useCount[$0.id] ?? 0) == 0 && store.lastUsed[$0.id] == nil }
+        let unused = store.plugins.filter { !$0.isBuiltIn && (library.useCount[$0.id] ?? 0) == 0 && store.lastUsed[$0.id] == nil }
             .sorted { $0.manufacturer == $1.manufacturer ? $0.name < $1.name : $0.manufacturer < $1.manufacturer }
         if unused.isEmpty { empty("You have used every installed plugin.") }
         else { empty("\(unused.count) of your installed plugins were never added from AG PlugFinder.") }

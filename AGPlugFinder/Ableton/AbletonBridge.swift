@@ -58,9 +58,27 @@ enum Host {
     private static func update() {
         let ableton = abletonRunning, logic = logicRunning
         let next: Host = ableton && !logic ? .ableton : (ableton && logic ? (lastUsed ?? .logic) : .logic)
-        guard next != now else { return }
+        let open = next == .ableton ? ableton : logic
+        guard next != now || open != isOpen else { return }
         now = next
+        isOpen = open
         PluginStore.shared.bumpRevision()
+    }
+
+    /// Whether the program in use is open right now (for the footer's indicator).
+    private(set) static var isOpen: Bool = {
+        let apps = NSWorkspace.shared.runningApplications
+        return initial() == .ableton ? apps.contains(where: isAbleton) : apps.contains(where: isLogic)
+    }()
+
+    static var title: String { now == .ableton ? "Ableton Live" : "Logic Pro" }
+
+    /// The program's own icon, from the app on this Mac.
+    static var icon: NSImage? {
+        let apps = NSWorkspace.shared.runningApplications
+        if let running = apps.first(where: now == .ableton ? isAbleton : isLogic), let icon = running.icon { return icon }
+        let path = now == .ableton ? AbletonCatalog.app?.path : LogicCatalog.appPaths.first { FileManager.default.fileExists(atPath: $0) }
+        return path.map { NSWorkspace.shared.icon(forFile: $0) }
     }
 
     /// Whether the library lists this plugin for the program in use: Logic's own plugins only

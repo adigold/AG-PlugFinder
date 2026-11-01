@@ -1155,6 +1155,11 @@ enum SelfTest {
                 print("ABL done"); fflush(stdout)
             }
         }
+        // --selftest-abletonpics <dir> [--only name]: pictures of Live's devices (BL-164).
+        if let k = args.firstIndex(of: "--selftest-abletonpics"), k + 1 < args.count {
+            let only = args.firstIndex(of: "--only").flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil }
+            Task { await AbletonCapture.run(to: URL(fileURLWithPath: args[k + 1]), only: only) }
+        }
         // --selftest-icloudkeychain: can this app keep a key in iCloud Keychain? Adds a test item,
         // reads it back and deletes it (BL-157).
         if args.contains("--selftest-icloudkeychain") {

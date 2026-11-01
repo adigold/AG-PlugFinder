@@ -253,6 +253,8 @@ struct LibraryView: View {
             VersionBadge(arrowEdge: .top)
         }
         .frame(maxWidth: .infinity).frame(height: 30)
+        // Which program plugins go to, bottom left (BL-165).
+        .overlay(alignment: .leading) { HostBadge().padding(.leading, 12) }
         .background(Theme.ground)
         .overlay(alignment: .top) { Rectangle().fill(Theme.edge).frame(height: 1) }
     }

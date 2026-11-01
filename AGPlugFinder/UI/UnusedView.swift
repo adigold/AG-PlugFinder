@@ -21,7 +21,7 @@ struct UnusedView: View {
         let cutoff = Calendar.current.date(byAdding: .month, value: -6, to: Date()) ?? Date()
         let all = store.plugins.filter { p in
             // Apple's own plugins come with macOS and can't be uninstalled.
-            guard !p.isLogic, p.manufacturer != "Apple", store.isVisible(p) != showHidden else { return false }
+            guard !p.isBuiltIn, p.manufacturer != "Apple", store.isVisible(p) != showHidden else { return false }
             let used = (library.useCount[p.id] ?? 0) > 0 || store.lastUsed[p.id] != nil
             switch span {
             case .never: return !used
@@ -140,7 +140,7 @@ struct UnusedView: View {
     }
 
     private func measure() async {
-        let entries = store.plugins.filter { !$0.isLogic }.compactMap { p in p.path.map { (p.id, $0) } }
+        let entries = store.plugins.filter { !$0.isBuiltIn }.compactMap { p in p.path.map { (p.id, $0) } }
         let result = await Task.detached { () -> [String: Int64] in
             var out: [String: Int64] = [:]
             for (id, path) in entries { out[id] = ReportView.folderSize(path) }

@@ -61,7 +61,7 @@ final class SnapshotQueue {
         let store = PluginStore.shared
         let todo = store.plugins
             .filter { p in
-                guard !p.isLogic else { return false }
+                guard !p.isBuiltIn else { return false }
                 if let ids { return ids.contains(p.id) }
                 if force { return true }
                 // Never re-capture a plugin whose picture is already on disk.
@@ -166,7 +166,7 @@ final class SnapshotQueue {
     var missingCount: Int {
         let store = PluginStore.shared
         return store.plugins.filter { p in
-            !p.isLogic && (p.snapshotState == .pending || p.snapshotState == .done || p.snapshotState == .failed)
+            !p.isBuiltIn && (p.snapshotState == .pending || p.snapshotState == .done || p.snapshotState == .failed)
                 && !FileManager.default.fileExists(atPath: store.snapshotURL(for: p.id).path)
         }.count
     }

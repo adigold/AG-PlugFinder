@@ -48,6 +48,8 @@ struct Plugin: Identifiable, Codable, Hashable {
 
     var kind: PluginSource { source ?? (isV3 ? .audioUnitV3 : .audioUnit) }
     var isLogic: Bool { kind == .logic }
+    /// Logic's and Ableton's own: they come with their pictures and are never photographed or shared (BL-164).
+    var isBuiltIn: Bool { kind == .logic || kind == .ableton }
 
     /// Group label used by the list editor and the Format filter.
     var formatName: String {

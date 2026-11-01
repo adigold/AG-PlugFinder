@@ -152,7 +152,7 @@ struct BulkMenu: View {
     var fetcher = PluginInfoFetcher.shared
 
     private var capturable: [String] {
-        ids.filter { id in store.plugin(id).map { !$0.isLogic } ?? false }
+        ids.filter { id in store.plugin(id).map { !$0.isBuiltIn } ?? false }
     }
     private var missing: [String] {
         capturable.filter { !FileManager.default.fileExists(atPath: store.snapshotURL(for: $0).path) }

@@ -712,7 +712,7 @@ struct LicensesView: View {
     }
 
     private var pluginsSection: some View {
-        let list = store.plugins.filter { !$0.isLogic && matches($0) }
+        let list = store.plugins.filter { !$0.isBuiltIn && matches($0) }
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -852,7 +852,7 @@ struct PluginChooser: View {
 
     private var list: [Plugin] {
         let words = search.lowercased().split(separator: " ").map(String.init)
-        return PluginStore.shared.plugins.filter { !$0.isLogic }
+        return PluginStore.shared.plugins.filter { !$0.isBuiltIn }
             .filter { p in let hay = "\(p.name) \(p.manufacturer)".lowercased(); return words.allSatisfy { hay.contains($0) } }
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }

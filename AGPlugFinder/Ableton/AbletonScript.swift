@@ -13,7 +13,7 @@ import Live
 from _Framework.ControlSurface import ControlSurface
 
 PORT = 47391
-VERSION = 2
+VERSION = 3
 
 
 def _norm(text):
@@ -68,7 +68,60 @@ class AGPlugFinder(ControlSurface):
             return self._load(msg)
         if cmd == "track":
             return self._track()
+        if cmd == "pics_begin":
+            return self._pics_begin()
+        if cmd == "pics_load":
+            return self._pics_load(msg)
+        if cmd == "pics_end":
+            return self._pics_end()
         return {"ok": False, "error": "Unknown request"}
+
+    # Pictures of Live's devices: a spare track, one device at a time, removed at the end.
+    PICS = "AGPF pictures"
+
+    def _pics_track(self):
+        for t in self.song().tracks:
+            if t.name == self.PICS:
+                return t
+        return None
+
+    def _pics_begin(self):
+        song = self.song()
+        track = self._pics_track()
+        if track is None:
+            song.create_midi_track(-1)
+            track = song.tracks[len(song.tracks) - 1]
+            track.name = self.PICS
+        song.view.selected_track = track
+        view = Live.Application.get_application().view
+        view.show_view("Detail")
+        view.show_view("Detail/DeviceChain")
+        return {"ok": True}
+
+    def _pics_clear(self, track):
+        while len(track.devices) > 0:
+            track.delete_device(0)
+
+    def _pics_load(self, msg):
+        track = self._pics_track()
+        if track is None:
+            return {"ok": False, "error": "No pictures track"}
+        self.song().view.selected_track = track
+        self._pics_clear(track)
+        if not msg.get("name"):
+            return {"ok": True}
+        item = self._find(msg)
+        if item is None:
+            return {"ok": False, "error": "not found"}
+        Live.Application.get_application().browser.load_item(item)
+        return {"ok": True}
+
+    def _pics_end(self):
+        song = self.song()
+        track = self._pics_track()
+        if track is not None:
+            song.delete_track(list(song.tracks).index(track))
+        return {"ok": True}
 
     # Every loadable item under a browser folder, by its name without spaces or signs.
     def _walk(self, item, out, depth):

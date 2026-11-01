@@ -45,7 +45,7 @@ enum PlugDB {
         Task {
             defer { busy = false }
             let store = PluginStore.shared
-            let todo = store.plugins.filter { !$0.isLogic && sent[$0.id] != $0.version }
+            let todo = store.plugins.filter { !$0.isBuiltIn && sent[$0.id] != $0.version }
             for p in todo.prefix(400) {
                 guard sharing else { return }
                 if await send(p) { try? await Task.sleep(for: .milliseconds(400)) }
@@ -93,7 +93,7 @@ enum PlugDB {
     static func refreshReplacedPictures() async {
         guard let base, let key else { return }
         let store = PluginStore.shared
-        let ids = store.plugins.filter { !$0.isLogic }.map(\.id)
+        let ids = store.plugins.filter { !$0.isBuiltIn }.map(\.id)
         guard !ids.isEmpty else { return }
         var request = URLRequest(url: base.appendingPathComponent("v1/lookup"))
         request.httpMethod = "POST"
@@ -225,7 +225,7 @@ enum PlugDB {
 
     /// Plugins whose screenshot failed on this Mac (Logic's own never fail: they ship with the app).
     static var failedIDs: [String] {
-        PluginStore.shared.plugins.filter { !$0.isLogic && $0.snapshotState == .failed }.map(\.id)
+        PluginStore.shared.plugins.filter { !$0.isBuiltIn && $0.snapshotState == .failed }.map(\.id)
     }
 
     /// The failed ones the user actually sees as a tile: not hidden, and for a joined mono and
@@ -233,7 +233,7 @@ enum PlugDB {
     static var shownFailedIDs: [String] {
         let store = PluginStore.shared
         return store.plugins.filter {
-            !$0.isLogic && $0.snapshotState == .failed && store.isVisible($0) && PluginVariants.isShown($0)
+            !$0.isBuiltIn && $0.snapshotState == .failed && store.isVisible($0) && PluginVariants.isShown($0)
         }.map(\.id)
     }
 
@@ -297,7 +297,7 @@ enum PlugDB {
 
     @discardableResult
     private static func send(_ p: Plugin) async -> Bool {
-        guard sharing, !p.isLogic, let base, let key, sent[p.id] != p.version else { return false }
+        guard sharing, !p.isBuiltIn, let base, let key, sent[p.id] != p.version else { return false }
         let file = PluginStore.shared.snapshotURL(for: p.id)
         guard let original = try? Data(contentsOf: file), let data = compact(original) else { return false }
         let body: [String: Any] = [

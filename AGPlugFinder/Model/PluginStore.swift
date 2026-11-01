@@ -100,7 +100,7 @@ final class PluginStore {
     func forget(bundles: [String]) {
         guard !bundles.isEmpty else { return }
         let gone = plugins.filter { p in
-            guard let path = p.path, !p.isLogic else { return false }
+            guard let path = p.path, !p.isBuiltIn else { return false }
             return bundles.contains { path == $0 || path.hasPrefix($0 + "/") } && !FileManager.default.fileExists(atPath: path)
         }
         guard !gone.isEmpty else { return }
