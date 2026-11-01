@@ -7,6 +7,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
+- [ ] **BL-174** `P3 · Low` **Move plugin pictures from Neon to Cloudflare R2:** pictures are about 725 of the 733 MB in the shared database (submissions 387 MB, plugins 338 MB). Plan: new pictures to R2 with the database as fallback, copy the old ones, clear Neon after a week. Adi said not now, 2026-11-01.
 - [ ] **BL-161** `P1 · High` **Ableton Live support, step 1:** add plugins to Ableton's selected track through a small add-on (Remote Script) that Live loads; the app sends plugins to whichever of Logic or Ableton the user is in; Ableton's own devices listed; VST and VST3 in the library for Ableton. Logic keeps working exactly as before. Adi, 2026-11-01.
 
 - [ ] **BL-162** `P2 · Medium` **Ableton Live support, step 2:** the track panel for Ableton (devices on the track, on and off, remove) and importing Ableton's favorites and collections. Adi, 2026-11-01.
