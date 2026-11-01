@@ -265,7 +265,7 @@ final class PickerModel {
                 message = "AG PlugFinder needs Accessibility access to place plugins in Logic. " +
                     "Turn it on in System Settings → Privacy & Security → Accessibility, then try again."
             case .logicNotRunning:
-                message = "Logic Pro isn't open."
+                message = Host.notOpen
             case .noChannelStrip(let text), .failed(let text):
                 message = text
             }

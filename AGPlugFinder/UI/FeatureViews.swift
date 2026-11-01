@@ -141,7 +141,8 @@ struct PluginExtras: View {
         VStack(alignment: .leading, spacing: 18) {
             usage
             if !plugin.isLogic { LicenseSection(plugin: plugin).id(plugin.id) }
-            logicRow
+            // Logic-only actions; hidden while Ableton is the program in use (BL-161).
+            if Host.current == .logic { logicRow }
             pinRow
             collectionsRow
             chainRow

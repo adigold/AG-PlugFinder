@@ -685,7 +685,7 @@ struct PluginDetailView: View {
     }
 
     private var insertTitle: String {
-        plugin.slotKind == .instrument ? "Load as Instrument" : "Insert in Logic"
+        plugin.slotKind == .instrument ? "Load as Instrument" : Host.insertTitle
     }
 
     private var titleBlock: some View {
@@ -846,7 +846,7 @@ struct PluginContextMenu: View {
     var store = PluginStore.shared
 
     var body: some View {
-        Button(plugin.slotKind == .instrument ? "Load as Instrument" : "Insert in Logic") { select(); insert() }
+        Button(plugin.slotKind == .instrument ? "Load as Instrument" : Host.insertTitle) { select(); insert() }
         // A joined plugin: choose the version yourself (BL-124).
         if let insertVersion, PluginVariants.enabled, PluginVariants.versions(of: plugin).count > 1 {
             ForEach(PluginVariants.versions(of: plugin), id: \.id) { v in

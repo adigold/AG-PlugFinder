@@ -42,7 +42,7 @@ enum InsertRunner {
                 case .needsAccessibility:
                     problem = "AG PlugFinder needs Accessibility access to place plugins in Logic."
                 case .logicNotRunning:
-                    problem = "Logic Pro isn't open."
+                    problem = Host.notOpen
                 case .noChannelStrip(let t), .failed(let t):
                     problem = t
                 }

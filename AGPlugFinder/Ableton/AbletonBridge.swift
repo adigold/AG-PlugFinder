@@ -14,7 +14,16 @@ enum Host {
     private static var lastUsed: Host?
     private static var watching = false
     /// Where plugins go right now, kept up to date as programs open, close and come to the front.
-    private(set) static var now: Host = .logic
+    private(set) static var now: Host = initial()
+
+    /// Decided before the library is first drawn, so it never switches lists right at launch.
+    private static func initial() -> Host {
+        let apps = NSWorkspace.shared.runningApplications
+        let ableton = apps.contains(where: isAbleton), logic = apps.contains(where: isLogic)
+        if ableton && !logic { return .ableton }
+        if ableton && logic, let front = NSWorkspace.shared.frontmostApplication, isAbleton(front) { return .ableton }
+        return .logic
+    }
 
     static func isAbleton(_ app: NSRunningApplication) -> Bool { app.bundleIdentifier?.hasPrefix(abletonPrefix) == true }
     static func isLogic(_ app: NSRunningApplication) -> Bool { app.bundleIdentifier == logicID }
@@ -69,6 +78,12 @@ enum Host {
         watch()
         return now
     }
+
+    /// The add button's words for the program in use.
+    static var insertTitle: String { now == .ableton ? "Add to Ableton" : "Insert in Logic" }
+    static var addingTitle: String { now == .ableton ? "Adding to Ableton…" : "Adding to Logic…" }
+    /// When neither program is open.
+    static var notOpen: String { AbletonCatalog.app != nil ? "Open Logic Pro or Ableton Live first." : "Logic Pro isn't open." }
 
     /// Adds a plugin to the selected track of whichever program is in use. Logic goes the way
     /// it always did.

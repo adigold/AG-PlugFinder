@@ -221,7 +221,7 @@ struct PluginPreview: View {
 
     private var actions: some View {
         HStack(spacing: 8) {
-            PrimaryPill(title: model.isBusy ? "Adding to Logic…" : (plugin.slotKind == .instrument ? "Load as Instrument" : "Insert in Logic"),
+            PrimaryPill(title: model.isBusy ? Host.addingTitle : (plugin.slotKind == .instrument ? "Load as Instrument" : Host.insertTitle),
                         systemImage: "plus", hint: "↩", busy: model.isBusy, fullWidth: true,
                         height: 40, action: onInsert)
                 .disabled(model.isBusy)

@@ -145,6 +145,13 @@ enum SelfTest {
                         ?? NSApp.windows.first(where: { !($0 is PickerPanel) && $0.isVisible && $0.frame.width > 500 })
                 else { print("WINDOW none"); fflush(stdout); return }
                 await capture(window, to: out)
+                if args.contains("--later") {
+                    // The same window again a little later: a list still moving would look different.
+                    let r0 = PluginStore.shared.revision
+                    try? await Task.sleep(for: .seconds(3))
+                    print("WINDOW revision \(r0) -> \(PluginStore.shared.revision) host=\(Host.current)"); fflush(stdout)
+                    await capture(window, to: out.deletingPathExtension().appendingPathExtension("later.png"))
+                }
                 if args.contains("--mini") {
                     NotificationCenter.default.post(name: .toggleMiniMode, object: nil)
                     try? await Task.sleep(for: .milliseconds(1200))
@@ -1140,7 +1147,10 @@ enum SelfTest {
                 print("ABL ping \(await b.send(["cmd": "ping"], timeout: 2) ?? ["none": true])")
                 print("ABL track \(await b.send(["cmd": "track"], timeout: 2) ?? ["none": true])")
                 if k + 1 < args.count, !args[k + 1].hasPrefix("-") {
-                    print("ABL load \(await b.send(["cmd": "load", "name": args[k + 1], "kind": "au"], timeout: 15) ?? ["none": true])")
+                    let kind = args.contains("--device") ? "device" : "au"
+                    print("ABL load \(await b.send(["cmd": "load", "name": args[k + 1], "kind": kind], timeout: 15) ?? ["none": true])")
+                    try? await Task.sleep(for: .seconds(1))
+                    print("ABL track after \(await b.send(["cmd": "track"], timeout: 2) ?? ["none": true])")
                 }
                 print("ABL done"); fflush(stdout)
             }
