@@ -31,6 +31,7 @@ struct GeneralSettings: View {
     @State private var model = PluginInfoFetcher.shared.model
     @State private var diagnosticsNote = ""
     @State private var sync = UserLibrary.shared.syncEnabled
+    @State private var syncState = SyncProgressRow.State.idle
 
     var body: some View {
         Form {
@@ -53,8 +54,19 @@ struct GeneralSettings: View {
 
             Section("Sync") {
                 Toggle("Sync with my other Macs through iCloud Drive", isOn: $sync)
-                    .onChange(of: sync) { _, on in UserLibrary.shared.syncEnabled = on }
-                    .disabled(UserLibrary.cloudFile == nil)
+                    .onChange(of: sync) { _, on in
+                        UserLibrary.shared.syncEnabled = on
+                        guard on else { syncState = .idle; return }
+                        syncState = .syncing
+                        Task {
+                            // Long enough to see, even when iCloud answers at once.
+                            async let done = UserLibrary.shared.syncNow()
+                            try? await Task.sleep(for: .seconds(1.2))
+                            syncState = await done ? .synced : .stillUploading
+                        }
+                    }
+                    .disabled(UserLibrary.cloudFile == nil || syncState == .syncing)
+                if syncState != .idle { SyncProgressRow(state: syncState) }
                 Text(UserLibrary.cloudFile == nil
                      ? "Turn on iCloud Drive in System Settings to sync favorites, collections, chains, notes, number keys, hidden plugins and licenses."
                      : "Favorites, collections, chains, notes, number keys, hidden plugins, licenses and subscriptions. License keys stay on each Mac"
@@ -144,5 +156,38 @@ struct GeneralSettings: View {
         .onReceive(Timer.publish(every: 2, on: .main, in: .common).autoconnect()) { _ in
             trusted = AXAccess.isTrusted
         }
+    }
+}
+
+/// Shown under the sync switch while the first sync runs (BL-131).
+struct SyncProgressRow: View {
+    enum State { case idle, syncing, synced, stillUploading }
+    let state: State
+
+    var body: some View {
+        HStack(spacing: 10) {
+            switch state {
+            case .syncing:
+                Image(systemName: "arrow.triangle.2.circlepath.icloud")
+                    .font(.system(size: Theme.ts(16), weight: .medium)).foregroundStyle(Theme.accent)
+                    .symbolEffect(.pulse, options: .repeating)
+                ProgressView().progressViewStyle(.linear).tint(Theme.accent).frame(maxWidth: 220)
+                Text("Syncing with iCloud…").font(.system(size: Theme.ts(12))).foregroundStyle(.secondary)
+            case .synced:
+                Image(systemName: "checkmark.icloud.fill")
+                    .font(.system(size: Theme.ts(16))).foregroundStyle(.green)
+                    .symbolEffect(.bounce, value: state == .synced)
+                Text("Synced to iCloud.").font(.system(size: Theme.ts(12))).foregroundStyle(.secondary)
+            case .stillUploading:
+                Image(systemName: "icloud.and.arrow.up")
+                    .font(.system(size: Theme.ts(16))).foregroundStyle(.secondary)
+                Text("Saved to iCloud Drive. It is still uploading and finishes in the background.")
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(.secondary)
+            case .idle:
+                EmptyView()
+            }
+        }
+        .transition(.opacity)
+        .animation(.easeOut(duration: 0.2), value: state)
     }
 }

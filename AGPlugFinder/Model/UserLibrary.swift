@@ -215,6 +215,24 @@ final class UserLibrary {
         if load(from: cloud, applyStoreSettings: true) { save(to: fileURL) }
     }
 
+    /// Sync right now (BL-131): take the newer cloud copy, write this Mac's, then wait for iCloud
+    /// to say the file is uploaded. true when iCloud confirmed it, false when it is still
+    /// uploading after the wait (it carries on in the background).
+    func syncNow(wait: Duration = .seconds(30)) async -> Bool {
+        pullFromCloud()
+        pushToCloud()
+        guard let cloud = Self.cloudFile else { return false }
+        let end = ContinuousClock.now + wait
+        while ContinuousClock.now < end {
+            var url = cloud
+            url.removeAllCachedResourceValues()
+            let v = try? url.resourceValues(forKeys: [.ubiquitousItemIsUploadedKey, .ubiquitousItemIsUploadingKey])
+            if v?.ubiquitousItemIsUploaded == true { return true }
+            try? await Task.sleep(for: .milliseconds(500))
+        }
+        return false
+    }
+
     var lastSynced: Date? {
         guard let cloud = Self.cloudFile else { return nil }
         return (try? FileManager.default.attributesOfItem(atPath: cloud.path))?[.modificationDate] as? Date

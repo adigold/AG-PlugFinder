@@ -526,6 +526,18 @@ enum SelfTest {
                 print("THEMES done"); fflush(stdout)
             }
         }
+        // --selftest-syncrow <dir>: the three sync states as pictures (BL-131). Nothing syncs.
+        if let k = args.firstIndex(of: "--selftest-syncrow"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task {
+                for (n, st) in [("syncing", SyncProgressRow.State.syncing), ("synced", .synced), ("uploading", .stillUploading)] {
+                    await shoot(Form { Section("Sync") { Toggle("Sync with my other Macs through iCloud Drive", isOn: .constant(true)); SyncProgressRow(state: st) } }
+                                    .formStyle(.grouped).preferredColorScheme(Theme.scheme),
+                                size: NSSize(width: 700, height: 150), to: dir.appendingPathComponent("sync-\(n).png"))
+                }
+                print("SYNCROW done"); fflush(stdout)
+            }
+        }
         // --selftest-makerurl: where Maker's Website goes for a few plugins (BL-129).
         if args.contains("--selftest-makerurl") {
             Task {
