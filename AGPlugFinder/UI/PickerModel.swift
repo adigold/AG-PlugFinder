@@ -84,7 +84,7 @@ final class PickerModel {
     private struct ResultsKey: Equatable {
         let query: String, sort: PluginSort, collectionID: String?, pills: Set<String>, slot: String?
         let suggestion: [String]?, favoritesOnly: Bool, store: Int, collections: [UserLibrary.Collection]
-        let groups: [PillGroup], uses: Int, joined: Bool
+        let groups: [PillGroup], uses: Int, joined: Bool, start: ViewSettings.StartView
     }
     @ObservationIgnored private var memo: (key: ResultsKey, list: [Plugin])?
 
@@ -98,8 +98,9 @@ final class PickerModel {
                              slot: pointerTarget.map { "\($0.kind)" }, suggestion: suggestion?.ids,
                              favoritesOnly: ViewSettings.shared.favoritesOnly, store: store.revision,
                              collections: lib.collections, groups: lib.pills.groups,
-                             uses: sort == .mostUsed || !query.isEmpty ? lib.useCount.values.reduce(0, +) : 0,
-                             joined: ViewSettings.shared.joinMonoStereo)
+                             uses: sort == .mostUsed || !query.isEmpty || ViewSettings.shared.startView != .all
+                                ? lib.useCount.values.reduce(0, +) : 0,
+                             joined: ViewSettings.shared.joinMonoStereo, start: ViewSettings.shared.startView)
         if let memo, memo.key == key { return memo.list }
         let list = computeResults()
         memo = (key, list)
@@ -119,6 +120,26 @@ final class PickerModel {
             list = list.filter { cats.contains($0.displayCategory) }
         }
         if let t = pointerTarget { list = list.filter { $0.slotKind == t.kind } }
+        // Before anything is typed or chosen: what Settings asks for (BL-184).
+        if query.isEmpty, pills.isEmpty, collectionID == nil, pointerTarget == nil, !ViewSettings.shared.favoritesOnly {
+            let use = UserLibrary.shared.useCount, favs = PluginStore.shared.favorites
+            switch ViewSettings.shared.startView {
+            case .all: break
+            case .empty: return []
+            case .mostUsed:
+                let used = list.enumerated().filter { (use[$0.element.id] ?? 0) > 0 }
+                    .sorted { (use[$0.element.id] ?? 0) != (use[$1.element.id] ?? 0)
+                        ? (use[$0.element.id] ?? 0) > (use[$1.element.id] ?? 0) : $0.offset < $1.offset }
+                    .map(\.element)
+                if !used.isEmpty { return used }
+            case .favorites:
+                let f = list.filter { favs.contains($0.id) }
+                if !f.isEmpty { return f }
+            case .unused:
+                let u = list.filter { (use[$0.id] ?? 0) == 0 }
+                if !u.isEmpty { list = u }
+            }
+        }
         // Favorites always lead, in the order the rest would have had (BL-181).
         let favs = PluginStore.shared.favorites
         func favoritesFirst(_ l: [Plugin]) -> [Plugin] {

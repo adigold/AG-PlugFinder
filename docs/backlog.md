@@ -41,6 +41,10 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-187** `P2 · Medium` **Hold Option in every window mode:** choosing where on the track an effect goes now works in Mini, Floating and Sideview too, drawn over the window. Adi, 2026-11-01. · done 2026-11-01
+- [x] **BL-186** `P2 · Medium` **Esc in Floating goes back to All:** clears the search and the category chip every time. Adi, 2026-11-01. · done 2026-11-01
+- [x] **BL-185** `P2 · Medium` **Slim line when the pills are hidden:** with no pills showing, the picture size slider and Zoom sit side by side on one slim line instead of a tall empty row. Adi, 2026-11-01. · done 2026-11-01
+- [x] **BL-184** `P2 · Medium` **What to show before typing:** a Settings choice for the library's starting list: All, Most Used, Favorites, Never Used or Nothing. A search or a category always shows everything that matches. Syncs with the other Macs. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-183** `P2 · Medium` **Match the Mac:** a switch in Appearance that follows macOS light and dark by itself, with one chosen light theme and one chosen dark theme from the app's own themes. Syncs with the other Macs. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-182** `P2 · Medium` **Floating, a fourth window mode:** a see-through search bar with a list under it, like a command bar (Raycast style), floating over Logic. Adi, 2026-11-01, from a reference picture. Category chip, Tab and Shift+Tab step through categories, favorites star, key hints at the bottom. · done 2026-11-01
 - [x] **BL-181** `P2 · Medium` **Favorites are yellow in every theme and come first:** the favorite star is always yellow whatever theme is chosen, and favorites lead the results in every sort and search. Adi, 2026-11-01. · done 2026-11-01

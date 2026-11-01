@@ -37,6 +37,21 @@ final class ViewSettings {
     }
 
     /// What the chip row above the grid shows (BL-46).
+    /// What the library shows before anything is typed (BL-184).
+    enum StartView: String, CaseIterable, Identifiable {
+        case all, mostUsed, favorites, unused, empty
+        var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .all: return "All"
+            case .mostUsed: return "Most Used"
+            case .favorites: return "Favorites"
+            case .unused: return "Never Used"
+            case .empty: return "Nothing"
+            }
+        }
+    }
+
     enum ChipRow: String, CaseIterable, Identifiable {
         case collections, categories, both, off
         var id: String { rawValue }
@@ -80,6 +95,7 @@ final class ViewSettings {
     var zoomSelected: Bool { didSet { save("zoomSelected", zoomSelected) } }
     /// How much bigger (BL-172): S 1.15, M 1.25, L 1.4.
     var zoomScale: Double { didSet { save("zoomScale", zoomScale) } }
+    var startView: StartView { didSet { save("startView", startView.rawValue) } }
 
     private init() {
         let d = UserDefaults.standard
@@ -97,6 +113,7 @@ final class ViewSettings {
         zoomSelected = d.bool(forKey: "view.zoomSelected")
         let z = d.double(forKey: "view.zoomScale")
         zoomScale = [1.15, 1.25, 1.4].contains(z) ? z : 1.25
+        startView = StartView(rawValue: d.string(forKey: "view.startView") ?? "") ?? .all
     }
 
     private func save(_ key: String, _ value: Any) {
@@ -117,7 +134,7 @@ final class ViewSettings {
         ["layout": layout.rawValue, "size": size.rawValue, "tileWidth": String(Double(tileWidth)),
          "showName": String(showName), "showDetails": String(showDetails), "showInfoPane": String(showInfoPane),
          "chipRow": chipRow.rawValue, "spacePreview": String(spacePreview), "joinMonoStereo": String(joinMonoStereo),
-         "zoomSelected": String(zoomSelected), "zoomScale": String(zoomScale)]
+         "zoomSelected": String(zoomSelected), "zoomScale": String(zoomScale), "startView": startView.rawValue]
     }
 
     /// Takes another Mac's view choices; only what differs changes.
@@ -138,5 +155,6 @@ final class ViewSettings {
         if let x = flag("joinMonoStereo"), x != joinMonoStereo { joinMonoStereo = x }
         if let x = flag("zoomSelected"), x != zoomSelected { zoomSelected = x }
         if let x = v["zoomScale"].flatMap(Double.init), [1.15, 1.25, 1.4].contains(x), x != zoomScale { zoomScale = x }
+        if let x = v["startView"].flatMap(StartView.init(rawValue:)), x != startView { startView = x }
     }
 }

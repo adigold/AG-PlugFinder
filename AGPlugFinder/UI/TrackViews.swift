@@ -521,19 +521,28 @@ struct TrackMenuItems: View {
 struct PlacePanel: View {
     let plugin: Plugin
     let spot: Int
+    /// The mini window: one line of heading, and the list scrolls to the line (BL-187).
+    var compact = false
     var state = TrackState.shared
 
     var body: some View {
         let effects = state.effects
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Where should it go?").font(.system(size: Theme.ts(16), weight: .semibold)).foregroundStyle(Theme.text)
-                Text(state.track.map { "On \($0)" } ?? "On the selected track")
-                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
+        VStack(alignment: .leading, spacing: compact ? 8 : 14) {
+            if compact {
+                Text("Where on \(state.track ?? "the track")?").font(.system(size: Theme.ts(13), weight: .semibold))
+                    .foregroundStyle(Theme.text).lineLimit(1)
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Where should it go?").font(.system(size: Theme.ts(16), weight: .semibold)).foregroundStyle(Theme.text)
+                    Text(state.track.map { "On \($0)" } ?? "On the selected track")
+                        .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
+                }
             }
+            ScrollViewReader { proxy in
+            ScrollView(showsIndicators: false) {
             VStack(spacing: 4) {
                 ForEach(0...effects.count, id: \.self) { i in
-                    if i == spot { here }
+                    if i == spot { here.id("here") }
                     if i < effects.count {
                         HStack(spacing: 10) {
                             Text("\(i + 1)").monospacedDigit().foregroundStyle(Theme.faint).frame(width: 18)
@@ -547,11 +556,16 @@ struct PlacePanel: View {
                 }
             }
             .animation(.spring(duration: 0.22, bounce: 0.1), value: spot)
+            }
+            .onAppear { proxy.scrollTo("here", anchor: .center) }
+            .onChange(of: spot) { _, _ in withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo("here", anchor: .center) } }
+            }
+            .frame(maxHeight: .infinity)
             if effects.isEmpty {
                 Text("No effects on this track yet, so it goes in the first slot.")
                     .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
             }
-            Spacer(minLength: 0)
+            if !compact {
             HStack(spacing: 6) {
                 KeyCap(key: "⌥"); KeyCap(key: "↑"); KeyCap(key: "↓")
                 Text("move").foregroundStyle(Theme.muted)
@@ -560,8 +574,9 @@ struct PlacePanel: View {
                 Text("add").foregroundStyle(Theme.muted)
             }
             .font(.system(size: Theme.ts(11)))
+            }
         }
-        .padding(18)
+        .padding(compact ? 12 : 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Theme.ground)
     }

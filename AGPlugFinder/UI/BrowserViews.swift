@@ -547,6 +547,7 @@ struct PluginGrid: View {
     private var emptyText: String {
         if PluginStore.shared.plugins.isEmpty { return "Scanning your plugins…" }
         if view.favoritesOnly && model.query.isEmpty { return "No favorites yet.\nSelect a plugin and press ⌘D." }
+        if model.query.isEmpty, view.startView == .empty { return "Start typing to find a plugin." }
         return "Nothing matches “\(model.query)”"
     }
 

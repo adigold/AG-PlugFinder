@@ -42,6 +42,15 @@ struct LibraryView: View {
             case .floating: FloatingBody(model: model, mode: mode, onMode: setMode) { insert() }
             }
         }
+        // Holding Option in Mini, Floating or Sideview: the track's effects over the window (BL-187).
+        .overlay {
+            if placing, mode != .full, let p = model.selected {
+                PlacePanel(plugin: p, spot: placeSpot, compact: mode == .mini)
+                    .clipShape(RoundedRectangle(cornerRadius: mode == .floating ? 16 : 0, style: .continuous))
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeOut(duration: 0.15), value: placing)
         .frame(minWidth: mode == .full ? 860 : 300, minHeight: mode == .full ? 540 : (mini ? 150 : (mode == .floating ? 300 : 400)))
         .overlay { UnfavoriteConfirm() }
         .animation(.easeOut(duration: 0.15), value: PluginStore.shared.confirmingUnfavorite)
@@ -501,6 +510,11 @@ struct LibraryView: View {
             case 36, 76: insert(); return nil                     // Return
             case 53:                                               // Esc
                 if model.replaceTarget != nil { model.replaceTarget = nil; return nil }
+                // Floating: back to All, with the search cleared (BL-186).
+                if mode == .floating {
+                    model.picked = []; model.query = ""; model.pills = []; model.collectionID = nil; model.selection = 0
+                    return nil
+                }
                 if !model.picked.isEmpty { model.picked = []; return nil }
                 if !model.query.isEmpty { model.query = "" } else { model.message = nil }
                 return nil
@@ -568,9 +582,9 @@ struct LibraryView: View {
         flagsMonitor = nil
     }
 
-    /// Only for an audio effect, in the full window, with Logic in use and nothing else open.
+    /// Only for an audio effect, with Logic in use and nothing else open. Every window mode (BL-187).
     private func canPlace() -> Bool {
-        mode == .full && Host.current == .logic && model.selected?.slotKind == .audioFX && model.picked.count < 2
+        Host.current == .logic && model.selected?.slotKind == .audioFX && model.picked.count < 2
             && !model.previewing && model.slotChoices == nil && model.replaceTarget == nil
     }
 

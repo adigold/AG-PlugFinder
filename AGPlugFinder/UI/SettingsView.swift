@@ -69,6 +69,12 @@ struct GeneralSettings: View {
                     ForEach(ViewSettings.ChipRow.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
+                Picker("Before you type, show", selection: Bindable(ViewSettings.shared).startView) {
+                    ForEach(ViewSettings.StartView.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                Text("What the library shows before you start typing. Most Used puts the plugins you add most often first, Never Used shows the ones you have not tried yet, and Nothing keeps the list clear until you type. A search or a category always shows everything that matches.")
+                    .font(.caption).foregroundStyle(.secondary)
                 Toggle("Show mono and stereo versions as one plugin", isOn: Bindable(ViewSettings.shared).joinMonoStereo)
                 Text("For example API-550A (m) and (s) show once. Logic gets the mono version on a mono track and the stereo version on a stereo track. Right-click a plugin to choose one yourself.")
                     .font(.caption).foregroundStyle(.secondary)

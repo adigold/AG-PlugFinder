@@ -22,13 +22,25 @@ struct CollectionBar: View {
     var showSizeSlider = false
     /// The sideview keeps its pills on one row that scrolls sideways (BL-148).
     var scrolls = false
+    @AppStorage("zoomSizeTipDone") private var zoomTipDone = false
 
     var body: some View {
         let showCollections = view.chipRow.showsCollections && !library.collections.isEmpty
         let showCategories = view.chipRow.showsCategories
         if showCollections || showCategories || model.suggestion != nil || showSizeSlider || model.soundHint != nil {
             VStack(alignment: .leading, spacing: 0) {
-                if showCollections || showCategories || showSizeSlider {
+                if showSizeSlider, !showCollections, !showCategories {
+                    // No pills: the slider and Zoom share one slim line at the right (BL-185).
+                    HStack(spacing: 14) {
+                        Spacer(minLength: 8)
+                        SizeSlider()
+                        HStack(spacing: 6) {
+                            if !zoomTipDone { ZoomPill.tip.transition(.opacity) }
+                            ZoomPill(tipBeside: true)
+                        }
+                    }
+                    .padding(.horizontal, 18).frame(height: 34)
+                } else if showCollections || showCategories || showSizeSlider {
                     HStack(alignment: .top, spacing: 8) {
                         if showCollections || showCategories {
                             PillRow(model: model, showCollections: showCollections, showCategories: showCategories, scrolls: scrolls)
@@ -98,6 +110,15 @@ struct SizeSlider: View {
 /// arrow keys. Off, every card is the same size.
 struct ZoomPill: View {
     var view = ViewSettings.shared
+    /// On the slim line (no pills): the tip sits to the left instead of underneath (BL-185).
+    var tipBeside = false
+    static var tip: some View {
+        Text("Long press")
+            .font(.system(size: Theme.ts(8.5), weight: .medium))
+            .foregroundStyle(Theme.muted)
+            .fixedSize()
+            .allowsHitTesting(false)
+    }
     @State private var hovering = false
     /// Held down: the three sizes (BL-172).
     @State private var showSizes = false
@@ -154,14 +175,8 @@ struct ZoomPill: View {
         .disabled(view.layout == .list)
         .opacity(view.layout == .list ? 0.4 : 1)
         .overlay(alignment: .bottom) {
-            if !tipDone {
-                Text("Long press")
-                    .font(.system(size: Theme.ts(8.5), weight: .medium))
-                    .foregroundStyle(Theme.muted)
-                    .fixedSize()
-                    .offset(y: 13)
-                    .allowsHitTesting(false)
-                    .transition(.opacity)
+            if !tipDone, !tipBeside {
+                Self.tip.offset(y: 13).transition(.opacity)
             }
         }
     }

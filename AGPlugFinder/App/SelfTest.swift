@@ -205,6 +205,25 @@ enum SelfTest {
                     try? await Task.sleep(for: .seconds(1))
                     await capture(window, to: out.deletingPathExtension().appendingPathExtension("place.png"))
                     NotificationCenter.default.post(name: .demoPlace, object: nil)
+                    // The same in the other window modes (BL-187).
+                    for m in ["mini", "floating", "sideview"] {
+                        NotificationCenter.default.post(name: .demoWindowMode, object: m)
+                        try? await Task.sleep(for: .seconds(1.4))
+                        NotificationCenter.default.post(name: .demoPlace, object: 2)
+                        try? await Task.sleep(for: .seconds(1))
+                        await capture(window, to: out.deletingPathExtension().appendingPathExtension("place-\(m).png"))
+                        NotificationCenter.default.post(name: .demoPlace, object: nil)
+                    }
+                    NotificationCenter.default.post(name: .demoWindowMode, object: "full")
+                    try? await Task.sleep(for: .seconds(1.2))
+                    if args.contains("--nopills") {
+                        // The slim line when the pills are hidden (BL-185). In memory only.
+                        let was = ViewSettings.shared.chipRow
+                        ViewSettings.shared.chipRow = .off
+                        try? await Task.sleep(for: .seconds(1))
+                        await capture(window, to: out.deletingPathExtension().appendingPathExtension("nopills.png"))
+                        ViewSettings.shared.chipRow = was
+                    }
                     print("PLACE done"); fflush(stdout)
                 }
                 if args.contains("--floating") {
@@ -212,6 +231,19 @@ enum SelfTest {
                     NotificationCenter.default.post(name: .demoWindowMode, object: "floating")
                     try? await Task.sleep(for: .seconds(1.5))
                     await capture(window, to: out.deletingPathExtension().appendingPathExtension("floating.png"))
+                    func key(_ code: UInt16, _ ch: String) {
+                        for t in [NSEvent.EventType.keyDown, .keyUp] {
+                            if let e = NSEvent.keyEvent(with: t, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: window.windowNumber,
+                                                        context: nil, characters: ch, charactersIgnoringModifiers: ch, isARepeat: false, keyCode: code) { NSApp.postEvent(e, atStart: false) }
+                        }
+                    }
+                    NSApp.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil)
+                    key(48, "\t"); key(48, "\t")
+                    try? await Task.sleep(for: .seconds(1))
+                    await capture(window, to: out.deletingPathExtension().appendingPathExtension("floattab.png"))
+                    key(53, "\u{1b}")
+                    try? await Task.sleep(for: .seconds(1))
+                    await capture(window, to: out.deletingPathExtension().appendingPathExtension("floatesc.png"))
                     print("FLOATING \(Int(window.frame.width))x\(Int(window.frame.height)) opaque=\(window.isOpaque)"); fflush(stdout)
                     NotificationCenter.default.post(name: .demoWindowMode, object: "full")
                     try? await Task.sleep(for: .seconds(1.2))
@@ -635,6 +667,26 @@ enum SelfTest {
                 await capture(w, to: dir.appendingPathComponent("lib-light-130.png"), scale: 1)
                 look.textScale = 1; look.paletteID = "classic"
                 print("THEMES done"); fflush(stdout)
+            }
+        }
+        // --selftest-startview: what each starting list holds with nothing typed (BL-184).
+        if args.contains("--selftest-startview") {
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(2))
+                let v = ViewSettings.shared, was = v.startView, fav = v.favoritesOnly
+                v.favoritesOnly = false
+                let use = UserLibrary.shared.useCount
+                for s in ViewSettings.StartView.allCases {
+                    v.startView = s
+                    let m = PickerModel()
+                    let r = m.results
+                    let top = r.prefix(3).map { "\($0.name)(\(use[$0.id] ?? 0))" }.joined(separator: ", ")
+                    print("START \(s.rawValue): \(r.count) first: \(top)")
+                    m.query = "verb"
+                    print("START \(s.rawValue) search verb: \(m.results.count)")
+                }
+                v.startView = was; v.favoritesOnly = fav
+                print("START done"); fflush(stdout)
             }
         }
         // --selftest-matchmac <dir>: Match the Mac picks the light or dark theme as macOS changes (BL-183).
