@@ -853,6 +853,24 @@ enum SelfTest {
             print("RM safety: all paths wrong -> kept \(PluginScanner.keepInstalled(allGone).count) of \(allGone.count)")
             print("RM done"); fflush(stdout)
         }
+        // --selftest-mycategory <dir>: a category of the user's own, in memory only (BL-201).
+        if let k = args.firstIndex(of: "--selftest-mycategory"), k + 1 < args.count {
+            Task { @MainActor in
+                let dir = URL(fileURLWithPath: args[k + 1])
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                let lib = UserLibrary.shared, store = PluginStore.shared
+                lib.readOnly = true; store.readOnly = true
+                try? await Task.sleep(for: .seconds(1))
+                lib.myCategories.append("Vocal Magic")
+                for id in ["logic-compressor", "logic-deesser2"] { store.update(id) { $0.userCategory = "Vocal Magic" } }
+                let pill = Pills.categoryPills().first { $0.original == "Vocal Magic" }
+                print("MYCAT pill=\(pill?.title ?? "none") count=\(pill?.count ?? 0) mine=\(lib.isMine("Vocal Magic")) builtInMine=\(lib.isMine("EQ"))")
+                await shoot(PillsEditor(topPadding: 20), size: NSSize(width: 760, height: 560), to: dir.appendingPathComponent("pills.png"))
+                Pills.deleteMine("Vocal Magic")
+                print("MYCAT after delete: compressor=\(store.plugin("logic-compressor")?.displayCategory ?? "?") mine=\(lib.myCategories)")
+                print("MYCAT done"); fflush(stdout)
+            }
+        }
         // --selftest-behavior <png>: Settings, Behavior (BL-200).
         if let k = args.firstIndex(of: "--selftest-behavior"), k + 1 < args.count {
             Task { @MainActor in

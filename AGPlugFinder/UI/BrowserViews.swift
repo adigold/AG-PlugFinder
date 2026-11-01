@@ -1447,10 +1447,32 @@ struct CategoryMenu: View {
             ForEach(PluginCategories.all, id: \.self) { c in
                 Button((current == [c] ? "✓ " : "") + c) { set(c) }
             }
+            // The user's own categories (BL-201): theirs alone, never shared.
+            let mine = UserLibrary.shared.myCategories
+            if !mine.isEmpty {
+                Divider()
+                Section("Yours") {
+                    ForEach(mine, id: \.self) { c in
+                        Button((current == [c] ? "✓ " : "") + c) { set(c) }
+                    }
+                }
+            }
             Divider()
+            Button("New Category…") { DispatchQueue.main.async { newCategory() } }
             Button("Automatic") { set(nil) }
                 .disabled(!ids.contains { id in store.plugins.first { $0.id == id }?.userCategory != nil })
         }
+    }
+
+    /// A category of the user's own: named here, kept to their own Macs (BL-201).
+    private func newCategory() {
+        guard let name = NamePrompt.ask("New category",
+                                        placeholder: "For example Vocal Magic") else { return }
+        let lib = UserLibrary.shared
+        if let builtIn = PluginCategories.all.first(where: { $0.caseInsensitiveCompare(name) == .orderedSame }) { set(builtIn); return }
+        if let existing = lib.myCategories.first(where: { $0.caseInsensitiveCompare(name) == .orderedSame }) { set(existing); return }
+        lib.myCategories.append(name)
+        set(name)
     }
 
     private func set(_ category: String?) {
@@ -1459,6 +1481,8 @@ struct CategoryMenu: View {
         Toast.show(category.map { ids.count > 1 ? "\(ids.count) plugins moved to \($0)" : "Moved to \($0)" }
                    ?? "Back to the automatic category")
         guard let category else { return }
+        // The user's own category stays with them: nothing is offered or sent.
+        guard !UserLibrary.shared.isMine(category) else { return }
         let plugins = ids.compactMap { id in store.plugins.first { $0.id == id } }
         guard !plugins.isEmpty else { return }
         // Offer it to everyone: other users' apps can then sort these plugins the same way.

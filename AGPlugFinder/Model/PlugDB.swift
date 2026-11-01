@@ -55,6 +55,8 @@ enum PlugDB {
 
     /// Sends a category the user chose for these plugins, after they agreed (BL-82).
     static func shareCategory(_ plugins: [Plugin], _ category: String) {
+        // A category the user made is theirs alone: it never goes to the database (BL-201).
+        guard !UserLibrary.shared.isMine(category) else { return }
         guard let base, let key, !plugins.isEmpty else { return }
         let body: [String: Any] = [
             "installId": installID, "category": category,
@@ -171,7 +173,7 @@ enum PlugDB {
     static func offerEarlierCategories() {
         let d = UserDefaults.standard
         guard !d.bool(forKey: "share.categories.offered") else { return }
-        let mine = PluginStore.shared.plugins.filter { $0.userCategory != nil }
+        let mine = PluginStore.shared.plugins.filter { $0.userCategory.map { !UserLibrary.shared.isMine($0) } ?? false }
         guard !mine.isEmpty else { d.set(true, forKey: "share.categories.offered"); return }
         NSApp.activate()
         let answer = Dialog.show("Share your \(mine.count) category change\(mine.count == 1 ? "" : "s") with everyone?",

@@ -100,6 +100,14 @@ enum Pills {
 
     static func categoryCounts() -> [String: Int] { tally().counts }
 
+    /// Removes a category the user made (BL-201): its plugins go back to their usual category.
+    @MainActor static func deleteMine(_ category: String) {
+        let store = PluginStore.shared
+        for p in store.plugins where p.userCategory == category { store.update(p.id) { $0.userCategory = nil } }
+        UserLibrary.shared.myCategories.removeAll { $0 == category }
+        Toast.show("Deleted \(category). Its plugins are back in their usual categories.")
+    }
+
     /// Times plugins of each category were added to Logic.
     static func categoryUses() -> [String: Int] { tally().used }
 

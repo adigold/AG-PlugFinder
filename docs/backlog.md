@@ -41,6 +41,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-201** `P2 · Medium` **Your own categories:** "New Category…" in a plugin's Category menu makes a category that is yours alone: never sent to the shared database, synced only to your own Macs, with its own pill; rename or delete it in Settings, Pills. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-200** `P2 · Medium` **Settings, Behavior, and hide after adding:** a new Behavior tab with "Hide the window and go back to Logic" after adding a plugin (every view), plus the behavior settings moved from General (before you type, Space preview, mono and stereo as one). Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-199** `P1 · High` **Dialog OK only answered Enter, not the mouse:** the dialog opens while the click that opened it is still being handled, so its buttons could miss the mouse. The dialog now answers clicks on its buttons itself. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-198** `P2 · Medium` **Plugin Manager waits for a click:** it no longer scans by itself when opened; a centered Start Scanning button starts it. Adi, 2026-11-01. · done 2026-11-01

@@ -353,6 +353,12 @@ struct PillMenu: View {
         switch pill.kind {
         case .category:
             Button("Combine with Other Categories…") { PillsWindow.shared.show(newGroupWith: pill.original) }
+            if UserLibrary.shared.isMine(pill.original) {
+                Button("Delete Your Category") {
+                    model.pills.remove(pill.key)
+                    Pills.deleteMine(pill.original)
+                }
+            }
         case .group:
             Button("Edit Combined Pill…") { PillsWindow.shared.show(editGroup: String(pill.key.dropFirst(4))) }
             Button("Split Back into Categories") {
@@ -664,7 +670,10 @@ struct PillEditRow: View {
     private var sub: String? {
         switch pill.kind {
         case .group: return Pills.categories(for: pill.key).joined(separator: ", ")
-        case .category: return pill.title != pill.original ? pill.original : nil
+        case .category:
+            let mine = UserLibrary.shared.isMine(pill.original)
+            if pill.title != pill.original { return mine ? "Yours · \(pill.original)" : pill.original }
+            return mine ? "Yours, only on your own Macs" : nil
         case .collection: return nil
         }
     }

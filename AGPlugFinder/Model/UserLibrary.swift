@@ -81,6 +81,8 @@ final class UserLibrary {
         var details: [String: PluginDetails]? = nil
         var channelFormats: [String: String]? = nil
         var shortcuts: Data? = nil
+        // From BL-201 on: the categories the user made, never shared with anyone else.
+        var myCategories: [String]? = nil
     }
 
     var chains: [Chain] = [] { didSet { changed() } }
@@ -92,6 +94,9 @@ final class UserLibrary {
     var useCount: [String: Int] = [:] { didSet { changed() } }
     /// The pills above the plugins: order, names, colors, combined pills (BL-110).
     var pills = PillPrefs() { didSet { if pills != oldValue { changed() } } }
+    /// Categories the user made (BL-201). They stay with the user: only their own Macs get them.
+    var myCategories: [String] = [] { didSet { if myCategories != oldValue { changed() } } }
+    func isMine(_ category: String) -> Bool { myCategories.contains(category) }
 
     var syncEnabled: Bool {
         get { UserDefaults.standard.object(forKey: "sync.iCloud") as? Bool ?? true }
@@ -220,7 +225,8 @@ final class UserLibrary {
                      categories: Dictionary(uniqueKeysWithValues: store.plugins.compactMap { p in p.userCategory.map { (p.id, $0) } }),
                      details: Dictionary(uniqueKeysWithValues: store.plugins.compactMap { p in p.details.map { (p.id, $0) } }),
                      channelFormats: ChannelFormats.shared.perPlugin,
-                     shortcuts: UserDefaults.standard.data(forKey: "shortcuts"))
+                     shortcuts: UserDefaults.standard.data(forKey: "shortcuts"),
+                     myCategories: myCategories)
     }
 
     private func save(to url: URL) { write(snapshot(), to: url) }
@@ -257,6 +263,7 @@ final class UserLibrary {
         if only.contains(.notes) { notes = s.notes }
         if only.contains(.keys) { pins = s.pins }
         if only.contains(.pills) { pills = s.pills ?? PillPrefs() }
+        if only.contains(.plugins), let m = s.myCategories { myCategories = m }
         guard cloud else { return }
         let store = PluginStore.shared
         if only.contains(.favorites), let f = s.favorites { store.favorites = Set(f) }
@@ -368,6 +375,7 @@ final class UserLibrary {
                 case .appearance: out.appearance = old.appearance
                 case .view: out.view = old.view
                 case .plugins: out.categories = old.categories; out.details = old.details; out.channelFormats = old.channelFormats
+                    out.myCategories = old.myCategories
                 case .shortcuts: out.shortcuts = old.shortcuts
                 case .purchases, .pictures: break
                 }
@@ -450,6 +458,7 @@ final class UserLibrary {
             m.categories = (mine.categories ?? [:]).merging(s.categories ?? [:]) { _, cloud in cloud }
             m.details = (mine.details ?? [:]).merging(s.details ?? [:]) { _, cloud in cloud }
             m.channelFormats = (mine.channelFormats ?? [:]).merging(s.channelFormats ?? [:]) { _, cloud in cloud }
+            m.myCategories = (s.myCategories ?? []) + myCategories.filter { !(s.myCategories ?? []).contains($0) }
         }
         if on.contains(.shortcuts), s.shortcuts == nil { m.shortcuts = UserDefaults.standard.data(forKey: "shortcuts") }
         let counts = useCount.merging(s.useCount) { max($0, $1) }
