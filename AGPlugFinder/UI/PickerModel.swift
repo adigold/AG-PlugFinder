@@ -142,6 +142,40 @@ final class PickerModel {
     }
 
     /// Shows a plugin even if the search or a collection hides it (More like this).
+    /// Shuffle (BL-133): the selection hops across the plugins showing, slowing down like a
+    /// wheel, and stops on a random one. Plugins it landed on lately are skipped.
+    var shuffling = false
+    /// Where the shuffle stopped; the grid scrolls it to the middle.
+    var shuffleLanded: String?
+    @ObservationIgnored private var recentShuffles: [String] = []
+
+    func shuffle() {
+        let r = results
+        guard r.count > 1, !shuffling else { return }
+        shuffling = true
+        picked = []
+        let fresh = r.indices.filter { !recentShuffles.contains(r[$0].id) && $0 != selection }
+        let target = (fresh.isEmpty ? Array(r.indices.filter { $0 != selection }) : fresh).randomElement() ?? 0
+        let hops = min(12, max(4, r.count))
+        Task { @MainActor in
+            for h in 0..<hops {
+                var i = Int.random(in: 0..<r.count)
+                if r.count > 2 { while i == selection || i == target { i = Int.random(in: 0..<r.count) } }
+                selection = i
+                // Fast at first, then slower, like a wheel coming to rest.
+                try? await Task.sleep(for: .milliseconds(45 + h * h * 2))
+            }
+            selection = target
+            keysOnPlugins = true
+            // The last hop's scroll can still be moving: center the winner once it settles.
+            try? await Task.sleep(for: .milliseconds(160))
+            shuffleLanded = r[target].id
+            recentShuffles.append(r[target].id)
+            if recentShuffles.count > 8 { recentShuffles.removeFirst() }
+            shuffling = false
+        }
+    }
+
     func reveal(_ id: String) {
         if !results.contains(where: { $0.id == id }) {
             query = ""

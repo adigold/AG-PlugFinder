@@ -651,6 +651,32 @@ enum SelfTest {
                     }
                     try? await Task.sleep(for: .milliseconds(900))
                 }
+                // --shuffle x y: click the dice twice; pictures mid-spin and where it landed (BL-133).
+                if let k2 = args.firstIndex(of: "--shuffle") {
+                    let at = NSPoint(x: Double(args[k2 + 1]) ?? 0, y: lib.frame.height - (Double(args[k2 + 2]) ?? 0))
+                    if let f = args.firstIndex(of: "--filter") {
+                        NotificationCenter.default.post(name: .demoQuery, object: args[f + 1])
+                        try? await Task.sleep(for: .milliseconds(600))
+                    }
+                    for round in 1...2 {
+                        let screen = lib.convertPoint(toScreen: at)
+                        CGWarpMouseCursorPosition(CGPoint(x: screen.x, y: (NSScreen.screens.first?.frame.maxY ?? 0) - screen.y))
+                        try? await Task.sleep(for: .milliseconds(250))
+                        for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+                            if let e = NSEvent.mouseEvent(with: type, location: at, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                                          windowNumber: lib.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1) {
+                                NSApp.postEvent(e, atStart: false)
+                            }
+                            try? await Task.sleep(for: .milliseconds(60))
+                        }
+                        try? await Task.sleep(for: .milliseconds(250))
+                        await shot("shuffle-\(round)-spinning")
+                        try? await Task.sleep(for: .milliseconds(1600))
+                        await shot("shuffle-\(round)-landed")
+                    }
+                    print("PREVIEW done shuffle"); fflush(stdout)
+                    return
+                }
                 // --similar: Space, Find Similar, then the first match (BL-132).
                 if args.contains("--similar") {
                     NotificationCenter.default.post(name: .focusSearch, object: nil); try? await Task.sleep(for: .milliseconds(400)); await key(48, "\t"); await key(49, " ")

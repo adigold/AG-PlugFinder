@@ -464,6 +464,11 @@ struct PluginGrid: View {
                         withAnimation(.easeOut(duration: 0.14)) { proxy.scrollTo(results[new].id) }
                     }
                 }
+                .onChange(of: model.shuffleLanded) { _, id in
+                    guard let id else { return }
+                    withAnimation(.spring(duration: 0.4, bounce: 0.1)) { proxy.scrollTo(id, anchor: .center) }
+                    model.shuffleLanded = nil
+                }
                 .onAppear { model.columns = columns }
                 .onChange(of: columns) { _, c in model.columns = c }
             }

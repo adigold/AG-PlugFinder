@@ -173,6 +173,7 @@ struct LibraryView: View {
                 .frame(minWidth: 220, maxWidth: 480)
             Spacer(minLength: 16)
             HStack(spacing: 2) {
+                ShuffleButton(model: model)
                 BarIconButton(systemImage: "slider.vertical.3", help: "This track in Logic: its plugins, on and off, replace, remove",
                               active: showTrack) { showTrack.toggle() }
                     .popover(isPresented: $showTrack, arrowEdge: .bottom) { TrackPanel(model: model) { showTrack = false } }
@@ -551,3 +552,32 @@ extension Notification.Name {
     static let demoSelect = Notification.Name("AGPFDemoSelect")
 }
 
+
+/// Shuffle (BL-133): a die that spins while the selection hops, then lands on a random plugin.
+struct ShuffleButton: View {
+    @Bindable var model: PickerModel
+    @State private var hovering = false
+    @State private var turns = 0.0
+
+    var body: some View {
+        Button {
+            withAnimation(.spring(duration: 0.9, bounce: 0.25)) { turns += 2 }
+            model.shuffle()
+        } label: {
+            Image(systemName: "dice")
+                .font(.system(size: Theme.ts(15), weight: .medium))
+                .foregroundStyle(model.shuffling ? Theme.accent : (hovering ? Theme.text : Theme.muted))
+                .rotationEffect(.degrees(turns * 360))
+                .scaleEffect(model.shuffling ? 1.15 : 1)
+                .animation(.spring(duration: 0.3), value: model.shuffling)
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(hovering || model.shuffling ? Theme.raised : Color.clear))
+                .contentShape(Circle())
+        }
+        .buttonStyle(PressScale())
+        .onHover { hovering = $0 }
+        .disabled(model.results.count < 2)
+        .help("Shuffle: land on a random plugin")
+        .accessibilityLabel("Shuffle: land on a random plugin")
+    }
+}
