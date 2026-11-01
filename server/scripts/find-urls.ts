@@ -17,14 +17,16 @@ if (!sample && !all) { console.error("Use --sample N or --all"); process.exit(1)
 const outDir = path.resolve("reports");
 fs.mkdirSync(outDir, { recursive: true });
 
-function exaKey(): string {
-  if (process.env.EXA_API_KEY) return process.env.EXA_API_KEY;
+// The first key, then the spare one when the first runs out of credit.
+function exaKeys(): string[] {
   const f = path.join(os.homedir(), ".claude/exa.ag-plugfinder.env");
-  const m = fs.readFileSync(f, "utf8").match(/^EXA_API_KEY=(.+)$/m);
-  if (!m) throw new Error("No EXA_API_KEY in " + f);
-  return m[1].trim();
+  const text = fs.readFileSync(f, "utf8");
+  const keys = [...text.matchAll(/^EXA_API_KEY(?:_\d+)?=(.+)$/gm)].map((m) => m[1].trim());
+  if (!keys.length) throw new Error("No EXA_API_KEY in " + f);
+  return keys;
 }
-const KEY = exaKey();
+const KEYS = exaKeys();
+let keyIndex = 0;
 
 // The app's own maker → site list, read from the Swift file so there is one list.
 const swift = fs.readFileSync(path.resolve("../AGPlugFinder/Info/MakerSites.swift"), "utf8");
@@ -90,11 +92,21 @@ async function search(query: string, site?: string) {
     contents: { highlights: true } };
   // Adi asked for the maker's own website: the maker's domain is the allowlist.
   if (site) body.includeDomains = [site];
-  const r = await fetch("https://api.exa.ai/search", {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": KEY },
-    body: JSON.stringify(body),
-  });
+  let r: Response;
+  for (;;) {
+    r = await fetch("https://api.exa.ai/search", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": KEYS[keyIndex] },
+      body: JSON.stringify(body),
+    });
+    // Out of credit or key refused: move on to the spare key, once.
+    if ((r.status === 401 || r.status === 402 || r.status === 403) && keyIndex + 1 < KEYS.length) {
+      keyIndex++;
+      console.log(`key ${keyIndex} out of credit or refused (${r.status}), switching to key ${keyIndex + 1}`);
+      continue;
+    }
+    break;
+  }
   if (!r.ok) throw new Error(`Exa ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const j = (await r.json()) as { results: { url: string; title?: string }[]; costDollars?: { total?: number };
     output?: { content?: unknown } };
@@ -192,7 +204,9 @@ async function main() {
   const stamp = sample ? `sample-${sample}` : "all";
   const partial = path.join(outDir, `urls-${stamp}.partial.jsonl`);
   const found: Found[] = fs.existsSync(partial)
-    ? fs.readFileSync(partial, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l) as Found) : [];
+    ? fs.readFileSync(partial, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l) as Found)
+        // A search that failed (no credit, network) is tried again, not kept as "nothing found".
+        .filter((f) => !/Exa \d|fetch failed|TypeError|Error/.test(f.note ?? "")) : [];
   const done = new Set(found.map((f) => f.maker + "|" + f.name.toLowerCase()));
   list = list.filter((g) => !done.has(g.maker + "|" + g.name.toLowerCase()));
   console.log(`${rows.length} plugins, ${groups.size} products, ${found.length} already done, looking up ${list.length}`);
