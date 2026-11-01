@@ -153,6 +153,10 @@ enum SelfTest {
                         try? await Task.sleep(for: .seconds(1.2))
                         await capture(window, to: out.deletingPathExtension().appendingPathExtension("zoom\(i + 1).png"))
                     }
+                    ViewSettings.shared.zoomScale = 1.4
+                    try? await Task.sleep(for: .seconds(1.2))
+                    await capture(window, to: out.deletingPathExtension().appendingPathExtension("zoomL.png"))
+                    ViewSettings.shared.zoomScale = 1.25
                     ViewSettings.shared.zoomSelected = false
                     try? await Task.sleep(for: .seconds(1.2))
                     await capture(window, to: out.deletingPathExtension().appendingPathExtension("zoomoff.png"))

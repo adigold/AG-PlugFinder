@@ -78,6 +78,8 @@ final class ViewSettings {
     var joinMonoStereo: Bool { didSet { save("joinMonoStereo", joinMonoStereo) } }
     /// The selected plugin's card shows bigger and follows the arrow keys (BL-171).
     var zoomSelected: Bool { didSet { save("zoomSelected", zoomSelected) } }
+    /// How much bigger (BL-172): S 1.15, M 1.25, L 1.4.
+    var zoomScale: Double { didSet { save("zoomScale", zoomScale) } }
 
     private init() {
         let d = UserDefaults.standard
@@ -93,6 +95,8 @@ final class ViewSettings {
         spacePreview = d.object(forKey: "view.spacePreview") as? Bool ?? true
         joinMonoStereo = d.object(forKey: "view.joinMonoStereo") as? Bool ?? true
         zoomSelected = d.bool(forKey: "view.zoomSelected")
+        let z = d.double(forKey: "view.zoomScale")
+        zoomScale = [1.15, 1.25, 1.4].contains(z) ? z : 1.25
     }
 
     private func save(_ key: String, _ value: Any) {
@@ -113,7 +117,7 @@ final class ViewSettings {
         ["layout": layout.rawValue, "size": size.rawValue, "tileWidth": String(Double(tileWidth)),
          "showName": String(showName), "showDetails": String(showDetails), "showInfoPane": String(showInfoPane),
          "chipRow": chipRow.rawValue, "spacePreview": String(spacePreview), "joinMonoStereo": String(joinMonoStereo),
-         "zoomSelected": String(zoomSelected)]
+         "zoomSelected": String(zoomSelected), "zoomScale": String(zoomScale)]
     }
 
     /// Takes another Mac's view choices; only what differs changes.
@@ -133,5 +137,6 @@ final class ViewSettings {
         if let x = flag("spacePreview"), x != spacePreview { spacePreview = x }
         if let x = flag("joinMonoStereo"), x != joinMonoStereo { joinMonoStereo = x }
         if let x = flag("zoomSelected"), x != zoomSelected { zoomSelected = x }
+        if let x = v["zoomScale"].flatMap(Double.init), [1.15, 1.25, 1.4].contains(x), x != zoomScale { zoomScale = x }
     }
 }

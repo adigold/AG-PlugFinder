@@ -99,13 +99,23 @@ struct SizeSlider: View {
 struct ZoomPill: View {
     var view = ViewSettings.shared
     @State private var hovering = false
+    /// Held down: the three sizes (BL-172).
+    @State private var showSizes = false
+    @State private var held = false
+    static let sizes: [(String, Double)] = [("S", 1.15), ("M", 1.25), ("L", 1.4)]
 
     var body: some View {
         let on = view.zoomSelected
-        Button { withAnimation(.spring(duration: 0.3, bounce: 0.15)) { view.zoomSelected.toggle() } } label: {
+        Button {
+            // Letting go after holding is not a click.
+            if held { held = false; return }
+            withAnimation(.spring(duration: 0.3, bounce: 0.15)) { view.zoomSelected.toggle() }
+        } label: {
             HStack(spacing: 5) {
                 Image(systemName: on ? "plus.magnifyingglass" : "magnifyingglass").font(.system(size: Theme.ts(10), weight: .semibold))
                 Text("Zoom").font(.system(size: Theme.ts(11), weight: .semibold))
+                Text(Self.sizes.first { $0.1 == view.zoomScale }?.0 ?? "M")
+                    .font(.system(size: Theme.ts(9), weight: .bold)).opacity(0.75)
             }
             .foregroundStyle(on ? Theme.onAccent : (hovering ? Theme.text : Theme.muted))
             .padding(.horizontal, 10).frame(height: 22)
@@ -115,7 +125,19 @@ struct ZoomPill: View {
         }
         .buttonStyle(PressScale())
         .onHover { hovering = $0 }
-        .help(on ? "Zoom is on: the selected plugin shows bigger. Click to turn off." : "Show the selected plugin bigger; it follows the arrow keys")
+        .simultaneousGesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in held = true; showSizes = true })
+        .popover(isPresented: $showSizes, arrowEdge: .bottom) {
+            HStack(spacing: 6) {
+                ForEach(Self.sizes, id: \.0) { label, scale in
+                    Chip(title: label, on: view.zoomScale == scale) {
+                        withAnimation(.spring(duration: 0.3, bounce: 0.15)) { view.zoomScale = scale; view.zoomSelected = true }
+                        showSizes = false
+                    }
+                }
+            }
+            .padding(10).background(Theme.surface).preferredColorScheme(Theme.scheme)
+        }
+        .help(on ? "Zoom is on: the selected plugin shows bigger. Click to turn off, hold for S, M or L." : "Show the selected plugin bigger; it follows the arrow keys. Hold for S, M or L.")
         .disabled(view.layout == .list)
         .opacity(view.layout == .list ? 0.4 : 1)
     }

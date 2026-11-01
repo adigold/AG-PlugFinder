@@ -557,7 +557,7 @@ struct PluginGrid: View {
             let zoomed = view.zoomSelected && !compact && view.layout != .list && i == model.selection
             cell(plugin, i == model.selection)
                 // The selected card shows 25% bigger, above its neighbours (BL-171).
-                .scaleEffect(zoomed ? 1.25 : 1, anchor: zoomAnchor(i, count: results.count))
+                .scaleEffect(zoomed ? view.zoomScale : 1, anchor: zoomAnchor(i, count: results.count))
                 .zIndex(zoomed ? 1 : 0)
                 .shadow(color: .black.opacity(zoomed ? 0.45 : 0), radius: zoomed ? 18 : 0, y: zoomed ? 8 : 0)
                 .animation(reduceMotion ? nil : .spring(duration: 0.28, bounce: 0.18), value: zoomed)

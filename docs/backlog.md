@@ -40,6 +40,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-172** `P2 · Low` **Zoom sizes S, M, L:** holding the Zoom pill opens a small menu with three sizes (S 15%, M 25%, L 40% bigger); a click still turns Zoom on and off. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-171** `P2 · Medium` **Zoom the selected plugin:** a small Zoom pill under the picture size slider; while it is on, the selected plugin's card shows 25% bigger and follows the arrow keys, the others keep their size. Show Adi before releasing. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-170** `P2 · Medium` **Every lo-fi plugin in LoFi:** go through the shared database and make sure every lo-fi effect lands in LoFi. Adi, 2026-11-01. Found 32 lo-fi plugins (38 entries with mono/stereo versions) among 2,237 in the database; the app's LoFi words now catch all of them; the database itself was only read. · done 2026-11-01
 - [x] **BL-169** `P2 · Medium` **LoFi category:** a LoFi pill for lo-fi effects (RC-20 Retro Color, Retro Fi, Lofi Space, Tape MELLO-FI, UFX-LOFI, FIN-RETRO, Needlepoint, anything named lofi, cassette or vinyl), taken by name ahead of their other category. Adi, 2026-11-01. · done 2026-11-01
