@@ -7,6 +7,8 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
+- [ ] **BL-133** `P2 · Medium` **Shuffle a random plugin:** a shuffle icon at the left of the top bar icons; it animates through plugins and lands on a random one. Adi, 2026-11-01.
+
 - [ ] **BL-122** `P2 · Medium` **New database plugins checked automatically:** when an app adds a plugin to the shared database, the server finds its maker page, exact kind and category with Exa in the background. Needs the Exa key on the server and a server update (Adi to approve). Adi, 2026-11-01.
 
 - [ ] **BL-83** `P2 · Medium` **Admin dashboard for the shared database:** one private page for Adi: how many Macs and versions, pictures in and approved (with a look at each and reject), crash reports and error logs, category votes and agreement, uploads per day. Signed-in only. Adi, 2026-10-31.
@@ -32,6 +34,8 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
+
+- [x] **BL-132** `P2 · Medium` **Find Similar in the preview:** a Find Similar button in the Space preview opens More like this; clicking a match shows it in the preview. Adi, 2026-11-01. · done 2026-11-01
 
 - [x] **BL-131** `P2 · Low` **Syncing animation:** turning on Sync with my other Macs shows a syncing progress animation until the first sync finishes. Adi, 2026-11-01. Built: pulsing iCloud icon and moving bar until iCloud confirms the upload, then Synced; after 30 s it says it is still uploading in the background. · done 2026-11-01
 - [x] **BL-130** `P2 · Medium` **Appearance tab in Settings:** theme cards (light and dark palettes like Clean Light, Nord Light, Sakura Blossom, Clean Dark, Dracula, Cyberpunk Neon, Emerald Forest, OLED Black) and a text size slider. Adi, 2026-11-01. Built: 9 themes (AG Classic, today's look, stays the default) and text size 85% to 130%; tests never save a look. · done 2026-11-01

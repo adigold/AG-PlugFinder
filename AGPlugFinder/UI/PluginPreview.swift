@@ -7,6 +7,8 @@ struct PluginPreview: View {
     @Bindable var model: PickerModel
     var onInsert: () -> Void
     var store = PluginStore.shared
+    /// Find Similar is open; it stays open while browsing, so each plugin shows its own (BL-132).
+    @State private var showSimilar = false
 
     var body: some View {
         GeometryReader { geo in
@@ -36,6 +38,7 @@ struct PluginPreview: View {
                     titleBlock
                     if let d = plugin.details { about(d) } else { noInfo }
                     facts
+                    similarSection
                 }
                 .padding(.horizontal, 26).padding(.top, 26).padding(.bottom, 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -158,6 +161,49 @@ struct PluginPreview: View {
             }
             .font(.system(size: Theme.ts(12)))
             .padding(.vertical, 9)
+        }
+    }
+
+    /// Find Similar (BL-132): the same matches as More like this in the info panel. Clicking one
+    /// shows it here, so the preview walks from plugin to plugin.
+    @ViewBuilder private var similarSection: some View {
+        if showSimilar {
+            let list = PluginExtras.similar(to: plugin, limit: 6)
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("More like this").font(.system(size: Theme.ts(12), weight: .semibold)).foregroundStyle(Theme.faint)
+                    Spacer()
+                    Button { showSimilar = false } label: {
+                        Text("Hide").font(.system(size: Theme.ts(12), weight: .medium)).foregroundStyle(Theme.faint)
+                    }
+                    .buttonStyle(.plain)
+                }
+                if list.isEmpty {
+                    Text("Nothing similar in your plugins yet.")
+                        .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint)
+                } else {
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 12) {
+                        ForEach(list) { p in
+                            Button { model.reveal(p.id) } label: {
+                                VStack(alignment: .leading, spacing: 5) {
+                                    PluginThumbnail(plugin: p, radius: 10).aspectRatio(1.5, contentMode: .fit)
+                                    Text(PluginVariants.title(p)).font(.system(size: Theme.ts(12), weight: .medium))
+                                        .foregroundStyle(Theme.text).lineLimit(1)
+                                    Text(p.manufacturer).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).lineLimit(1)
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(PressScale())
+                            .help("Show \(p.name)")
+                        }
+                    }
+                }
+            }
+            .padding(.top, 6)
+            .transition(.opacity)
+        } else {
+            QuietPill(title: "Find Similar", systemImage: "square.grid.2x2", height: 32) { showSimilar = true }
+                .padding(.top, 4)
         }
     }
 

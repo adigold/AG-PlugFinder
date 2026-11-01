@@ -318,7 +318,7 @@ struct PluginExtras: View {
     }
 
     /// Same slot kind and category (or looked-up kind), visible, best matches first (BL-28).
-    static func similar(to plugin: Plugin) -> [Plugin] {
+    static func similar(to plugin: Plugin, limit: Int = 4) -> [Plugin] {
         let store = PluginStore.shared
         let kindWords = Set((plugin.details?.kind ?? "").lowercased().split(separator: " ").map(String.init)
             .filter { $0.count > 3 })
@@ -331,7 +331,7 @@ struct PluginExtras: View {
             if score >= 8 { scored.append((p, score)) }
         }
         scored.sort { a, b in a.score == b.score ? a.plugin.name < b.plugin.name : a.score > b.score }
-        return scored.prefix(4).map { $0.plugin }
+        return scored.prefix(limit).map { $0.plugin }
     }
 }
 

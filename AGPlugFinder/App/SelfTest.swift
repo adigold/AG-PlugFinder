@@ -651,6 +651,35 @@ enum SelfTest {
                     }
                     try? await Task.sleep(for: .milliseconds(900))
                 }
+                // --similar: Space, Find Similar, then the first match (BL-132).
+                if args.contains("--similar") {
+                    NotificationCenter.default.post(name: .focusSearch, object: nil); try? await Task.sleep(for: .milliseconds(400)); await key(48, "\t"); await key(49, " ")
+                    @MainActor func click(_ at: NSPoint) async {
+                        let screen = lib.convertPoint(toScreen: at)
+                        CGWarpMouseCursorPosition(CGPoint(x: screen.x, y: (NSScreen.screens.first?.frame.maxY ?? 0) - screen.y))
+                        try? await Task.sleep(for: .milliseconds(250))
+                        for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+                            if let e = NSEvent.mouseEvent(with: type, location: at, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                                          windowNumber: lib.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1) {
+                                NSApp.postEvent(e, atStart: false)
+                            }
+                            try? await Task.sleep(for: .milliseconds(90))
+                        }
+                        try? await Task.sleep(for: .milliseconds(700))
+                    }
+                    await shot("sim-0-preview")
+                    let x = args.firstIndex(of: "--at").map { (Double(args[$0 + 1]) ?? 0, Double(args[$0 + 2]) ?? 0) }
+                    if let (bx, by) = x {
+                        await click(NSPoint(x: bx, y: lib.frame.height - by))
+                        await shot("sim-1-open")
+                        if let (tx, ty) = args.firstIndex(of: "--then").map({ (Double(args[$0 + 1]) ?? 0, Double(args[$0 + 2]) ?? 0) }) {
+                            await click(NSPoint(x: tx, y: lib.frame.height - ty))
+                            await shot("sim-2-walked")
+                        }
+                    }
+                    print("PREVIEW done similar"); fflush(stdout)
+                    return
+                }
                 // --typed-space: type a search with the keys, then (--click-first) click the first
                 // result, then Space: the preview must open (BL-127).
                 if args.contains("--typed-space") {
