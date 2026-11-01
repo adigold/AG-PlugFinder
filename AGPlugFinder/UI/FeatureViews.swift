@@ -36,7 +36,13 @@ struct CollectionBar: View {
                         } else {
                             Spacer(minLength: 8)
                         }
-                        if showSizeSlider { SizeSlider().padding(.leading, 10).frame(height: 44) }
+                        if showSizeSlider {
+                            VStack(alignment: .center, spacing: 2) {
+                                SizeSlider().frame(height: 44)
+                                ZoomPill()
+                            }
+                            .padding(.leading, 10)
+                        }
                     }
                     .padding(.horizontal, scrolls ? 0 : 18).frame(minHeight: 44)
                 }
@@ -85,6 +91,33 @@ struct SizeSlider: View {
         }
         .help("Picture size")
         .disabled(view.layout == .list)
+    }
+}
+
+/// Under the size slider (BL-171): the selected plugin's card shows 25% bigger and follows the
+/// arrow keys. Off, every card is the same size.
+struct ZoomPill: View {
+    var view = ViewSettings.shared
+    @State private var hovering = false
+
+    var body: some View {
+        let on = view.zoomSelected
+        Button { withAnimation(.spring(duration: 0.3, bounce: 0.15)) { view.zoomSelected.toggle() } } label: {
+            HStack(spacing: 5) {
+                Image(systemName: on ? "plus.magnifyingglass" : "magnifyingglass").font(.system(size: Theme.ts(10), weight: .semibold))
+                Text("Zoom").font(.system(size: Theme.ts(11), weight: .semibold))
+            }
+            .foregroundStyle(on ? Theme.onAccent : (hovering ? Theme.text : Theme.muted))
+            .padding(.horizontal, 10).frame(height: 22)
+            .background(Capsule().fill(on ? Theme.accent : (hovering ? Theme.raised : Theme.surface)))
+            .overlay(Capsule().strokeBorder(on ? Color.clear : Theme.edge, lineWidth: 1))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(PressScale())
+        .onHover { hovering = $0 }
+        .help(on ? "Zoom is on: the selected plugin shows bigger. Click to turn off." : "Show the selected plugin bigger; it follows the arrow keys")
+        .disabled(view.layout == .list)
+        .opacity(view.layout == .list ? 0.4 : 1)
     }
 }
 

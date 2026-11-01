@@ -145,6 +145,19 @@ enum SelfTest {
                         ?? NSApp.windows.first(where: { !($0 is PickerPanel) && $0.isVisible && $0.frame.width > 500 })
                 else { print("WINDOW none"); fflush(stdout); return }
                 await capture(window, to: out)
+                if let z = args.firstIndex(of: "--zoom"), z + 2 < args.count {
+                    // Zoom on, one plugin selected, then the next one, then zoom off (BL-171). In memory only.
+                    ViewSettings.shared.zoomSelected = true
+                    for (i, name) in [args[z + 1], args[z + 2]].enumerated() {
+                        NotificationCenter.default.post(name: .demoSelect, object: name)
+                        try? await Task.sleep(for: .seconds(1.2))
+                        await capture(window, to: out.deletingPathExtension().appendingPathExtension("zoom\(i + 1).png"))
+                    }
+                    ViewSettings.shared.zoomSelected = false
+                    try? await Task.sleep(for: .seconds(1.2))
+                    await capture(window, to: out.deletingPathExtension().appendingPathExtension("zoomoff.png"))
+                    print("ZOOM done"); fflush(stdout)
+                }
                 if args.contains("--later") {
                     // The same window again a little later: a list still moving would look different.
                     let r0 = PluginStore.shared.revision

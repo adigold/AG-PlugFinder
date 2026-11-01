@@ -76,6 +76,8 @@ final class ViewSettings {
     var spacePreview: Bool { didSet { save("spacePreview", spacePreview) } }
     /// Mono and stereo versions of a plugin shown as one (BL-124).
     var joinMonoStereo: Bool { didSet { save("joinMonoStereo", joinMonoStereo) } }
+    /// The selected plugin's card shows bigger and follows the arrow keys (BL-171).
+    var zoomSelected: Bool { didSet { save("zoomSelected", zoomSelected) } }
 
     private init() {
         let d = UserDefaults.standard
@@ -90,6 +92,7 @@ final class ViewSettings {
         chipRow = ChipRow(rawValue: d.string(forKey: "view.chipRow") ?? "") ?? .both
         spacePreview = d.object(forKey: "view.spacePreview") as? Bool ?? true
         joinMonoStereo = d.object(forKey: "view.joinMonoStereo") as? Bool ?? true
+        zoomSelected = d.bool(forKey: "view.zoomSelected")
     }
 
     private func save(_ key: String, _ value: Any) {
@@ -109,7 +112,8 @@ final class ViewSettings {
     var syncValues: [String: String] {
         ["layout": layout.rawValue, "size": size.rawValue, "tileWidth": String(Double(tileWidth)),
          "showName": String(showName), "showDetails": String(showDetails), "showInfoPane": String(showInfoPane),
-         "chipRow": chipRow.rawValue, "spacePreview": String(spacePreview), "joinMonoStereo": String(joinMonoStereo)]
+         "chipRow": chipRow.rawValue, "spacePreview": String(spacePreview), "joinMonoStereo": String(joinMonoStereo),
+         "zoomSelected": String(zoomSelected)]
     }
 
     /// Takes another Mac's view choices; only what differs changes.
@@ -128,5 +132,6 @@ final class ViewSettings {
         if let x = v["chipRow"].flatMap(ChipRow.init(rawValue:)), x != chipRow { chipRow = x }
         if let x = flag("spacePreview"), x != spacePreview { spacePreview = x }
         if let x = flag("joinMonoStereo"), x != joinMonoStereo { joinMonoStereo = x }
+        if let x = flag("zoomSelected"), x != zoomSelected { zoomSelected = x }
     }
 }

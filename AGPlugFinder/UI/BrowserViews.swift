@@ -541,11 +541,26 @@ struct PluginGrid: View {
         return "Nothing matches “\(model.query)”"
     }
 
+    /// Cards on an edge grow inward, so the bigger card is never cut off (BL-171).
+    private func zoomAnchor(_ i: Int, count: Int) -> UnitPoint {
+        let cols = max(1, model.columns)
+        let col = i % cols, row = i / cols, lastRow = (count - 1) / cols
+        let x: CGFloat = cols == 1 ? 0.5 : (col == 0 ? 0 : (col == cols - 1 ? 1 : 0.5))
+        let y: CGFloat = row == 0 ? 0 : (row == lastRow ? 1 : 0.5)
+        return UnitPoint(x: x, y: y)
+    }
+
     @ViewBuilder
     private func items<Cell: View>(_ results: [Plugin],
                                    @ViewBuilder cell: @escaping (Plugin, Bool) -> Cell) -> some View {
         ForEach(Array(results.enumerated()), id: \.element.id) { i, plugin in
+            let zoomed = view.zoomSelected && !compact && view.layout != .list && i == model.selection
             cell(plugin, i == model.selection)
+                // The selected card shows 25% bigger, above its neighbours (BL-171).
+                .scaleEffect(zoomed ? 1.25 : 1, anchor: zoomAnchor(i, count: results.count))
+                .zIndex(zoomed ? 1 : 0)
+                .shadow(color: .black.opacity(zoomed ? 0.45 : 0), radius: zoomed ? 18 : 0, y: zoomed ? 8 : 0)
+                .animation(reduceMotion ? nil : .spring(duration: 0.28, bounce: 0.18), value: zoomed)
                 .id(plugin.id)
                 .background(GeometryReader { g in
                     Color.clear.preference(key: TileFrames.self, value: [plugin.id: g.frame(in: .named(Self.space))])
