@@ -187,6 +187,7 @@ enum PlugDB {
     /// and returns the ids it got. Silent on any failure: the app then takes the pictures itself.
     static func fetchApproved(_ ids: [String]) async -> Set<String> {
         guard let base, let key, !ids.isEmpty else { return [] }
+        lookupFailed = false
         var request = URLRequest(url: base.appendingPathComponent("v1/lookup"))
         request.httpMethod = "POST"
         request.timeoutInterval = 15
@@ -196,7 +197,8 @@ enum PlugDB {
         guard let (data, response) = try? await URLSession.shared.data(for: request),
               (response as? HTTPURLResponse)?.statusCode == 200,
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let available = json["available"] as? [[String: Any]] else { return [] }
+              let available = json["available"] as? [[String: Any]] else { lookupFailed = true; return [] }
+        lookupFailed = false
         let store = PluginStore.shared
         var got: Set<String> = []
         for entry in available {
@@ -219,6 +221,53 @@ enum PlugDB {
         }
         if !got.isEmpty { store.snapshotChanged() }
         return got
+    }
+
+    /// Plugins whose screenshot failed on this Mac (Logic's own never fail: they ship with the app).
+    static var failedIDs: [String] {
+        PluginStore.shared.plugins.filter { !$0.isLogic && $0.snapshotState == .failed }.map(\.id)
+    }
+
+    /// The failed ones the user actually sees as a tile: not hidden, and for a joined mono and
+    /// stereo plugin only the version that is shown. The button counts these.
+    static var shownFailedIDs: [String] {
+        let store = PluginStore.shared
+        return store.plugins.filter {
+            !$0.isLogic && $0.snapshotState == .failed && store.isVisible($0) && PluginVariants.isShown($0)
+        }.map(\.id)
+    }
+
+    /// Fix Failed Screenshots (BL-130): asks the shared database again for every plugin whose
+    /// screenshot failed and downloads the pictures other users shared since. Only touches
+    /// failed plugins; the rest of the library is never changed. Tells the user how many it fixed.
+    static var fixing = false
+    /// The last database lookup could not be made (offline, server down).
+    private static var lookupFailed = false
+    static func fixFailed() {
+        let shown = shownFailedIDs
+        guard !fixing, !shown.isEmpty else { return }
+        // Hidden copies (the mono version behind a joined tile) are asked about too, quietly.
+        let ids = failedIDs
+        guard base != nil, key != nil else {
+            Toast.show("The shared database isn't available in this build.", warning: true); return
+        }
+        fixing = true
+        let n = shown.count
+        Toast.show("Checking the database for \(n) failed screenshot\(n == 1 ? "" : "s")…", busy: true)
+        Task {
+            let got = await fetchApproved(ids).intersection(shown)
+            fixing = false
+            let left = n - got.count
+            if got.isEmpty && lookupFailed {
+                Toast.show("Couldn't reach the database. Check the internet connection and try again.", warning: true)
+            } else if got.isEmpty {
+                Toast.show("None of the \(n) failed screenshot\(n == 1 ? " is" : "s are") in the database yet. Try again later.", warning: true)
+            } else if left == 0 {
+                Toast.show("Fixed all \(n) failed screenshot\(n == 1 ? "" : "s") from the database.")
+            } else {
+                Toast.show("Fixed \(got.count) of \(n) failed screenshots. \(left) \(left == 1 ? "is" : "are") not in the database yet.")
+            }
+        }
     }
 
     /// A big plugin window makes a picture of several megabytes; it is sent as a JPEG at most
