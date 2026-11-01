@@ -263,7 +263,14 @@ enum SelfTest {
                 if args.contains("--narrow") {
                     // The smallest full window, and a middle size (BL-192).
                     let f = window.frame
-                    for w in [860.0, 1000.0] {
+                    if args.contains("--fakefailed") {
+                        // One failed screenshot, in memory only, so the Fix button shows.
+                        let store = PluginStore.shared
+                        let pick = store.plugins.first { !$0.isBuiltIn && store.isVisible($0) }?.id
+                        store.debugUsePlugins(store.plugins.map { p in var q = p; if q.id == pick { q.snapshotState = .failed }; return q })
+                    }
+                    try? await Task.sleep(for: .milliseconds(500))
+                    for w in [860.0, 1000.0, 1400.0] {
                         window.setFrame(NSRect(x: f.minX, y: f.minY, width: w, height: f.height), display: true)
                         try? await Task.sleep(for: .seconds(1))
                         await capture(window, to: out.deletingPathExtension().appendingPathExtension("narrow\(Int(w)).png"))

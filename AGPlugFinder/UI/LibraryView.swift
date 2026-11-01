@@ -25,6 +25,8 @@ struct LibraryView: View {
     @State private var showChains = false
     @State private var showTrack = false
     @State private var showTopEditor = false
+    /// The top bar's width, so it can make room as the window narrows (BL-192).
+    @State private var barWidth: CGFloat = 2000
     var store = PluginStore.shared
     var snapshots = SnapshotQueue.shared
     var fetcher = PluginInfoFetcher.shared
@@ -199,23 +201,34 @@ struct LibraryView: View {
     }
 
     private var topBar: some View {
-        HStack(spacing: 12) {
+        // Shown only while some screenshots failed (BL-130).
+        let failed = PlugDB.shownFailedIDs.count
+        // Dismissed with its x, it stays away until more screenshots fail (BL-143).
+        let showFix = failed > 0 && !snapshots.isRunning && failed > fixFailedDismissedAt
+        // A narrow window makes room step by step, so no icon is pushed away (BL-192): first the
+        // Fix button keeps only its icon and number, then the name beside the logo hides.
+        let icons = CGFloat(view.topItems.filter { !view.topHidden.contains($0.rawValue) }.count + 3)
+        let needed: CGFloat = 78 + 160 + 220 + 90 + icons * 34
+        let fixFull: CGFloat = 300, fixSmall: CGFloat = 90
+        let tightFix = showFix && barWidth < needed + fixFull
+        let tightName = barWidth < needed + (showFix ? fixSmall : 0) - 40
+        return HStack(spacing: 12) {
             TrafficLights(window: window)
             HStack(spacing: 9) {
                 BrandMark(size: 17)
-                Text("AG PlugFinder").font(.system(size: Theme.ts(15), weight: .semibold)).foregroundStyle(Theme.text)
+                if !tightName {
+                    Text("AG PlugFinder").font(.system(size: Theme.ts(15), weight: .semibold)).foregroundStyle(Theme.text)
+                }
             }
             .fixedSize()
+            .help("AG PlugFinder")
             Spacer(minLength: 16)
             SearchField(model: model, focusOnAppear: false)
-                .frame(minWidth: 220, maxWidth: 480)
+                .frame(minWidth: 150, maxWidth: 480)
             Spacer(minLength: 16)
-            // Shown only while some screenshots failed (BL-130).
-            let failed = PlugDB.shownFailedIDs.count
-            // Dismissed with its x, it stays away until more screenshots fail (BL-143).
-            if failed > 0, !snapshots.isRunning, failed > fixFailedDismissedAt {
+            if showFix {
                 HStack(spacing: 0) {
-                    QuietPill(title: "Fix Failed Screenshots (\(failed))", systemImage: "arrow.triangle.2.circlepath", height: 28) {
+                    QuietPill(title: tightFix ? "\(failed)" : "Fix Failed Screenshots (\(failed))", systemImage: "arrow.triangle.2.circlepath", height: 28) {
                         PlugDB.fixFailed()
                     }
                     .help("Checks the shared database again for the \(failed) plugin\(failed == 1 ? "" : "s") whose screenshot failed")
@@ -262,6 +275,7 @@ struct LibraryView: View {
         // The tools sit tight in the top-right corner (BL-163).
         .padding(.trailing, 8)
         .frame(height: WindowChrome.barHeight)
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { barWidth = $0 }
         .background(Theme.ground)
         .gesture(WindowDragGesture())
     }

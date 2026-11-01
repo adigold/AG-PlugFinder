@@ -41,6 +41,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-192** `P2 · Medium` **Top bar in a narrow window:** as the window narrows, the Fix Failed button keeps only its icon and number, then the name beside the logo hides, so the icons at the right never get pushed away. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-191** `P3 · Low` **Plugin count in the footer:** "150 plugins found" moves from beside the name at the top to the bottom right of the footer. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-190** `P2 · Medium` **Dialogs with a name field:** OK shows only once something is typed, an empty or spaces-only name can't be entered, and Esc always closes the dialog. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-189** `P2 · Medium` **Edit the top bar icons:** right-click the icons at the top right to show or hide each one and drag them into your own order. Synced with the other Macs. Adi, 2026-11-01. · done 2026-11-01
