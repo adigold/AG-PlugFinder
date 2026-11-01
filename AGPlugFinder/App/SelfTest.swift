@@ -1066,7 +1066,7 @@ enum SelfTest {
         }
         // --selftest-dynamics: how every dynamics plugin is sorted (BL-121).
         if args.contains("--selftest-dynamics") {
-            for c in ["Compressor", "Limiter", "Multiband", "De-esser", "Transient", "Gate", "Rider", "Expander", "Dynamics"] {
+            for c in ["Compressor", "Limiter", "Multiband", "De-esser", "Transient", "Gate", "Rider", "Expander", "Dynamics", "Effects", "Specialized"] {
                 let names = PluginStore.shared.plugins.filter { $0.displayCategory == c }.map(\.name).sorted()
                 print("DYN \(c) (\(names.count)): \(names.joined(separator: ", "))")
             }

@@ -48,7 +48,7 @@ You know the plugin you want. You can picture its window. But Logic's plugin men
 - **Appearance.** Pick one of 9 themes, light or dark: AG Classic, Clean Light, Nord Light, Sakura Blossom, Clean Dark, Dracula Classic, Cyberpunk Neon, Emerald Forest and OLED Pitch Black. Set the text size for the whole app.
 - **Your categories.** Right-click a plugin to set its category, for this Mac or for every AG PlugFinder user.
 - **Hide what you don't use** by maker, category, format or type in Settings, Plugin List. Plugins you install while the app is open are found by themselves.
-- **Keep it on top** of Logic, or shrink it to a small floating mini window.
+- **Keep it on top** of Logic, shrink it to a small floating mini window, or dock it as a Sidecar at the side of your screen with every category as a row of pictures.
 
 ## Add to Logic
 
@@ -156,6 +156,14 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.34**
+
+- **New:** Sidecar view. A tall panel at the side of your screen with every category as a row of plugin pictures. The view button in the top bar switches between Full Window, Sidecar and Mini.
+- **New:** Dynamics is split into Compressor, Limiter, Multiband, De-esser, Transient, Gate, Rider and Expander.
+- **Improved:** The Plugin Manager shows each file as it scans, and scans faster.
+- **Improved:** Plugins you remove in the Plugin Manager leave the library right away.
+- **Improved:** The Effects category is gone. Its plugins moved to Specialized or Utility.
+
 **0.9.33**
 
 - **Fixed:** Removing plugins in the Plugin Manager works. It now asks on the same page, shows the name of the folder it creates on your Desktop, and tells you what was moved.
@@ -170,13 +178,13 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **New:** See plugins by installer, including the other files each installer left in your Library folders.
 - **New:** Removing a plugin moves it into a folder on your Desktop instead of deleting it, so you can always put it back.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.31)</summary>
+
 **0.9.31**
 
 - **Improved:** Plugins you remove from your Mac disappear from the app by themselves, and the app tells you how many were removed.
 - **Improved:** The Fix Failed Screenshots button can be hidden with its x. It comes back only if more screenshots fail.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.30)</summary>
 
 **0.9.30**
 

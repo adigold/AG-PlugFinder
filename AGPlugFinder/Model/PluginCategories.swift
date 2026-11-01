@@ -7,7 +7,7 @@ enum PluginCategories {
     /// Every category a user can choose, in Logic's words.
     static let all = ["Amps and Pedals", "Channel Strip", "Compressor", "Limiter", "Multiband", "De-esser", "Transient", "Gate",
                       "Rider", "Expander", "Delay", "Distortion", "EQ", "Filter", "Imaging",
-                      "Metering", "Modulation", "Multi Effects", "Pitch", "Reverb", "Utility", "Effects",
+                      "Metering", "Modulation", "Multi Effects", "Pitch", "Reverb", "Utility", "Specialized",
                       "Synth", "Sampler", "Drums", "Keys", "Bass", "Orchestral", "MIDI FX"]
 
     /// Channel strips (BL-140): R-Channel, SSL E and G Channel, SSL 4K, bx_console, Console 1 and
@@ -50,7 +50,7 @@ enum PluginCategories {
                         "modul", "doubler", "shaper", "shifter"]),
         ("Filter", ["flux", "lohi", "filter", #"\bwah"#, "bandpass", "hipass", "lowpass", "highpass"]),
         ("EQ", [#"\bq\d+\b"#, #"\breq\b"#, "emo-q", #"\bapi-5"#, "curves", "maag", "sie-q", "equivoc", "riceflat", "phils cascade", #"\bu17\b"#, "electra", "omega 458", "equal", "shelf", "pultec", "graphic", "pro-q", "smart:eq", "tilt", "q10"]),
-        ("Utility", ["stream send", "recorder", "frontdaw", "vocalign", "clarity", "voiceassist", "kraftur", "gain", "utility", "trim", "polarity", "router", "tool", #"\bmono"#, "noise", "denois",
+        ("Utility", ["isolation", "stream send", "recorder", "frontdaw", "vocalign", "clarity", "voiceassist", "kraftur", "gain", "utility", "trim", "polarity", "router", "tool", #"\bmono"#, "noise", "denois",
                      "de-noise", #"\brx\b"#, "repair", "clean", "netsend", "aac", #"\btest"#, "oscillat"]),
     ]
 
@@ -150,6 +150,7 @@ enum PluginCategories {
                 if isInstrument == instrumentKinds.contains(c) { return c }
             }
         }
-        return isInstrument ? "Synth" : "Effects"
+        // Effects that fit nowhere else go with Logic's own odd ones (BL-152: no Effects pill).
+        return isInstrument ? "Synth" : "Specialized"
     }
 }

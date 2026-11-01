@@ -36,6 +36,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-152** `P2 · Medium` **Remove the Effects category:** the catch-all Effects pill is not useful; its plugins go to a real category. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-151** `P2 · Medium` **Show the files while the Plugin Manager scans:** instead of a spinner, show each plugin file name as it is read, with a count and progress, so the user sees the scan move even when it is fast. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-150** `P1 · High` **Split Dynamics:** replace the Dynamics category with Compressor, Limiter, Multiband, De-esser, Transient, Gate, Rider and Expander (Adi's list). Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-149** `P1 · High` **Removed plugins leave the library at once:** after the Plugin Manager moves plugins to the Desktop, they disappear from the library view right away, like an auto refresh. Adi, 2026-11-01. · done 2026-11-01

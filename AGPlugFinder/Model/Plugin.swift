@@ -106,6 +106,11 @@ struct Plugin: Identifiable, Codable, Hashable {
         PluginStore.shared.bumpRevision()
     }
     private static func splitDynamics(_ c: String, name: String, id: String) -> String {
+        // The catch-all Effects category is gone (BL-152); a voice or noise tool is a utility.
+        if c == "Effects" {
+            let n = name.lowercased()
+            return ["isolat", "noise", "denois", "hum", "declick"].contains(where: n.contains) ? "Utility" : "Specialized"
+        }
         guard c == "Dynamics" else { return c }
         let kind = MainActor.assumeIsolated { kinds[id] }
         return PluginCategories.refineDynamics(name: name, kind: kind)
