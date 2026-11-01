@@ -162,6 +162,12 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.43**
+
+- **Improved:** Zoom is rebuilt. The selected plugin now sits in front of every other card and its picture really gets bigger, and the card moves to the middle of the list as you go with the arrow keys.
+- **New:** Hold the Zoom button to choose a size, S, M or L.
+- **Improved:** Zoom steps aside while you pick several plugins, and comes back when one is left.
+
 **0.9.42**
 
 - **New:** Zoom. Turn it on under the picture size slider and the plugin you select shows bigger, following you as you move with the arrow keys.
@@ -171,12 +177,12 @@ Everything each version brought, newest first. The same notes appear in the app'
 
 - **New:** LoFi category. RC-20 Retro Color, Retro Fi, Lofi Space, Tape MELLO-FI, UFX-LOFI and other lo-fi effects have their own pill.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.40)</summary>
+
 **0.9.40**
 
 - **Fixed:** The app could close right after the first scan, while looking up plugin information. It now finishes the setup without stopping.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.39)</summary>
 
 **0.9.39**
 
