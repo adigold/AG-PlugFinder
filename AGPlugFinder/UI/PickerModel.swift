@@ -245,7 +245,7 @@ final class PickerModel {
         slotChoices = nil
         onHide()
         Task {
-            let outcome = await LogicInserter.shared.insert(plugin, replacing: slot)
+            let outcome = await Host.insert(plugin, replacing: slot)
             isBusy = false
             switch outcome {
             case .inserted:

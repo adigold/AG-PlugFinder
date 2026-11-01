@@ -7,6 +7,10 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
+- [ ] **BL-161** `P1 · High` **Ableton Live support, step 1:** add plugins to Ableton's selected track through a small add-on (Remote Script) that Live loads; the app sends plugins to whichever of Logic or Ableton the user is in; Ableton's own devices listed; VST and VST3 in the library for Ableton. Logic keeps working exactly as before. Adi, 2026-11-01.
+
+- [ ] **BL-162** `P2 · Medium` **Ableton Live support, step 2:** the track panel for Ableton (devices on the track, on and off, remove) and importing Ableton's favorites and collections. Adi, 2026-11-01.
+
 - [ ] **BL-135** `P1 · High` **Rename the app to Retrive.me:** new name everywhere users see it. Adi, 2026-11-01.
 - [ ] **BL-136** `P1 · High` **retrive.me website:** a site for the app on the new domain (Cloudflare DNS). Adi, 2026-11-01.
 

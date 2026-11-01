@@ -160,6 +160,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         MainActor.assumeIsolated {
             HotKey.shared.apply()
             HyperKey.applyOnLaunch()
+            // Ableton Live (BL-161): follow which program is in use, and keep the add-on in
+            // Live's User Library up to date when Live is on this Mac.
+            Host.watch()
+            if FileManager.default.fileExists(atPath: FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent("Music/Ableton/User Library").path) {
+                AbletonBridge.installScript()
+            }
         }
         _ = UserLibrary.shared
         NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil,

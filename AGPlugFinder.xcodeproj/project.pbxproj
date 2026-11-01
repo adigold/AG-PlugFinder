@@ -13,6 +13,7 @@
 		13A90B02B0FBED49ED49B448 /* LogicCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D8B9B25BDB22A89D24468 /* LogicCapture.swift */; };
 		17273346968303AADBE29BB4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD381CA2BB6F2AE268D763CD /* Assets.xcassets */; };
 		1D0A7F6722952750D7F6070A /* MenuSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE407748A6E14EDFA0ED1EC2 /* MenuSelfTest.swift */; };
+		1E0056BED99110E293747005 /* AbletonBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D4464B062DDF82604F2AB1A /* AbletonBridge.swift */; };
 		22C05D51D8B31A9562FB3476 /* SelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19606CDC7F0663446B24FE2 /* SelfTest.swift */; };
 		2626830B5D9848089F58FEAF /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3126DBE9AE17BDEEEA02A558 /* Keychain.swift */; };
 		27361D78B2DAFA838ACB8226 /* SoundSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D47D34C73708761076C4971 /* SoundSearch.swift */; };
@@ -22,6 +23,7 @@
 		2CDDD895CD2750912DB73AFC /* WhatsNewWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C0948383AEB9D0BE90BBA8 /* WhatsNewWindow.swift */; };
 		2E95C518E15D9AE1CE0BD68C /* PluginStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FD7E657F3026F318121A9D6 /* PluginStore.swift */; };
 		31932E5C9809A842A6A001B1 /* PluginVariants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDC110B970E49E7DE95773C /* PluginVariants.swift */; };
+		34CD71CBD4BA2913B08C9538 /* AbletonScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7CCA50466D2E64FD4A96467 /* AbletonScript.swift */; };
 		3BBC1A8A91E10880B239C18D /* AX.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFBFF2C38A98C6768DF05100 /* AX.swift */; };
 		3C4BCBCC68DB9EFD408B3897 /* ChannelFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 579F9663660564DC0E89E2CB /* ChannelFormat.swift */; };
 		445998CA513B09D710F9282C /* LicensesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5987D3DB7540AEB27720655 /* LicensesView.swift */; };
@@ -115,6 +117,7 @@
 		61A405FB134839B408486F5A /* MakerSites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MakerSites.swift; sourceTree = "<group>"; };
 		65D1DB32E57A0017C2D34478 /* FeatureViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureViews.swift; sourceTree = "<group>"; };
 		68C0948383AEB9D0BE90BBA8 /* WhatsNewWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewWindow.swift; sourceTree = "<group>"; };
+		6D4464B062DDF82604F2AB1A /* AbletonBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbletonBridge.swift; sourceTree = "<group>"; };
 		73BE9C76C349750CE02E0E1B /* ShareWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareWindow.swift; sourceTree = "<group>"; };
 		79020B749BE713B285FFCF69 /* LogicCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicCatalog.swift; sourceTree = "<group>"; };
 		81B74FA4A5CFB65E2CFEDE04 /* AGPlugFinder.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AGPlugFinder.entitlements; sourceTree = "<group>"; };
@@ -146,6 +149,7 @@
 		EFFB100FD4998C193C7BEA94 /* OnDeviceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceInfo.swift; sourceTree = "<group>"; };
 		F023E1377B6D025990A4AD1D /* UpdateViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateViews.swift; sourceTree = "<group>"; };
 		F05D9E80AB05BBDDB1CAB73B /* PluginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginManager.swift; sourceTree = "<group>"; };
+		F7CCA50466D2E64FD4A96467 /* AbletonScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbletonScript.swift; sourceTree = "<group>"; };
 		FD381CA2BB6F2AE268D763CD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -264,6 +268,7 @@
 				81B74FA4A5CFB65E2CFEDE04 /* AGPlugFinder.entitlements */,
 				FD381CA2BB6F2AE268D763CD /* Assets.xcassets */,
 				B30B196AF35A2DA1C5B50F07 /* Info.plist */,
+				E613BDF666D20DCD16A7D077 /* Ableton */,
 				29A96BE587AC58F115A51C80 /* App */,
 				A1E7EBDE342465D0D0534F8A /* Info */,
 				C9E01BC9E91ABB84231FEBEB /* Logic */,
@@ -296,6 +301,15 @@
 				249F8D727B3B0D03F577201D /* Bundled */,
 				90AE9D588EDF48E81E1A4D56 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		E613BDF666D20DCD16A7D077 /* Ableton */ = {
+			isa = PBXGroup;
+			children = (
+				6D4464B062DDF82604F2AB1A /* AbletonBridge.swift */,
+				F7CCA50466D2E64FD4A96467 /* AbletonScript.swift */,
+			);
+			path = Ableton;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -372,6 +386,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				3BBC1A8A91E10880B239C18D /* AX.swift in Sources */,
+				1E0056BED99110E293747005 /* AbletonBridge.swift in Sources */,
+				34CD71CBD4BA2913B08C9538 /* AbletonScript.swift in Sources */,
 				6A189FEC2349289FD418F81D /* AppEntry.swift in Sources */,
 				F04C19DCCE0385AB2F028426 /* Appearance.swift in Sources */,
 				E80952E50B926A41F630F61F /* BrowserViews.swift in Sources */,

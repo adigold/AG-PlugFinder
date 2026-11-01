@@ -1117,6 +1117,20 @@ enum SelfTest {
                 print("SYNC done"); fflush(stdout)
             }
         }
+        // --selftest-ableton [name]: asks the add-on in Live whether it is there, what the selected
+        // track holds, and (with a name) loads that plugin onto it (BL-161).
+        if let k = args.firstIndex(of: "--selftest-ableton") {
+            Task {
+                let b = AbletonBridge.shared
+                print("ABL installed=\(AbletonBridge.installScript()) running=\(Host.abletonRunning) host=\(Host.current)")
+                print("ABL ping \(await b.send(["cmd": "ping"], timeout: 2) ?? ["none": true])")
+                print("ABL track \(await b.send(["cmd": "track"], timeout: 2) ?? ["none": true])")
+                if k + 1 < args.count, !args[k + 1].hasPrefix("-") {
+                    print("ABL load \(await b.send(["cmd": "load", "name": args[k + 1], "kind": "au"], timeout: 15) ?? ["none": true])")
+                }
+                print("ABL done"); fflush(stdout)
+            }
+        }
         // --selftest-icloudkeychain: can this app keep a key in iCloud Keychain? Adds a test item,
         // reads it back and deletes it (BL-157).
         if args.contains("--selftest-icloudkeychain") {

@@ -28,7 +28,7 @@ enum InsertRunner {
             var added = 0
             var problem: String?
             for p in plugins {
-                let outcome = await LogicInserter.shared.insert(p, replacing: nil)
+                let outcome = await Host.insert(p, replacing: nil)
                 switch outcome {
                 case .inserted:
                     added += 1
