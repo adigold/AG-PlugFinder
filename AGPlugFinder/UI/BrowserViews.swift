@@ -451,6 +451,11 @@ struct PluginGrid: View {
                                value: results.map(\.id))
                     .frame(minHeight: geo.size.height, alignment: .top)
                     .coordinateSpace(.named(Self.space))
+                    .overlayPreferenceValue(ZoomedCard.self) { value in
+                        GeometryReader { g in
+                            if let value { zoomLayer(value, in: g) }
+                        }
+                    }
                     .onPreferenceChange(TileFrames.self) { frames.map = $0 }
                     .background {
                         Color.clear.contentShape(Rectangle())
@@ -470,7 +475,9 @@ struct PluginGrid: View {
                 .scrollIndicators(.automatic)
                 .onChange(of: model.selection) { _, new in
                     if results.indices.contains(new) {
-                        withAnimation(.easeOut(duration: 0.14)) { proxy.scrollTo(results[new].id) }
+                        // With Zoom on, the card comes to the middle so its bigger copy fits on screen.
+                        let zoom = view.zoomSelected && !asList
+                        withAnimation(.easeOut(duration: 0.14)) { proxy.scrollTo(results[new].id, anchor: zoom ? .center : nil) }
                     }
                 }
                 // A category or collection click slides back to the top (BL-138).
@@ -541,6 +548,25 @@ struct PluginGrid: View {
         return "Nothing matches “\(model.query)”"
     }
 
+    /// The selected card, really bigger: a larger picture at full sharpness, the name at its usual
+    /// size, placed over its own spot and kept inside the grid (BL-171).
+    private func zoomLayer(_ value: ZoomedCard.Entry, in g: GeometryProxy) -> some View {
+        let r = g[value.anchor]
+        let w = r.width * view.zoomScale
+        let h = r.height * view.zoomScale
+        let a = zoomAnchor(value.index, count: model.results.count)
+        let x = min(max(r.minX - (w - r.width) * a.x, 0), max(0, g.size.width - w))
+        let y = min(max(r.minY - (h - r.height) * a.y, 0), max(0, g.size.height - h))
+        return PluginTile(plugin: value.plugin, isSelected: true)
+            .frame(width: w)
+            .shadow(color: .black.opacity(0.5), radius: 22, y: 10)
+            .offset(x: x, y: y)
+            .allowsHitTesting(false)
+            .transition(.opacity.combined(with: .scale(scale: 1 / view.zoomScale, anchor: a)))
+            .id(value.plugin.id)
+            .animation(reduceMotion ? nil : .spring(duration: 0.26, bounce: 0.15), value: value.plugin.id)
+    }
+
     /// Cards on an edge grow inward, so the bigger card is never cut off (BL-171).
     private func zoomAnchor(_ i: Int, count: Int) -> UnitPoint {
         let cols = max(1, model.columns)
@@ -556,11 +582,8 @@ struct PluginGrid: View {
         ForEach(Array(results.enumerated()), id: \.element.id) { i, plugin in
             let zoomed = view.zoomSelected && !compact && view.layout != .list && i == model.selection
             cell(plugin, i == model.selection)
-                // The selected card shows 25% bigger, above its neighbours (BL-171).
-                .scaleEffect(zoomed ? view.zoomScale : 1, anchor: zoomAnchor(i, count: results.count))
-                .zIndex(zoomed ? 1 : 0)
-                .shadow(color: .black.opacity(zoomed ? 0.45 : 0), radius: zoomed ? 18 : 0, y: zoomed ? 8 : 0)
-                .animation(reduceMotion ? nil : .spring(duration: 0.28, bounce: 0.18), value: zoomed)
+                // The zoomed card is drawn again, bigger, in a layer above the whole grid (BL-171).
+                .anchorPreference(key: ZoomedCard.self, value: .bounds) { zoomed ? ZoomedCard.Entry(anchor: $0, plugin: plugin, index: i) : nil }
                 .id(plugin.id)
                 .background(GeometryReader { g in
                     Color.clear.preference(key: TileFrames.self, value: [plugin.id: g.frame(in: .named(Self.space))])
@@ -940,6 +963,13 @@ extension Notification.Name {
 }
 
 /// What a dragged plugin carries: its id, marked so other dropped text is ignored.
+/// Where the zoomed card is, for the layer above the grid (BL-171).
+struct ZoomedCard: PreferenceKey {
+    struct Entry { let anchor: Anchor<CGRect>; let plugin: Plugin; let index: Int }
+    static let defaultValue: Entry? = nil
+    static func reduce(value: inout Entry?, nextValue: () -> Entry?) { value = value ?? nextValue() }
+}
+
 enum PluginDrag {
     static let prefix = "agplugfinder-plugin:"
     /// One drag carries one plugin or several, one id per line.
