@@ -20,6 +20,8 @@ struct CollectionBar: View {
     var view = ViewSettings.shared
     /// The library window shows the picture size slider at the right of this row (BL-48).
     var showSizeSlider = false
+    /// The sidecar keeps its pills on one row that scrolls sideways (BL-148).
+    var scrolls = false
 
     var body: some View {
         let showCollections = view.chipRow.showsCollections && !library.collections.isEmpty
@@ -29,14 +31,14 @@ struct CollectionBar: View {
                 if showCollections || showCategories || showSizeSlider {
                     HStack(alignment: .top, spacing: 8) {
                         if showCollections || showCategories {
-                            PillRow(model: model, showCollections: showCollections, showCategories: showCategories)
+                            PillRow(model: model, showCollections: showCollections, showCategories: showCategories, scrolls: scrolls)
                                 .layoutPriority(1)
                         } else {
                             Spacer(minLength: 8)
                         }
                         if showSizeSlider { SizeSlider().padding(.leading, 10).frame(height: 44) }
                     }
-                    .padding(.horizontal, 18).frame(minHeight: 44)
+                    .padding(.horizontal, scrolls ? 0 : 18).frame(minHeight: 44)
                 }
                 // On its own row under the chips, so it never squeezes them (Adi, 2026-10-31).
                 suggestionNote

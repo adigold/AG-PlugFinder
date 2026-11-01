@@ -267,8 +267,15 @@ final class PluginManager {
             }
         }
         selected.subtract(chosen.map(\.id))
+        // The library shows the change at once (BL-149): moved Audio Units leave the list now,
+        // and the rescan after it picks up anything else that changed.
+        let movedAU = chosen.filter { $0.format == .au && !FileManager.default.fileExists(atPath: $0.url.path) }.map(\.url.path)
+        let before = PluginStore.shared.plugins.count
+        PluginStore.shared.forget(bundles: movedAU)
+        let dropped = before - PluginStore.shared.plugins.count
         scan()
         PluginWatcher.shared.rescanNow(quietWhenNothingNew: true)
+        if dropped > 0 { Toast.show(dropped == 1 ? "Removed 1 plugin from the library" : "Removed \(dropped) plugins from the library") }
         return (folder, moved, failed, extras)
     }
 }

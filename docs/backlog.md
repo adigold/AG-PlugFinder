@@ -7,6 +7,8 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
+- [ ] **BL-150** `P1 · High` **Split Dynamics:** replace the Dynamics category with Compressor, Limiter, Multiband, De-esser, Transient, Gate, Rider and Expander (Adi's list). Adi, 2026-11-01.
+
 - [ ] **BL-135** `P1 · High` **Rename the app to Retrive.me:** new name everywhere users see it. Adi, 2026-11-01.
 - [ ] **BL-136** `P1 · High` **retrive.me website:** a site for the app on the new domain (Cloudflare DNS). Adi, 2026-11-01.
 
@@ -36,6 +38,8 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-149** `P1 · High` **Removed plugins leave the library at once:** after the Plugin Manager moves plugins to the Desktop, they disappear from the library view right away, like an auto refresh. Adi, 2026-11-01. · done 2026-11-01
+- [x] **BL-148** `P1 · High` **Sidecar view:** a third window mode beside Full window and Mini: a tall narrow panel docked at the side of Logic, categories as rows with plugin pictures scrolling sideways; the view button in the top bar opens a themed menu with Full window, Sidecar and Mini (Adi's reference picture). Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-147** `P1 · High` **Plugin Manager Move button did nothing:** the confirm dialog over the Settings window took no clicks, so nothing moved; the question now shows on the Plugin Manager page itself, names the Desktop folder it creates, and the button says Create Folder and Move. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-146** `P2 · Medium` **Chains popover cuts off an open chain:** opening an empty chain (Goldi) shows the key row clipped at the bottom; the list must grow to fit. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-145** `P1 · High` **Save as chain misses Logic's short names:** a Drum Kit Designer track with SpecGate, SilvGate and SilvComp said "None of these plugins are in your library"; Logic shortens names in narrow slots (Spectral Gate, Silver Gate, Silver Compressor), so match those too, and say "no effects to save" when a track has only an instrument. Adi, 2026-11-01. · done 2026-11-01

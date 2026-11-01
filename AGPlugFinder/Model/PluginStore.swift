@@ -95,6 +95,20 @@ final class PluginStore {
         save()
     }
 
+    /// Takes plugins out of the list at once when their files were moved away (BL-149), so the
+    /// library does not wait for macOS to notice. Only plugins inside the given bundles.
+    func forget(bundles: [String]) {
+        guard !bundles.isEmpty else { return }
+        let gone = plugins.filter { p in
+            guard let path = p.path, !p.isLogic else { return false }
+            return bundles.contains { path == $0 || path.hasPrefix($0 + "/") } && !FileManager.default.fileExists(atPath: path)
+        }
+        guard !gone.isEmpty else { return }
+        let ids = Set(gone.map(\.id))
+        plugins.removeAll { ids.contains($0.id) }
+        save()
+    }
+
     func update(_ id: String, _ change: (inout Plugin) -> Void) {
         guard let i = plugins.firstIndex(where: { $0.id == id }) else { return }
         change(&plugins[i])

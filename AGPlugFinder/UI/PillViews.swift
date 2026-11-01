@@ -117,6 +117,7 @@ struct PillRow: View {
     @Bindable var model: PickerModel
     let showCollections: Bool
     let showCategories: Bool
+    var scrolls = false
     var library = UserLibrary.shared
     @State private var showMore = false
     @State private var dropOn: String?
@@ -129,7 +130,18 @@ struct PillRow: View {
             .sorted { (prefs.pinned.firstIndex(of: $0.key) ?? 0) < (prefs.pinned.firstIndex(of: $1.key) ?? 0) }
         let rest = cols.filter { !$0.pinned } + cats.filter { !$0.pinned }
         let splitAt = cols.filter { !$0.pinned }.count
-        if prefs.wrap {
+        if scrolls {
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    allChip(prefs)
+                    ForEach(pinned + rest) { chip($0, prefs) }
+                    editButton
+                }
+                .padding(.horizontal, 14).padding(.vertical, 6)
+            }
+            .scrollIndicators(.never)
+            .frame(height: 44)
+        } else if prefs.wrap {
             FlowRow(spacing: 8) {
                 allChip(prefs)
                 ForEach(pinned) { chip($0, prefs) }

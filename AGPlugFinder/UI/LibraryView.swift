@@ -3,7 +3,8 @@ import SwiftUI
 
 /// The main window. Its own 52px top bar holds the mark and name on the left, the search in the
 /// middle and the tools on the right. Arrow keys browse, Return inserts, Esc clears the search.
-/// The pin keeps it above Logic; mini mode shrinks it to the search and two result rows.
+/// The pin keeps it above Logic; mini mode shrinks it to the search and two result rows, and the
+/// sidecar is a tall narrow panel at the side of the screen (BL-148).
 struct LibraryView: View {
     @AppStorage("fixFailed.dismissedAt") private var fixFailedDismissedAt = 0
     @State private var model = PickerModel()
@@ -12,7 +13,8 @@ struct LibraryView: View {
     @State private var keyMonitor: Any?
     @State private var mouseMonitor: Any?
     @State private var pinned = UserDefaults.standard.bool(forKey: "library.pinned")
-    @State private var mini = false
+    @State private var mode = WindowMode.full
+    private var mini: Bool { mode == .mini }
     @State private var fullFrame: NSRect?
     @State private var showActions = false
     @State private var showChains = false
@@ -27,9 +29,14 @@ struct LibraryView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if mini { miniBody } else { fullBody }
+            switch mode {
+            case .full: fullBody
+            case .mini: miniBody
+            case .sidecar: SidecarBody(model: model, window: window, mode: mode, pinned: pinned,
+                                       onMode: setMode, onPin: togglePin) { insert() }
+            }
         }
-        .frame(minWidth: mini ? 340 : 860, minHeight: mini ? 150 : 540)
+        .frame(minWidth: mode == .full ? 860 : 300, minHeight: mode == .full ? 540 : (mini ? 150 : 400))
         .overlay { UnfavoriteConfirm() }
         .animation(.easeOut(duration: 0.15), value: PluginStore.shared.confirmingUnfavorite)
         .background(Theme.ground)
@@ -51,6 +58,10 @@ struct LibraryView: View {
         .onDisappear(perform: removeKeys)
         .onReceive(NotificationCenter.default.publisher(for: .toggleMiniMode)) { _ in toggleMini() }
         #if DEBUG
+        // Self-test only: switch between full window, sidecar and mini (BL-148).
+        .onReceive(NotificationCenter.default.publisher(for: .demoWindowMode)) { n in
+            if let m = (n.object as? String).flatMap(WindowMode.init(rawValue:)) { setMode(m) }
+        }
         // Self-test only: type a search or select a plugin, for the README pictures.
         .onReceive(NotificationCenter.default.publisher(for: .demoQuery)) { n in
             // No window-wide animation: one right after a resize made SwiftUI resize the test
@@ -65,7 +76,7 @@ struct LibraryView: View {
         }
         #endif
         .onReceive(NotificationCenter.default.publisher(for: .showTrackPanel)) { _ in
-            if mini { toggleMini() }
+            if mode != .full { setMode(.full) }
             showTrack = true
         }
         .onChange(of: confirmLookup) { _, on in
@@ -222,7 +233,7 @@ struct LibraryView: View {
                 BarIconButton(systemImage: pinned ? "pin.fill" : "pin",
                               help: pinned ? "Stop keeping this window on top" : "Keep this window above Logic",
                               active: pinned) { togglePin() }
-                BarIconButton(systemImage: "rectangle.compress.vertical", help: "Mini window") { toggleMini() }
+                ViewModeButton(mode: mode, onMode: setMode)
                 Rectangle().fill(Theme.raised).frame(width: 1, height: 18).padding(.horizontal, 6)
                 BarIconButton(systemImage: "questionmark.bubble", help: "Send feedback to Goldi") { FeedbackWindow.shared.show() }
                 VersionBadge()
@@ -289,7 +300,7 @@ struct LibraryView: View {
                 BarIconButton(systemImage: pinned ? "pin.fill" : "pin",
                               help: pinned ? "Stop keeping this window on top" : "Keep on top",
                               active: pinned) { togglePin() }
-                BarIconButton(systemImage: "rectangle.expand.vertical", help: "Full window") { toggleMini() }
+                ViewModeButton(mode: mode, onMode: setMode)
             }
             .padding(.trailing, 10)
             .frame(height: WindowChrome.barHeight)
@@ -319,21 +330,33 @@ struct LibraryView: View {
     }
 
     private func applyPin() {
-        window?.level = (pinned || mini) ? .floating : .normal
-        window?.collectionBehavior = (pinned || mini) ? [.canJoinAllSpaces, .fullScreenAuxiliary] : []
+        window?.level = (pinned || mode != .full) ? .floating : .normal
+        window?.collectionBehavior = (pinned || mode != .full) ? [.canJoinAllSpaces, .fullScreenAuxiliary] : []
     }
 
-    private func toggleMini() {
-        guard let window else { mini.toggle(); return }
-        if mini {
-            mini = false
+    /// The shortcut and menu item switch between the full window and mini.
+    private func toggleMini() { setMode(mini ? .full : .mini) }
+
+    /// Full window, sidecar or mini (BL-148). The full window's place is kept to come back to.
+    private func setMode(_ new: WindowMode) {
+        guard new != mode else { return }
+        guard let window else { mode = new; return }
+        if mode == .full { fullFrame = window.frame }
+        mode = new
+        switch new {
+        case .full:
             if let f = fullFrame { window.setFrame(f, display: true, animate: true) }
-        } else {
-            fullFrame = window.frame
-            mini = true
+        case .mini:
             let size = NSSize(width: 440, height: WindowChrome.barHeight + Self.miniRowsHeight + 6)
-            let origin = NSPoint(x: window.frame.maxX - size.width, y: window.frame.maxY - size.height)
-            window.setFrame(NSRect(origin: origin, size: size), display: true, animate: true)
+            let from = fullFrame ?? window.frame
+            window.setFrame(NSRect(origin: NSPoint(x: from.maxX - size.width, y: from.maxY - size.height), size: size),
+                            display: true, animate: true)
+        case .sidecar:
+            // The full height of the screen the window is on, against its right edge.
+            let area = (window.screen ?? NSScreen.main)?.visibleFrame ?? window.frame
+            let width: CGFloat = 360
+            window.setFrame(NSRect(x: area.maxX - width, y: area.minY, width: width, height: area.height),
+                            display: true, animate: true)
         }
         applyPin()
     }
@@ -354,7 +377,7 @@ struct LibraryView: View {
                 if model.previewCard.contains(top) { return event }
                 model.previewing = false
             }
-            guard event.clickCount == 1, !mini,
+            guard event.clickCount == 1, mode == .full,
                   event.modifierFlags.intersection([.command, .shift, .control, .option]).isEmpty,
                   model.slotChoices == nil, store.confirmingUnfavorite == nil,
                   let id = model.hoverID, !model.picked.contains(id),
@@ -377,7 +400,7 @@ struct LibraryView: View {
             }
             let cmd = event.modifierFlags.contains(.command)
             // Tab in the search: the keyboard moves to the results, so Space previews (BL-127).
-            if event.keyCode == 48, !mini, window.firstResponder is NSText,
+            if event.keyCode == 48, mode == .full, window.firstResponder is NSText,
                event.modifierFlags.intersection([.shift, .command, .control, .option]).isEmpty,
                model.selected != nil {
                 model.keysOnPlugins = true
@@ -409,7 +432,7 @@ struct LibraryView: View {
 
     /// Arrows choose a plugin, so the keyboard moves to the plugins (BL-106).
     private func onPlugins() {
-        if !mini, model.selected != nil { model.keysOnPlugins = true }
+        if mode == .full, model.selected != nil { model.keysOnPlugins = true }
     }
 
     /// Space bar preview keys (BL-106). nil: not handled here; true: used; false: pass it on.
@@ -427,7 +450,7 @@ struct LibraryView: View {
             model.previewing = false
         }
         // Only while the keyboard is on the plugins, never while typing in a text field.
-        guard !mini, model.keysOnPlugins, !(window.firstResponder is NSText), mods.isEmpty else { return nil }
+        guard mode == .full, model.keysOnPlugins, !(window.firstResponder is NSText), mods.isEmpty else { return nil }
         if event.keyCode == 49 {
             guard view.spacePreview, model.selected != nil, model.slotChoices == nil else { return nil }
             model.previewing = true
@@ -577,6 +600,7 @@ struct WindowAccessor: NSViewRepresentable {
 
 extension Notification.Name {
     static let toggleMiniMode = Notification.Name("AGPFToggleMiniMode")
+    static let demoWindowMode = Notification.Name("AGPFDemoWindowMode")
     static let demoQuery = Notification.Name("AGPFDemoQuery")
     static let demoQueryPlain = Notification.Name("AGPFDemoQueryPlain")
     static let demoSelect = Notification.Name("AGPFDemoSelect")

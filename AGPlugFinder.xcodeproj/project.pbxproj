@@ -47,6 +47,7 @@
 		90FC54F0EF2213DE7ED7F526 /* MakerSites.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A405FB134839B408486F5A /* MakerSites.swift */; };
 		931ACACD35A71211C23FDE8B /* LocalModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6EC4140429A7774ED898F02 /* LocalModel.swift */; };
 		9970AF4632E51CEE778BA8EE /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FC6C5138045E623B2A0134 /* Migration.swift */; };
+		9BF07B8E650C0EAE37BF8FB9 /* SidecarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2277EF720EEAEB3865D929 /* SidecarView.swift */; };
 		A244E15B48EF37970CDC78F4 /* CrashReports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0135B483A0FBDF4DAD8DCC91 /* CrashReports.swift */; };
 		A31521FE2FB09048BD460EB8 /* Shortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04543FB792952D69782A9314 /* Shortcuts.swift */; };
 		ABF6017627F4BF04469803C6 /* ViewSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8EBF150252A9B6AF992139C /* ViewSettings.swift */; };
@@ -89,6 +90,7 @@
 		196B1A3B9E2A22D37513FD3C /* TrackViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackViews.swift; sourceTree = "<group>"; };
 		1AE2A7565B4582595AC03716 /* LogicInserter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicInserter.swift; sourceTree = "<group>"; };
 		1AED26F1AE92B46F89A94CE6 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		1B2277EF720EEAEB3865D929 /* SidecarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidecarView.swift; sourceTree = "<group>"; };
 		1D6E0430F963F109AD1CB30B /* LogicTags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicTags.swift; sourceTree = "<group>"; };
 		1F96300B45F6AC9AB4D9D915 /* PluginScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginScanner.swift; sourceTree = "<group>"; };
 		22B5AE98AF62E66D61930575 /* PillViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillViews.swift; sourceTree = "<group>"; };
@@ -244,6 +246,7 @@
 				2AFB8804982519104A3E9C10 /* SettingsView.swift */,
 				73BE9C76C349750CE02E0E1B /* ShareWindow.swift */,
 				55FD3617B4BC576C117D7A0D /* ShortcutSettings.swift */,
+				1B2277EF720EEAEB3865D929 /* SidecarView.swift */,
 				3489490CA53609C463DF80B1 /* SnapshotProgressView.swift */,
 				196B1A3B9E2A22D37513FD3C /* TrackViews.swift */,
 				9EEA5CFC97F1DDE421DD06B0 /* UnusedView.swift */,
@@ -418,6 +421,7 @@
 				7219F4928E487650D9BD675F /* ShareWindow.swift in Sources */,
 				5DCD29A96935375138A77B64 /* ShortcutSettings.swift in Sources */,
 				A31521FE2FB09048BD460EB8 /* Shortcuts.swift in Sources */,
+				9BF07B8E650C0EAE37BF8FB9 /* SidecarView.swift in Sources */,
 				7C7F0A0658B68ED1C4AD62B6 /* SnapshotProgressView.swift in Sources */,
 				EDB9BE6E1825D71E46A3A49F /* SnapshotQueue.swift in Sources */,
 				F187F1FBF38723B078A30291 /* SnapshotRenderer.swift in Sources */,
