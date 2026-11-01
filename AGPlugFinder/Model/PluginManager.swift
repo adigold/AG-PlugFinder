@@ -46,6 +46,9 @@ final class PluginManager {
     private(set) var scanTrail: [String] = []
     private(set) var scanFound = 0
     private(set) var scanStep = ""
+    /// How far the current step is: done of total (BL-154).
+    private(set) var scanDone = 0
+    private(set) var scanTotal = 0
     private(set) var lastScan: Date?
     var selected: Set<String> = []
     /// Files each installer put outside the plugin folders (support files, presets, manuals),
@@ -71,11 +74,18 @@ final class PluginManager {
         scanTrail = []
         scanFound = 0
         scanStep = "Looking in your plugin folders"
+        scanDone = 0
+        scanTotal = 0
         let started = Date()
         // Names arrive from the scan as it goes; the screen shows them as they come.
-        let report: @Sendable (String, String?) -> Void = { step, name in
+        let report: @Sendable (String, String?, Int, Int) -> Void = { step, name, done, total in
             Task { @MainActor in
-                PluginManager.shared.scanStep = step
+                let m = PluginManager.shared
+                // A new step starts its count again; within a step the count only goes up,
+                // even when reports from several installers at once arrive out of order.
+                if m.scanStep != step { m.scanStep = step; m.scanDone = 0 }
+                m.scanTotal = total
+                m.scanDone = max(m.scanDone, done)
                 if let name {
                     PluginManager.shared.scanTrail.insert(name, at: 0)
                     if PluginManager.shared.scanTrail.count > 7 { PluginManager.shared.scanTrail.removeLast() }
@@ -85,7 +95,6 @@ final class PluginManager {
         }
         Task.detached(priority: .userInitiated) {
             let found = Self.findAll(report: report)
-            report("Matching plugins to their installers", nil)
             let (receipts, extras) = Self.receipts(for: Set(found.map(\.url.path)), report: report)
             let withReceipts = found.map { i -> Item in var j = i; j.receipt = receipts[i.url.path]; return j }
             // Long enough to see the names go by on a Mac with few plugins; a longer scan never waits.
@@ -101,21 +110,25 @@ final class PluginManager {
         }
     }
 
-    nonisolated private static func findAll(report: (String, String?) -> Void = { _, _ in }) -> [Item] {
+    nonisolated private static func findAll(report: (String, String?, Int, Int) -> Void = { _, _, _, _ in }) -> [Item] {
         let fm = FileManager.default
         var out: [Item] = []
+        // Every plugin file first, so the scan can say how many are left (BL-154). Makers often
+        // keep their plugins in a folder of their own, one level down.
+        var candidates: [(URL, Bool)] = []
         for (folder, system) in folders {
-            // Makers often keep their plugins in a folder of their own, one level down.
-            var candidates: [URL] = []
             for u in (try? fm.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? [] {
-                if Format.of(u) != nil { candidates.append(u) }
+                if Format.of(u) != nil { candidates.append((u, system)) }
                 else if (try? u.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true {
-                    candidates += ((try? fm.contentsOfDirectory(at: u, includingPropertiesForKeys: nil)) ?? []).filter { Format.of($0) != nil }
+                    candidates += ((try? fm.contentsOfDirectory(at: u, includingPropertiesForKeys: nil)) ?? [])
+                        .filter { Format.of($0) != nil }.map { ($0, system) }
                 }
             }
-            for u in candidates {
+        }
+        do {
+            for (n, (u, system)) in candidates.enumerated() {
                 guard let format = Format.of(u) else { continue }
-                report("Looking in your plugin folders", u.lastPathComponent)
+                report("Looking in your plugin folders", u.lastPathComponent, n + 1, candidates.count)
                 let info = Bundle(url: u)?.infoDictionary ?? [:]
                 let name = (info["CFBundleName"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? u.deletingPathExtension().lastPathComponent
                 out.append(Item(url: u, format: format,
@@ -142,7 +155,7 @@ final class PluginManager {
 
     /// Which installer put each plugin there, from the receipts macOS keeps (pkgutil), and the
     /// other files each installer left outside the plugin folders. Read only.
-    nonisolated private static func receipts(for paths: Set<String>, report: @escaping @Sendable (String, String?) -> Void = { _, _ in }) -> ([String: String], [String: [String]]) {
+    nonisolated private static func receipts(for paths: Set<String>, report: @escaping @Sendable (String, String?, Int, Int) -> Void = { _, _, _, _ in }) -> ([String: String], [String: [String]]) {
         func run(_ args: [String]) -> String {
             let p = Process()
             p.executableURL = URL(fileURLWithPath: "/usr/sbin/pkgutil")
@@ -181,11 +194,10 @@ final class PluginManager {
             }
         }
         // The file lists, several installers at once.
-        final class Lists: @unchecked Sendable { var text: [String]; let lock = NSLock(); init(_ n: Int) { text = Array(repeating: "", count: n) } }
+        final class Lists: @unchecked Sendable { var text: [String]; var done = 0; let lock = NSLock(); init(_ n: Int) { text = Array(repeating: "", count: n) } }
         let lists = Lists(pkgs.count)
         let ids = pkgs.map(\.id)
         DispatchQueue.concurrentPerform(iterations: ids.count) { i in
-            report("Matching plugins to their installers", ids[i])
             let p = Process()
             p.executableURL = URL(fileURLWithPath: "/usr/sbin/pkgutil")
             p.arguments = ["--files", ids[i]]
@@ -195,7 +207,8 @@ final class PluginManager {
             guard (try? p.run()) != nil else { return }
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
             p.waitUntilExit()
-            lists.lock.lock(); lists.text[i] = String(decoding: data, as: UTF8.self); lists.lock.unlock()
+            lists.lock.lock(); lists.text[i] = String(decoding: data, as: UTF8.self); lists.done += 1; let n = lists.done; lists.lock.unlock()
+            report("Matching plugins to their installers", ids[i], n, ids.count)
         }
         for (i, (pkg, base)) in pkgs.enumerated() {
             var mine = false

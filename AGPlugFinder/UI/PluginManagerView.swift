@@ -287,9 +287,21 @@ struct ScanTicker: View {
         VStack(spacing: 14) {
             ProgressView().controlSize(.small)
             Text(manager.scanStep).font(.system(size: Theme.ts(13), weight: .semibold)).foregroundStyle(Theme.text)
-            Text("\(manager.scanFound) plugin file\(manager.scanFound == 1 ? "" : "s") found")
-                .font(.system(size: Theme.ts(11))).monospacedDigit().foregroundStyle(Theme.faint)
-                .contentTransition(.numericText())
+            // How many are left (BL-154): done of total, with a bar.
+            VStack(spacing: 6) {
+                Text(manager.scanTotal > 0
+                     ? "\(manager.scanDone) of \(manager.scanTotal) \(manager.scanStep.hasPrefix("Looking") ? "plugin files" : "installers")"
+                     : "Getting ready")
+                    .font(.system(size: Theme.ts(12), weight: .medium)).monospacedDigit().foregroundStyle(Theme.muted)
+                    .contentTransition(.numericText())
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Theme.raised)
+                    Capsule().fill(Theme.accent)
+                        .frame(width: manager.scanTotal > 0 ? 260 * CGFloat(manager.scanDone) / CGFloat(manager.scanTotal) : 0)
+                }
+                .frame(width: 260, height: 5)
+                .animation(.easeOut(duration: 0.15), value: manager.scanDone)
+            }
             VStack(spacing: 4) {
                 ForEach(Array(manager.scanTrail.enumerated()), id: \.element) { i, name in
                     Text(name)
@@ -304,6 +316,6 @@ struct ScanTicker: View {
             .clipped()
             .animation(.spring(duration: 0.25, bounce: 0.1), value: manager.scanTrail)
         }
-        .animation(.easeOut(duration: 0.2), value: manager.scanFound)
+        .animation(.easeOut(duration: 0.2), value: manager.scanDone)
     }
 }
