@@ -89,6 +89,24 @@ struct LibraryView: View {
             HStack(spacing: 0) {
                 PluginGrid(model: model) { insert() }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    // Where the info panel was: brings it back (BL-118).
+                    .overlay(alignment: .topTrailing) {
+                        if !view.showInfoPane {
+                            Button { toggleInfo() } label: {
+                                Image(systemName: "sidebar.right").font(.system(size: 13, weight: .medium))
+                                    .foregroundStyle(Theme.text)
+                                    .frame(width: 34, height: 34)
+                                    .background(Circle().fill(Theme.raised))
+                                    .overlay(Circle().strokeBorder(Theme.edge, lineWidth: 1))
+                                    .shadow(color: .black.opacity(0.4), radius: 8, y: 3)
+                                    .contentShape(Circle())
+                            }
+                            .buttonStyle(PressScale())
+                            .help("Show the info panel (⌘I)")
+                            .padding(.top, 10).padding(.trailing, 12)
+                            .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                        }
+                    }
                 if view.showInfoPane {
                     Rectangle().fill(Theme.edge).frame(width: 1)
                         .transition(.move(edge: .trailing).combined(with: .opacity))
@@ -169,8 +187,6 @@ struct LibraryView: View {
                               help: pinned ? "Stop keeping this window on top" : "Keep this window above Logic",
                               active: pinned) { togglePin() }
                 BarIconButton(systemImage: "rectangle.compress.vertical", help: "Mini window") { toggleMini() }
-                BarIconButton(systemImage: "sidebar.right", help: view.showInfoPane ? "Hide the info panel (⌘I)" : "Show the info panel (⌘I)",
-                              active: view.showInfoPane) { toggleInfo() }
                 Rectangle().fill(Theme.raised).frame(width: 1, height: 18).padding(.horizontal, 6)
                 BarIconButton(systemImage: "questionmark.bubble", help: "Send feedback to Goldi") { FeedbackWindow.shared.show() }
                 VersionBadge()

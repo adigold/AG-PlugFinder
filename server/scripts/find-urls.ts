@@ -187,23 +187,29 @@ async function main() {
     }
     list = picked;
   }
-  console.log(`${rows.length} plugins, ${groups.size} products, looking up ${list.length}`);
-
-  const found: Found[] = [];
+  // Every result is saved the moment it arrives; a run that stops picks up where it left off,
+  // so no search is paid for twice.
+  const stamp = sample ? `sample-${sample}` : "all";
+  const partial = path.join(outDir, `urls-${stamp}.partial.jsonl`);
+  const found: Found[] = fs.existsSync(partial)
+    ? fs.readFileSync(partial, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l) as Found) : [];
+  const done = new Set(found.map((f) => f.maker + "|" + f.name.toLowerCase()));
+  list = list.filter((g) => !done.has(g.maker + "|" + g.name.toLowerCase()));
+  console.log(`${rows.length} plugins, ${groups.size} products, ${found.length} already done, looking up ${list.length}`);
   let i = 0;
   async function worker() {
     while (i < list.length) {
       const g = list[i++];
       const f = await find(g);
       found.push(f);
-      if (found.length % 25 === 0 || found.length === list.length) {
-        console.log(`${found.length}/${list.length}  found ${found.filter((x) => x.url && !x.note).length}  cost $${cost.toFixed(3)}`);
+      fs.appendFileSync(partial, JSON.stringify(f) + "\n");
+      if (found.length % 25 === 0) {
+        console.log(`${found.length}/${list.length + done.size}  found ${found.filter((x) => x.url && !x.note).length}  cost $${cost.toFixed(3)}`);
       }
     }
   }
   await Promise.all(Array.from({ length: 4 }, worker));
 
-  const stamp = sample ? `sample-${sample}` : "all";
   fs.writeFileSync(path.join(outDir, `urls-${stamp}.json`), JSON.stringify(found, null, 2));
   fs.writeFileSync(path.join(outDir, `urls-${stamp}.html`), page(found));
   const ok = found.filter((x) => x.url && !x.note).length;

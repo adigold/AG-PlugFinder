@@ -38,6 +38,8 @@ enum MakerSites {
     }
 
     static func open(_ plugin: Plugin) {
+        // The exact page, found and checked once for everyone (BL-119).
+        if let url = PlugDB.productURL(plugin.id) { NSWorkspace.shared.open(url); return }
         let name = plugin.isLogic && !plugin.name.hasPrefix("Logic") ? "Logic Pro \(plugin.name)" : plugin.name
         var q: String
         if let site = site(for: plugin.manufacturer) {

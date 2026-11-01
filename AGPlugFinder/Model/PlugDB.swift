@@ -80,6 +80,16 @@ enum PlugDB {
 
     /// At launch: pictures that were replaced in the database since this Mac got (or took) its
     /// own are downloaded again. The old one is kept, so Undo brings it back. Silent on failure.
+    /// The plugin's page on its maker's site, when the database has one.
+    static func productURL(_ id: String) -> URL? {
+        (UserDefaults.standard.dictionary(forKey: "plugin.urls")?[id] as? String).flatMap(URL.init(string:))
+    }
+
+    /// The plugin's exact kind from its maker's page, for example Limiter.
+    static func kind(_ id: String) -> String? {
+        UserDefaults.standard.dictionary(forKey: "plugin.kinds")?[id] as? String
+    }
+
     static func refreshReplacedPictures() async {
         guard let base, let key else { return }
         let store = PluginStore.shared
@@ -95,6 +105,15 @@ enum PlugDB {
               (response as? HTTPURLResponse)?.statusCode == 200,
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let rows = json["available"] as? [[String: Any]] else { return }
+        // Each plugin's page on its maker's site and its exact kind (BL-119, BL-120).
+        var urls: [String: String] = [:], kinds: [String: String] = [:]
+        for r in rows {
+            guard let id = r["plugin_id"] as? String else { continue }
+            if let u = r["product_url"] as? String, u.hasPrefix("https://") { urls[id] = u }
+            if let k = r["kind"] as? String, !k.isEmpty { kinds[id] = k }
+        }
+        if !urls.isEmpty { UserDefaults.standard.set(urls, forKey: "plugin.urls") }
+        if !kinds.isEmpty { UserDefaults.standard.set(kinds, forKey: "plugin.kinds") }
         let seen = pictureRev
         let newer = rows.compactMap { r -> String? in
             guard let id = r["plugin_id"] as? String, let rev = r["picture_rev"] as? Int, rev > (seen[id] ?? 0) else { return nil }

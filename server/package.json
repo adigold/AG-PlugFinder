@@ -10,7 +10,8 @@
     "dev": "neon dev",
     "deploy": "neon deploy --env .env.local",
     "reports": "tsx --env-file=.env.local scripts/reports.ts",
-    "find-urls": "tsx --env-file=.env.local scripts/find-urls.ts"
+    "find-urls": "tsx --env-file=.env.local scripts/find-urls.ts",
+    "apply-urls": "tsx --env-file=.env.local scripts/apply-urls.ts"
   },
   "keywords": [],
   "author": "",
