@@ -164,6 +164,10 @@ AG PlugFinder lives in the menu bar and can start when you log in. Its menu open
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.50**
+
+- **New:** Make your own categories. Right-click a plugin, open Category and choose New Category… to put it in a category with any name you like. It gets its own pill, stays yours alone and is never shared with other users; only your own Macs receive it. Right-click its pill to delete it, and its plugins go back where they were.
+
 **0.9.49**
 
 - **New:** A Behavior tab in Settings. Turn on "Hide the window and go back to Logic" and the window steps away after you add a plugin, in every view. With Ableton Live in use, it goes back to Live.
@@ -174,6 +178,9 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **Fixed:** The OK and Cancel buttons in dialogs, like New collection, now always answer a mouse click, not only the keyboard.
 - **Improved:** The Plugin Manager no longer starts scanning by itself when you open it. Click Start Scanning when you are ready.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.47)</summary>
+
 **0.9.47**
 
 - **Improved:** iCloud sync now carries everything to your other Macs: your plugin screenshots, your own categories, the plugin descriptions you looked up, channel format choices and your shortcuts. A screenshot you clear is cleared on every Mac.
@@ -183,9 +190,6 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **Improved:** Floating shows that you can hold Option to choose the slot.
 - **Improved:** In a narrow window, the top bar makes room so the icons on the right stay visible.
 - **Fixed:** Import from Logic in Settings could show a message whose OK button did nothing.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.46)</summary>
 
 **0.9.46**
 
