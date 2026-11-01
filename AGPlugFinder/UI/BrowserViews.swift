@@ -587,15 +587,43 @@ struct PluginGrid: View {
         let a = zoomAnchor(value.index, count: model.results.count)
         let x = min(max(r.minX - (w - r.width) * a.x, 0), max(0, g.size.width - w))
         let y = min(max(r.minY - (h - r.height) * a.y, 0), max(0, g.size.height - h))
-        return PluginTile(plugin: value.plugin, isSelected: true)
+        let plugin = value.plugin, i = value.index
+        return PluginTile(plugin: plugin, isSelected: true)
             .frame(width: w)
+            // The bigger card takes clicks itself (BL-194): its star, a double-click to add,
+            // right-click and drag, the same as the card it stands for.
+            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .onHover { inside in
+                if inside { model.hoverID = plugin.id } else if model.hoverID == plugin.id { model.hoverID = nil }
+            }
+            .onTapGesture {
+                if NSApp.currentEvent?.clickCount ?? 1 >= 2 { model.selection = i; onActivate(); return }
+                model.picked = []
+                model.keysOnPlugins = true
+            }
+            .contextMenu {
+                PluginContextMenu(plugin: plugin, select: { model.selection = i }, insert: onActivate,
+                                  insertVersion: { v in model.selection = i; model.insertSelected(version: v) })
+            }
+            .draggable(PluginDrag.payload([plugin.id])) {
+                Text(plugin.name).font(.system(size: Theme.ts(12), weight: .semibold)).foregroundStyle(Theme.text)
+                    .padding(8).background(RoundedRectangle(cornerRadius: 10).fill(Theme.raised))
+            }
             .shadow(color: .black.opacity(0.5), radius: 22, y: 10)
+            #if DEBUG
+            .background(GeometryReader { g in Color.clear.onAppear { Self.testZoomFrame = g.frame(in: .global) }
+                .onChange(of: g.frame(in: .global)) { _, f in Self.testZoomFrame = f } })
+            #endif
             .offset(x: x, y: y)
-            .allowsHitTesting(false)
             .transition(.opacity.combined(with: .scale(scale: 1 / view.zoomScale, anchor: a)))
             .id(value.plugin.id)
             .animation(reduceMotion ? nil : .spring(duration: 0.26, bounce: 0.15), value: value.plugin.id)
     }
+
+    #if DEBUG
+    /// For the self test: where the bigger card is in the window.
+    nonisolated(unsafe) static var testZoomFrame: CGRect = .zero
+    #endif
 
     /// Cards on an edge grow inward, so the bigger card is never cut off (BL-171).
     private func zoomAnchor(_ i: Int, count: Int) -> UnitPoint {

@@ -33,6 +33,10 @@ struct FloatingBody: View {
             HStack(spacing: 6) {
                 KeyCap(key: "⇥"); Text("category")
                 KeyCap(key: "↑"); KeyCap(key: "↓"); Text("move")
+                // Hold Option to choose where on the track an effect goes (BL-195).
+                if Host.current == .logic, model.selected?.slotKind == .audioFX {
+                    KeyCap(key: "⌥"); Text("hold to choose the slot")
+                }
                 Spacer()
                 KeyCap(key: "↩"); Text(Host.insertTitle)
             }

@@ -22,6 +22,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 ## Now
+- [~] **BL-193** `P1 · Critical` **iCloud sync must carry everything:** a user reported that moving to another Mac did not bring all his information, screenshots included. Find every gap and make the sync complete and dependable. Adi, 2026-11-01.
 - [~] **BL-100** `P2 · Medium` **Wish list and price alerts:** add plugins you want (name, maker, store link, target price); the app checks the store page's price and tells you when it drops or reaches your target; wish list total next to the collection value. Adi, 2026-10-31.
 - [ ] **BL-101** `P2 · Medium` **Project plugin report:** for the open Logic project, which plugins it uses, on which tracks, and which are missing on this Mac; export a list for a collaborator. Adi, 2026-10-31.
 - [ ] **BL-102** `P2 · Medium` **Plugin presets:** the user's saved Logic settings for each plugin, shown in its info panel; insert a plugin with a chosen setting loaded, from the picker or a number key; synced. Adi, 2026-10-31.
@@ -41,6 +42,8 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-194** `P1 · High` **Zoom L: the star could not be clicked:** the bigger card was only drawn on top, so clicks went to the small card under it. It now takes clicks itself: star, double-click to add, right-click and drag. Adi, 2026-11-01. · done 2026-11-01
+- [x] **BL-195** `P3 · Low` **Floating shows the Option hint:** "⌥ hold to choose the slot" in the key hints at the bottom, while an effect is selected in Logic. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-192** `P2 · Medium` **Top bar in a narrow window:** as the window narrows, the Fix Failed button keeps only its icon and number, then the name beside the logo hides, so the icons at the right never get pushed away. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-191** `P3 · Low` **Plugin count in the footer:** "150 plugins found" moves from beside the name at the top to the bottom right of the footer. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-190** `P2 · Medium` **Dialogs with a name field:** OK shows only once something is typed, an empty or spaces-only name can't be entered, and Esc always closes the dialog. Adi, 2026-11-01. · done 2026-11-01

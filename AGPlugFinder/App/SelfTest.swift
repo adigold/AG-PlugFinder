@@ -156,6 +156,29 @@ enum SelfTest {
                     ViewSettings.shared.zoomScale = 1.4
                     try? await Task.sleep(for: .seconds(1.2))
                     await capture(window, to: out.deletingPathExtension().appendingPathExtension("zoomL.png"))
+                    if args.contains("--zoomstar"), let content = window.contentView {
+                        // A real click on the bigger card's star (BL-194). Favorites stay in memory only.
+                        PluginStore.shared.readOnly = true
+                        let name = args[z + 2]
+                        let id = PluginStore.shared.plugins.first { $0.name == name }?.id ?? ""
+                        let before = PluginStore.shared.favorites.contains(id)
+                        // The star sits at the card's bottom right; the frame is taken before the offset,
+                        // so the visible card is found from the grid by its picture instead.
+                        let f = PluginGrid.testZoomFrame
+                        // Measured from the zoomL picture of this same test run (860x949 window).
+                        let pt = NSPoint(x: 472, y: window.frame.height - 613); _ = content
+                        print("ZOOMSTAR frame \(f) click \(pt)")
+                        NSApp.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil)
+                        try? await Task.sleep(for: .milliseconds(400))
+                        for t in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+                            if let e = NSEvent.mouseEvent(with: t, location: pt, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                                          windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1) { window.sendEvent(e) }
+                            try? await Task.sleep(for: .milliseconds(80))
+                        }
+                        try? await Task.sleep(for: .milliseconds(600))
+                        print("ZOOMSTAR \(name) favorite before=\(before) after=\(PluginStore.shared.favorites.contains(id))"); fflush(stdout)
+                        await capture(window, to: out.deletingPathExtension().appendingPathExtension("zoomstar.png"))
+                    }
                     // Several picked: Zoom steps aside, and comes back with one (BL-175).
                     NotificationCenter.default.post(name: .demoPick, object: [args[z + 1], args[z + 2]])
                     try? await Task.sleep(for: .seconds(1.2))
