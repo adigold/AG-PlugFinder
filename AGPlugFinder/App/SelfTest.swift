@@ -1192,6 +1192,19 @@ enum SelfTest {
             }
             fflush(stdout)
         }
+        // --selftest-lofidb <file>: the LoFi rule over every name in the shared database (BL-170).
+        if let k = args.firstIndex(of: "--selftest-lofidb"), k + 1 < args.count,
+           let text = try? String(contentsOfFile: args[k + 1], encoding: .utf8) {
+            let instruments: Set<String> = ["Instrument", "Synth", "Drums", "Keys", "Sampler", "Bass", "Orchestral"]
+            var hits: [String] = []
+            for line in text.split(separator: "\n") {
+                let f = line.split(separator: "|", omittingEmptySubsequences: false).map(String.init)
+                guard f.count >= 3, !instruments.contains(f[2]) else { continue }
+                if PluginCategories.isLoFi(f[0]) { hits.append("\(f[0]) · \(f[1]) · was \(f[2])") }
+            }
+            for h in hits { print("LOFIDB " + h) }
+            print("LOFIDB total \(hits.count)"); fflush(stdout)
+        }
         // --selftest-icloudkeychain: can this app keep a key in iCloud Keychain? Adds a test item,
         // reads it back and deletes it (BL-157).
         if args.contains("--selftest-icloudkeychain") {

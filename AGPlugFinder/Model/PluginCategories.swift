@@ -32,7 +32,10 @@ enum PluginCategories {
     /// Lo-fi effects (BL-169): tape and vinyl wear, retro color. Effects only, so an instrument
     /// like Retro Synth is not one. Safe from any thread, like the Channel Strip check.
     private static let lofiWords = ["lofi", "lo-fi", "lo fi", "rc-20", "rc20", "retro color", "retrocolor", "retro fi",
-                                    "mello-fi", "mellofi", "fin-retro", "needlepoint", "cassette", "vinyl", "sketchcassette"]
+                                    "mello-fi", "mellofi", "fin-retro", "needlepoint", "cassette", "vinyl", "sketchcassette",
+                                    // From the shared database (BL-170): tape wear, wow and flutter, lossy and VHS.
+                                    "bad tape", "dirty tape", "rabbit tape", "tape face", "degrader", "lossy", "wow control",
+                                    "warble", "retrocraft", "super vhs", "vhs", "bitspeek"]
     private static let lofiMemo = Locked<[String: Bool]>([:])
     static func isLoFi(_ name: String) -> Bool {
         if let m = lofiMemo.read({ $0[name] }) { return m }
