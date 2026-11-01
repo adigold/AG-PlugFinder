@@ -40,6 +40,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-167** `P1 · High` **Drag several plugins to a collection:** when several plugins are picked and dragged onto a collection pill, all of them go into the collection, not only the one dragged. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-166** `P2 · Medium` **Ableton device pictures in the shared database:** the server also serves pictures for Ableton's own devices, and the 68 pictures are added to the live database. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-165** `P2 · Medium` **Logic or Ableton indicator:** a small badge at the bottom left of the footer shows which program plugins go to, with its icon and a dot while it is open. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-164** `P1 · High` **Pictures of Ableton's devices:** capture each of Live's devices once (loaded one by one on a spare track through the add-on, the Device View photographed, then removed), check them, and ship them inside the app (no upload). Adi, 2026-11-01. · done 2026-11-01

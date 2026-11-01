@@ -1160,6 +1160,13 @@ enum SelfTest {
             let only = args.firstIndex(of: "--only").flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil }
             Task { await AbletonCapture.run(to: URL(fileURLWithPath: args[k + 1]), only: only) }
         }
+        // --selftest-dragmany: a drag of several plugins arrives as all of them (BL-167).
+        if args.contains("--selftest-dragmany") {
+            let three = ["ableton-autopantremolo", "ableton-chorusensemble", "ableton-phaserflanger"]
+            let back = PluginDrag.ids([PluginDrag.payload(three)])
+            let one = PluginDrag.ids([PluginDrag.payload(["aufx-Chao-NbsA"])])
+            print("DRAG three ok=\(back == three) one ok=\(one == ["aufx-Chao-NbsA"]) other text ignored=\(PluginDrag.ids(["hello"]).isEmpty)"); fflush(stdout)
+        }
         // --selftest-icloudkeychain: can this app keep a key in iCloud Keychain? Adds a test item,
         // reads it back and deletes it (BL-157).
         if args.contains("--selftest-icloudkeychain") {

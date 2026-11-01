@@ -593,11 +593,15 @@ struct PluginGrid: View {
                                           insertVersion: { v in model.selection = i; model.insertSelected(version: v) })
                     }
                 }
-                // Drag onto a collection chip to add it there (BL-60).
-                .draggable(PluginDrag.prefix + plugin.id) {
+                // Drag onto a collection chip to add it there (BL-60). Dragging one of several
+                // picked plugins takes all of them along (BL-167).
+                .draggable(PluginDrag.payload(model.picked.count > 1 && model.picked.contains(plugin.id)
+                                                  ? results.filter { model.picked.contains($0.id) }.map(\.id) : [plugin.id])) {
                     HStack(spacing: 8) {
                         PluginThumbnail(plugin: plugin, radius: 6).frame(width: 54, height: 36)
-                        Text(plugin.name).font(.system(size: Theme.ts(12), weight: .semibold)).foregroundStyle(Theme.text)
+                        let many = model.picked.count > 1 && model.picked.contains(plugin.id)
+                        Text(many ? "\(model.picked.count) plugins" : plugin.name)
+                            .font(.system(size: Theme.ts(12), weight: .semibold)).foregroundStyle(Theme.text)
                     }
                     .padding(8)
                     .background(RoundedRectangle(cornerRadius: 10).fill(Theme.raised))
@@ -922,8 +926,11 @@ extension Notification.Name {
 /// What a dragged plugin carries: its id, marked so other dropped text is ignored.
 enum PluginDrag {
     static let prefix = "agplugfinder-plugin:"
+    /// One drag carries one plugin or several, one id per line.
+    static func payload(_ ids: [String]) -> String { prefix + ids.joined(separator: "\n") }
     static func ids(_ items: [String]) -> [String] {
-        items.filter { $0.hasPrefix(prefix) }.map { String($0.dropFirst(prefix.count)) }
+        items.filter { $0.hasPrefix(prefix) }
+            .flatMap { $0.dropFirst(prefix.count).split(separator: "\n").map(String.init) }
     }
 }
 
