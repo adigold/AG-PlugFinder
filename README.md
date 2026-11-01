@@ -156,6 +156,13 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.33**
+
+- **Fixed:** Removing plugins in the Plugin Manager works. It now asks on the same page, shows the name of the folder it creates on your Desktop, and tells you what was moved.
+- **Fixed:** Save as chain finds Logic's plugins even when the track shows their short names, like SilvComp or SpecGate.
+- **Fixed:** Save as chain tells you when a track has only an instrument and no effects to save.
+- **Fixed:** An open chain in the Chains list is no longer cut off.
+
 **0.9.32**
 
 - **New:** Plugin Manager, in Settings. Every plugin on your Mac in every format: Audio Units, VST, VST3, AAX and CLAP.
@@ -168,12 +175,12 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **Improved:** Plugins you remove from your Mac disappear from the app by themselves, and the app tells you how many were removed.
 - **Improved:** The Fix Failed Screenshots button can be hidden with its x. It comes back only if more screenshots fail.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.30)</summary>
+
 **0.9.30**
 
 - **Improved:** New pill defaults. Collections and categories show together, ordered by most plugins, with counts, and wrap onto more rows when there are many. Reset to Default in Edit Pills brings back this look. Settings you already chose stay as they are.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.29)</summary>
 
 **0.9.29**
 
