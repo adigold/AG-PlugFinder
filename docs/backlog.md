@@ -7,6 +7,9 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
+- [ ] **BL-135** `P1 · High` **Rename the app to Retrive.me:** new name everywhere users see it. Adi, 2026-11-01.
+- [ ] **BL-136** `P1 · High` **retrive.me website:** a site for the app on the new domain (Cloudflare DNS). Adi, 2026-11-01.
+
 - [ ] **BL-122** `P2 · Medium` **New database plugins checked automatically:** when an app adds a plugin to the shared database, the server finds its maker page, exact kind and category with Exa in the background. Needs the Exa key on the server and a server update (Adi to approve). Adi, 2026-11-01.
 
 - [ ] **BL-83** `P2 · Medium` **Admin dashboard for the shared database:** one private page for Adi: how many Macs and versions, pictures in and approved (with a look at each and reject), crash reports and error logs, category votes and agreement, uploads per day. Signed-in only. Adi, 2026-10-31.
