@@ -9,7 +9,8 @@
     "review": "tsx --env-file=.env.local scripts/review.ts",
     "dev": "neon dev",
     "deploy": "neon deploy --env .env.local",
-    "reports": "tsx --env-file=.env.local scripts/reports.ts"
+    "reports": "tsx --env-file=.env.local scripts/reports.ts",
+    "find-urls": "tsx --env-file=.env.local scripts/find-urls.ts"
   },
   "keywords": [],
   "author": "",
