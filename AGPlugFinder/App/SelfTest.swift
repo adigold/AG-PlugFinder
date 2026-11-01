@@ -613,6 +613,23 @@ enum SelfTest {
                 let notes = m.notes()
                 print("PM items=\(m.items.count) \(byFormat) receipts=\(m.items.filter { $0.receipt != nil }.count) notes=\(notes.count)")
                 for i in m.items where notes[i.id] != nil { print("PM   \(notes[i.id]!.rawValue): \(i.name) [\(i.format.rawValue), \(i.system ? "system" : "user"), \(i.version)]") }
+                if args.contains("--pm-extra") {
+                    // Select all, then draw the list, timed, as a user with thousands of plugins would.
+                    var t = Date()
+                    m.selected = Set(m.items.map(\.id))
+                    let extra = m.leftovers(for: m.items).count
+                    print("PM select all \(m.selected.count) took \(String(format: "%.3f", Date().timeIntervalSince(t)))s leftovers=\(extra)")
+                    let w = NSWindow(contentRect: NSRect(x: 80, y: 80, width: 780, height: 580), styleMask: [.titled], backing: .buffered, defer: false)
+                    t = Date()
+                    w.contentView = NSHostingView(rootView: PluginManagerView())
+                    w.makeKeyAndOrderFront(nil)
+                    w.displayIfNeeded()
+                    print("PM first draw took \(String(format: "%.3f", Date().timeIntervalSince(t)))s"); fflush(stdout)
+                    t = Date()
+                    m.selected.removeAll(); w.displayIfNeeded()
+                    print("PM deselect redraw took \(String(format: "%.3f", Date().timeIntervalSince(t)))s"); fflush(stdout)
+                    w.orderOut(nil)
+                }
                 for (pkg, files) in m.leftoverFiles.sorted(by: { $0.key < $1.key }) {
                     print("PM   leftovers \(pkg): \(files.count)"); for f in files.prefix(4) { print("PM     \(f)") }
                 }

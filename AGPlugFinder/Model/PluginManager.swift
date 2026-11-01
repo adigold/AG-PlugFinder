@@ -65,6 +65,12 @@ final class PluginManager {
         }
         list.append((URL(fileURLWithPath: "/Library/Application Support/Avid/Audio/Plug-Ins"), true))
         list.append((home.appendingPathComponent("Library/Application Support/Avid/Audio/Plug-Ins"), false))
+        #if DEBUG
+        // Self-test only: a folder of made-up plugins, to time thousands of them (BL-155).
+        if let k = CommandLine.arguments.firstIndex(of: "--pm-extra"), k + 1 < CommandLine.arguments.count {
+            list.append((URL(fileURLWithPath: CommandLine.arguments[k + 1]), false))
+        }
+        #endif
         return list
     }
 
@@ -77,8 +83,17 @@ final class PluginManager {
         scanDone = 0
         scanTotal = 0
         let started = Date()
-        // Names arrive from the scan as it goes; the screen shows them as they come.
+        // Names arrive from the scan as it goes. The screen takes one about every 50 ms, plus the
+        // last of each step, so thousands of files never flood it (BL-155).
+        final class Gate: @unchecked Sendable { let lock = NSLock(); var last = Date.distantPast }
+        let gate = Gate()
         let report: @Sendable (String, String?, Int, Int) -> Void = { step, name, done, total in
+            gate.lock.lock()
+            let now = Date()
+            let pass = done >= total || now.timeIntervalSince(gate.last) > 0.05
+            if pass { gate.last = now }
+            gate.lock.unlock()
+            guard pass else { return }
             Task { @MainActor in
                 let m = PluginManager.shared
                 // A new step starts its count again; within a step the count only goes up,
@@ -103,7 +118,9 @@ final class PluginManager {
             await MainActor.run {
                 self.leftoverFiles = extras
                 self.items = withReceipts.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-                self.selected = self.selected.filter { id in withReceipts.contains { $0.id == id } }
+                let ids = Set(withReceipts.map(\.id))
+                self.selected = self.selected.filter { ids.contains($0) }
+                self.refreshNotes()
                 self.scanning = false
                 self.lastScan = Date()
             }
@@ -125,21 +142,26 @@ final class PluginManager {
                 }
             }
         }
-        do {
-            for (n, (u, system)) in candidates.enumerated() {
-                guard let format = Format.of(u) else { continue }
-                report("Looking in your plugin folders", u.lastPathComponent, n + 1, candidates.count)
-                let info = Bundle(url: u)?.infoDictionary ?? [:]
-                let name = (info["CFBundleName"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? u.deletingPathExtension().lastPathComponent
-                out.append(Item(url: u, format: format,
-                                name: u.deletingPathExtension().lastPathComponent.isEmpty ? name : u.deletingPathExtension().lastPathComponent,
-                                version: info["CFBundleShortVersionString"] as? String ?? info["CFBundleVersion"] as? String ?? "",
-                                bundleID: info["CFBundleIdentifier"] as? String ?? "",
-                                size: size(of: u),
-                                installed: (try? u.resourceValues(forKeys: [.creationDateKey]))?.creationDate,
-                                system: system, receipt: nil))
-            }
+        // Each file read in parallel (BL-155): its Info.plist straight from disk and its size.
+        final class Box: @unchecked Sendable { var items: [Item?]; var done = 0; let lock = NSLock(); init(_ n: Int) { items = Array(repeating: nil, count: n) } }
+        let box = Box(candidates.count)
+        let list = candidates
+        DispatchQueue.concurrentPerform(iterations: list.count) { n in
+            let (u, system) = list[n]
+            guard let format = Format.of(u) else { return }
+            let info = NSDictionary(contentsOf: u.appendingPathComponent("Contents/Info.plist")) as? [String: Any] ?? [:]
+            let base = u.deletingPathExtension().lastPathComponent
+            let name = base.isEmpty ? ((info["CFBundleName"] as? String) ?? base) : base
+            let item = Item(url: u, format: format, name: name,
+                            version: info["CFBundleShortVersionString"] as? String ?? info["CFBundleVersion"] as? String ?? "",
+                            bundleID: info["CFBundleIdentifier"] as? String ?? "",
+                            size: size(of: u),
+                            installed: (try? u.resourceValues(forKeys: [.creationDateKey]))?.creationDate,
+                            system: system, receipt: nil)
+            box.lock.lock(); box.items[n] = item; box.done += 1; let done = box.done; box.lock.unlock()
+            report("Looking in your plugin folders", u.lastPathComponent, done, list.count)
         }
+        out = box.items.compactMap { $0 }
         return out
     }
 
@@ -241,10 +263,8 @@ final class PluginManager {
     /// The leftovers that go with the chosen plugins: only for an installer whose every plugin
     /// is among them, so nothing a remaining plugin needs is touched.
     func leftovers(for chosen: [Item]) -> [String] {
-        let ids = Set(chosen.map(\.id))
-        let pkgs = Set(chosen.compactMap(\.receipt)).filter { pkg in
-            items.filter { $0.receipt == pkg }.allSatisfy { ids.contains($0.id) }
-        }
+        let chosenPer = Dictionary(chosen.compactMap(\.receipt).map { ($0, 1) }, uniquingKeysWith: +)
+        let pkgs = chosenPer.keys.filter { chosenPer[$0] == perReceipt[$0] }
         return pkgs.sorted().flatMap { leftoverFiles[$0] ?? [] }
     }
 
@@ -259,8 +279,18 @@ final class PluginManager {
         return n.filter { $0.isLetter || $0.isNumber }
     }
 
+    /// The notes for the current list, worked out once per scan (BL-155).
+    private(set) var noteCache: [String: Note] = [:]
+    /// How many plugins each installer put on the Mac, for the leftovers check.
+    private var perReceipt: [String: Int] = [:]
+    func notes() -> [String: Note] { noteCache }
+    private func refreshNotes() {
+        noteCache = computeNotes()
+        perReceipt = Dictionary(items.compactMap(\.receipt).map { ($0, 1) }, uniquingKeysWith: +)
+    }
+
     /// What is worth a look in each group of the same plugin. Nothing is ever ticked by itself.
-    func notes() -> [String: Note] {
+    private func computeNotes() -> [String: Note] {
         var out: [String: Note] = [:]
         for (_, group) in Dictionary(grouping: items, by: \.key) where group.count > 1 {
             let hasAU = group.contains { $0.format == .au }

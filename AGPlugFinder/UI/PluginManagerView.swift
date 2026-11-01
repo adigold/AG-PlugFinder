@@ -56,7 +56,8 @@ struct PluginManagerView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
-                    VStack(spacing: 0) {
+                    // Only the rows on screen are drawn, so thousands of plugins scroll smoothly (BL-155).
+                    LazyVStack(spacing: 0) {
                         if mode == .installers {
                             ForEach(groupsByInstaller(shown), id: \.0) { pkg, list in
                                 installerRow(pkg, list)
@@ -176,11 +177,11 @@ struct PluginManagerView: View {
             Text("\(manager.items.count) plugins · \(ByteCountFormatter.string(fromByteCount: total, countStyle: .file))")
                 .font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
             if !shown.isEmpty {
-                Button(shown.allSatisfy { manager.selected.contains($0.id) } ? "Select None" : "Select All Shown") {
-                    if shown.allSatisfy({ manager.selected.contains($0.id) }) { manager.selected.subtract(shown.map(\.id)) }
-                    else { manager.selected.formUnion(shown.map(\.id)) }
-                }
-                .buttonStyle(.plain).font(.system(size: Theme.ts(11), weight: .medium)).foregroundStyle(Theme.accent)
+                // Select every plugin shown (after the search and filters), or none (BL-155).
+                Chip(title: "Select All (\(shown.count))", on: false) { manager.selected.formUnion(shown.map(\.id)) }
+                Chip(title: "Deselect All", on: false) { manager.selected.removeAll() }
+                    .disabled(manager.selected.isEmpty)
+                    .opacity(manager.selected.isEmpty ? 0.5 : 1)
             }
             Spacer()
             if extra > 0 {
