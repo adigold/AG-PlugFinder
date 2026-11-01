@@ -318,6 +318,13 @@ struct LibraryView: View {
             HStack(spacing: 8) {
                 TrafficLights(window: window)
                 SearchField(model: model, focusOnAppear: true)
+                // Favorites only, the same switch as the full window's star (BL-179).
+                BarIconButton(systemImage: ViewSettings.shared.favoritesOnly ? "star.fill" : "star",
+                              help: "Favorites only (⌘F)", active: ViewSettings.shared.favoritesOnly,
+                              activeTint: Theme.accent) {
+                    ViewSettings.shared.favoritesOnly.toggle()
+                    model.selection = 0
+                }
                 BarIconButton(systemImage: pinned ? "pin.fill" : "pin",
                               help: pinned ? "Stop keeping this window on top" : "Keep on top",
                               active: pinned) { togglePin() }

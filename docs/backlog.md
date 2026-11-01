@@ -41,6 +41,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-179** `P2 · Medium` **Favorites star in the mini window:** beside the pin, the same Favorites only switch as the full window. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-178** `P2 · Medium` **README brought up to date:** every section matches what the app does today (Ableton Live, Sideview, Plugin Manager, sync choices, Zoom, new categories, menu). Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-177** `P3 · Low` **Long press tip under Zoom:** a tiny "Long press" under the Zoom pill until the user picks a size once, then it is gone. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-176** `P2 · Medium` **Menu bar menu in order:** a version header, then Plugin Library (its shortcut on the right), Quick Picker and a Window Style submenu (Full Window, Sideview, Mini Window); then My Purchases and Share; a Help submenu with feedback and error log; then Check for Updates, Settings and Quit with their keys. Icons on every item. Adi, 2026-11-01. · done 2026-11-01
