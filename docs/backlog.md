@@ -7,8 +7,6 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
-- [ ] **BL-166** `P2 · Medium` **Ableton device pictures in the shared database:** the server also serves pictures for Ableton's own devices, and the 58 pictures are added to the live database. Adi, 2026-11-01.
-
 - [ ] **BL-161** `P1 · High` **Ableton Live support, step 1:** add plugins to Ableton's selected track through a small add-on (Remote Script) that Live loads; the app sends plugins to whichever of Logic or Ableton the user is in; Ableton's own devices listed; VST and VST3 in the library for Ableton. Logic keeps working exactly as before. Adi, 2026-11-01.
 
 - [ ] **BL-162** `P2 · Medium` **Ableton Live support, step 2:** the track panel for Ableton (devices on the track, on and off, remove) and importing Ableton's favorites and collections. Adi, 2026-11-01.
@@ -42,6 +40,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-166** `P2 · Medium` **Ableton device pictures in the shared database:** the server also serves pictures for Ableton's own devices, and the 68 pictures are added to the live database. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-165** `P2 · Medium` **Logic or Ableton indicator:** a small badge at the bottom left of the footer shows which program plugins go to, with its icon and a dot while it is open. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-164** `P1 · High` **Pictures of Ableton's devices:** capture each of Live's devices once (loaded one by one on a spare track through the add-on, the Device View photographed, then removed), check them, and ship them inside the app (no upload). Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-163** `P2 · Medium` **Thin footer and icons in the top-right corner:** the version and Check for Update move into a thin footer at the bottom of the window with the feedback button, and the tool icons sit tight in the top-right corner (Adi's picture). Adi, 2026-11-01. · done 2026-11-01
