@@ -164,6 +164,12 @@ AG PlugFinder lives in the menu bar and can start when you log in. Its menu open
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.45**
+
+- **New:** Floating, a fourth way to show the window. A see-through search bar with a list under it floats over Logic; Tab moves through the categories, the arrows move through the plugins and Return adds one.
+- **New:** Hold Option on an effect to choose where it goes on the selected track. The track's effects show in order with a line where yours will land; Option with the arrows moves the line, Return adds it there, and letting go of Option cancels.
+- **Improved:** Favorites are yellow in every theme, and they always come first in the results.
+
 **0.9.44**
 
 - **Improved:** The menu bar menu is in order, with icons, your shortcut shown on the right, a Window Style menu for full window, Sideview or mini window, and a Help menu for feedback.
@@ -176,13 +182,13 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **New:** Hold the Zoom button to choose a size, S, M or L.
 - **Improved:** Zoom steps aside while you pick several plugins, and comes back when one is left.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.42)</summary>
+
 **0.9.42**
 
 - **New:** Zoom. Turn it on under the picture size slider and the plugin you select shows bigger, following you as you move with the arrow keys.
 - **Improved:** The LoFi category now gathers every lo-fi effect, from Abbey Road Vinyl and SketchCassette to Super VHS and Bad Tape.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.41)</summary>
 
 **0.9.41**
 
