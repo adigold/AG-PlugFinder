@@ -516,8 +516,8 @@ enum SelfTest {
                             NSApp.postEvent(e, atStart: false)
                         }
                     }
-                    try? await Task.sleep(for: .milliseconds(120))
-                    await shot("0-click-120ms")
+                    try? await Task.sleep(for: .milliseconds(40))
+                    await shot("0-click-40ms")
                     try? await Task.sleep(for: .milliseconds(900))
                 }
                 await key(124, "\u{F703}"); await key(123, "\u{F702}")   // Right, Left
