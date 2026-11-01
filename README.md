@@ -5,14 +5,14 @@
 <h1 align="center">AG PlugFinder</h1>
 
 <p align="center">
-  <b>Find any plugin by how it looks, and put it on your Logic Pro track in one keystroke.</b><br>
+  <b>Find any plugin by how it looks, and put it on your Logic Pro or Ableton Live track in one keystroke.</b><br>
   Every plugin you own, with a picture of its real window, a search that understands what you mean,<br>
   and full control of the selected track's plugins without touching the mouse.
 </p>
 
 <p align="center">
   <a href="https://github.com/adigold/AG-PlugFinder/releases/latest/download/AG-PlugFinder.dmg"><b>Download for Mac</b></a>
-  &nbsp;·&nbsp; macOS 15 or later &nbsp;·&nbsp; Logic Pro &nbsp;·&nbsp; Free
+  &nbsp;·&nbsp; macOS 15 or later &nbsp;·&nbsp; Logic Pro and Ableton Live &nbsp;·&nbsp; Free
 </p>
 
 <p align="center">or with Homebrew: <code>brew tap adigold/tap && brew trust adigold/tap && brew install --cask ag-plugfinder</code></p>
@@ -21,7 +21,7 @@
 
 ## Why
 
-You know the plugin you want. You can picture its window. But Logic's plugin menu is a long list of names, grouped by maker, three levels deep. AG PlugFinder shows every plugin as a picture you recognise at a glance, finds it as you type, and drops it on your track the moment you press Return.
+You know the plugin you want. You can picture its window. But Logic's plugin menu is a long list of names, grouped by maker, three levels deep, and Live's browser is not much shorter. AG PlugFinder shows every plugin as a picture you recognise at a glance, finds it as you type, and drops it on your track the moment you press Return.
 
 <p align="center">
   <img src="docs/images/library.png" width="900" alt="The AG PlugFinder library window">
@@ -29,16 +29,17 @@ You know the plugin you want. You can picture its window. But Logic's plugin men
 
 ## Find
 
-- **Every plugin, with a picture.** Your Audio Units and Logic's own plugins, each with a screenshot of its real window. Pictures of 122 of Logic's plugins come built in, and pictures other users shared arrive ready-made, so a new install is ready straight away.
+- **Every plugin, with a picture.** Your Audio Units, Logic's own plugins and Ableton's own devices, each with a picture of its real window. Pictures of 122 of Logic's plugins and 68 of Ableton's devices come built in, and pictures other users shared arrive ready-made, so a new install is ready straight away.
 - **Search by name or by what it does.** Type "warm tape saturation", "punchy drums" or "shimmer reverb", not only names. Plugins that stop matching fade away and the rest glide into place.
-- **Pills for every category.** One click shows only EQs, reverbs, compressors, limiters and so on. ⌘-click to see several categories together. Collections look different: outlined, with a small stack icon.
+- **Pills for every category.** One click shows only EQs, reverbs, compressors, limiters and so on. Dynamics are split the way engineers think of them: Compressor, Limiter, Multiband, De-esser, Transient, Gate, Rider and Expander, plus Channel Strip and LoFi. ⌘-click to see several categories together. Collections look different: outlined, with a small stack icon.
 - **Press Space to preview.** See a plugin large, with its picture, what it is, its best feature and highlights. Arrows move to the next one, Return adds it to Logic, Space closes. After typing a search, press Tab to move to the results; Shift+Tab goes back to the search.
 - **Find Similar.** Inside the preview, see plugins like the one you are looking at, and click one to preview it.
 - **Shuffle.** Click the die in the top bar and land on a random plugin. With a category or a search showing, it picks only from those.
 - **Mono and stereo as one.** A plugin's mono and stereo versions show as one card with an M/S mark, and Logic gets the version that fits the track. Turn it off in Settings to see every version.
+- **Zoom.** Turn on the Zoom button under the picture size slider and the plugin you select shows bigger, in front of the others, following the arrow keys. Hold the button to pick a size, S, M or L.
 - **Picture size slider**, grid or list, and sorting by name, maker, category, recently used or most used (⌘1 to ⌘5).
 - **Suggestions for the selected track.** On a track called Vocal, Drums, Bass, Guitar, Keys or Master, the plugins that fit come first.
-- **Favorites, collections and your own notes** on every plugin. Drag a plugin onto a collection to add it, or drag across empty space to select many at once.
+- **Favorites, collections and your own notes** on every plugin. Drag across empty space to select many at once, and drag them onto a collection to add them all.
 - **Maker's Website.** Opens the plugin's own page on its maker's site, right from the info panel.
 - **Free descriptions.** On Macs with Apple Intelligence, plugin descriptions come free from the Mac itself, nothing to download. Or use the web lookup with your own key for the most detail.
 
@@ -95,16 +96,17 @@ You know the plugin you want. You can picture its window. But Logic's plugin men
 
 ## Plugin Manager
 
-- **Every plugin, every format.** Audio Units, VST, VST3, AAX and CLAP, from your folders and the Mac's, with size, version and install date.
+- **Every plugin, every format.** Audio Units, VST, VST3, AAX and CLAP, from your folders and the Mac's, with size, version and install date. The scan shows each file as it goes, with a count of how many are left, and stays quick with thousands of plugins.
+- **See the space.** Each group shows its size, and as you choose files you see how much space you will get back. Select All and Deselect All in one click.
 - **Duplicates.** Spots a plugin installed twice, an older version beside a newer one, and copies in formats Logic doesn't load. Nothing is ever ticked for you.
 - **By installer.** See which installer put each plugin there, with the other files it left in your Library folders.
-- **Nothing is deleted.** Removing moves the files into a dated folder on your Desktop, so you can always put them back.
+- **Nothing is deleted.** Removing moves the files into a dated folder on your Desktop, so you can always put them back. Moved plugins leave the library straight away, with no new scan.
 
 ## Ableton Live
 
-- **Works in Live too.** Adds plugins and Ableton's own devices to the selected track in Live.
-- **Follows the program you are using.** Logic's plugins while you work in Logic, Ableton's devices while you work in Live, and nothing to switch.
-- **One setting in Live.** In Live's Settings, Link, Tempo & MIDI, choose AGPlugFinder as a Control Surface.
+- **Works in Live too.** Adds plugins and Ableton's own devices to the selected track in Live, with "Add to Ableton" on the button.
+- **Follows the program you are using.** Logic's plugins while you work in Logic, Ableton's devices while you work in Live, and nothing to switch. A small badge at the bottom left shows which one it is following.
+- **One setting in Live.** In Live's Settings, Link, Tempo & MIDI, choose AGPlugFinder as a Control Surface. For your Audio Units, turn on Use Audio Units v2 in Live's Plug-Ins settings.
 
 ## Sync
 
@@ -120,7 +122,7 @@ Every action has its own shortcut, and you can change all of them in **Settings 
 
 | Default | What it does |
 |---|---|
-| ⌃⌥P | Open AG PlugFinder, press again to go back to Logic |
+| ⌃⌥P | Open AG PlugFinder, press again to go back to Logic or Live |
 | ⌃⌥1 to ⌃⌥9 | Add what you pinned to that number |
 | ⌃⌥I | Show plugins for the slot under the pointer |
 | ⌃⌥O | Open the track's plugins side by side |
@@ -140,7 +142,7 @@ Every action has its own shortcut, and you can change all of them in **Settings 
   <img src="docs/images/whats-new.png" width="760" alt="The What's New window">
 </p>
 
-Check for Update sits at the top right of the window. A new version downloads with live progress, is checked to be the genuine app, installs, and the app opens again by itself on a What's New page. Send feedback to Goldi from the help button at the top, with a screenshot if you like.
+Your version and Check for Update sit in the thin line at the bottom of the window. A new version downloads with live progress, is checked to be the genuine app, installs, and the app opens again by itself on a What's New page. Send feedback to Goldi from the button beside it, with a screenshot if you like.
 
 ## Get started
 
@@ -153,9 +155,9 @@ Check for Update sits at the top right of the window. A new version downloads wi
    ```
 2. Open it. A short welcome tour asks for the one permission it needs: to work with Logic's plugin slots (System Settings > Privacy & Security). Nothing else in Logic is touched.
 3. It finds your plugins and gets their pictures.
-4. In Logic, select a track, press ⌃⌥P, type, press Return.
+4. In Logic or Live, select a track, press ⌃⌥P, type, press Return.
 
-AG PlugFinder lives in the menu bar and can start when you log in.
+AG PlugFinder lives in the menu bar and can start when you log in. Its menu opens the library, the quick picker and the mini window.
 
 <!-- release-notes:start -->
 ## Release notes
@@ -506,4 +508,4 @@ open AGPlugFinder.xcodeproj
 
 ---
 
-<p align="center">Made by Adi Goldstein for everyone who makes music in Logic Pro.</p>
+<p align="center">Made by Adi Goldstein for everyone who makes music in Logic Pro and Ableton Live.</p>
