@@ -156,6 +156,13 @@ enum SelfTest {
                     ViewSettings.shared.zoomScale = 1.4
                     try? await Task.sleep(for: .seconds(1.2))
                     await capture(window, to: out.deletingPathExtension().appendingPathExtension("zoomL.png"))
+                    // Several picked: Zoom steps aside, and comes back with one (BL-175).
+                    NotificationCenter.default.post(name: .demoPick, object: [args[z + 1], args[z + 2]])
+                    try? await Task.sleep(for: .seconds(1.2))
+                    await capture(window, to: out.deletingPathExtension().appendingPathExtension("zoompicked.png"))
+                    NotificationCenter.default.post(name: .demoPick, object: [String]())
+                    try? await Task.sleep(for: .seconds(1.2))
+                    await capture(window, to: out.deletingPathExtension().appendingPathExtension("zoomback.png"))
                     ViewSettings.shared.zoomScale = 1.25
                     ViewSettings.shared.zoomSelected = false
                     try? await Task.sleep(for: .seconds(1.2))

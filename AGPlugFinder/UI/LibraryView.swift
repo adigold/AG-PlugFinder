@@ -74,6 +74,10 @@ struct LibraryView: View {
         .onReceive(NotificationCenter.default.publisher(for: .demoSelect)) { n in
             if let name = n.object as? String, let p = store.plugins.first(where: { $0.name == name }) { model.reveal(p.id) }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .demoPick)) { n in
+            let names = n.object as? [String] ?? []
+            model.picked = Set(store.plugins.filter { names.contains($0.name) }.map(\.id))
+        }
         #endif
         .onReceive(NotificationCenter.default.publisher(for: .showTrackPanel)) { _ in
             if mode != .full { setMode(.full) }
@@ -617,6 +621,7 @@ extension Notification.Name {
     static let demoQuery = Notification.Name("AGPFDemoQuery")
     static let demoQueryPlain = Notification.Name("AGPFDemoQueryPlain")
     static let demoSelect = Notification.Name("AGPFDemoSelect")
+    static let demoPick = Notification.Name("AGPFDemoPick")
 }
 
 

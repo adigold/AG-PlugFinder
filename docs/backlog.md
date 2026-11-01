@@ -41,6 +41,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-175** `P2 · Medium` **Zoom steps aside while several plugins are picked:** the bigger card hides as soon as a second plugin is picked and comes back when one is left. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-173** `P1 · High` **Zoom redone:** the zoomed card now sits in front of every other card and shows a truly bigger picture (a sharp larger copy, not a stretched card); with Zoom on, moving through plugins brings the card to the middle so the bigger copy fits on screen. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-172** `P2 · Low` **Zoom sizes S, M, L:** holding the Zoom pill opens a small menu with three sizes (S 15%, M 25%, L 40% bigger); a click still turns Zoom on and off. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-171** `P2 · Medium` **Zoom the selected plugin:** a small Zoom pill under the picture size slider; while it is on, the selected plugin's card shows 25% bigger and follows the arrow keys, the others keep their size. Show Adi before releasing. Adi, 2026-11-01. · done 2026-11-01

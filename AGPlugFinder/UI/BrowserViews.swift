@@ -580,7 +580,8 @@ struct PluginGrid: View {
     private func items<Cell: View>(_ results: [Plugin],
                                    @ViewBuilder cell: @escaping (Plugin, Bool) -> Cell) -> some View {
         ForEach(Array(results.enumerated()), id: \.element.id) { i, plugin in
-            let zoomed = view.zoomSelected && !compact && view.layout != .list && i == model.selection
+            // While several plugins are picked, Zoom steps aside (BL-175).
+            let zoomed = view.zoomSelected && !compact && view.layout != .list && i == model.selection && model.picked.count < 2
             cell(plugin, i == model.selection)
                 // The zoomed card is drawn again, bigger, in a layer above the whole grid (BL-171).
                 .anchorPreference(key: ZoomedCard.self, value: .bounds) { zoomed ? ZoomedCard.Entry(anchor: $0, plugin: plugin, index: i) : nil }
