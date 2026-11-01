@@ -24,6 +24,7 @@ struct LibraryView: View {
     @State private var showActions = false
     @State private var showChains = false
     @State private var showTrack = false
+    @State private var showTopEditor = false
     var store = PluginStore.shared
     var snapshots = SnapshotQueue.shared
     var fetcher = PluginInfoFetcher.shared
@@ -203,12 +204,6 @@ struct LibraryView: View {
             HStack(spacing: 9) {
                 BrandMark(size: 17)
                 Text("AG PlugFinder").font(.system(size: Theme.ts(15), weight: .semibold)).foregroundStyle(Theme.text)
-                Text("\(store.plugins.filter(store.isVisible).count) plugins found")
-                    .font(.system(size: Theme.ts(10), weight: .medium)).monospacedDigit()
-                    .foregroundStyle(Theme.faint)
-                    .padding(.horizontal, 7).frame(height: 18)
-                    .background(Capsule().fill(Theme.surface))
-                    .help("Plugins shown")
             }
             .fixedSize()
             Spacer(minLength: 16)
@@ -245,16 +240,12 @@ struct LibraryView: View {
             Color.clear.frame(width: 0, height: 0)
                 .onChange(of: failed) { _, n in if n < fixFailedDismissedAt { fixFailedDismissedAt = n } }
             HStack(spacing: 2) {
-                ShuffleButton(model: model)
-                BarIconButton(systemImage: "slider.vertical.3", help: "This track in Logic: its plugins, on and off, replace, remove",
-                              active: showTrack) { showTrack.toggle() }
-                    .popover(isPresented: $showTrack, arrowEdge: .bottom) { TrackPanel(model: model) { showTrack = false } }
-                BarIconButton(systemImage: "link", help: "Chains: add several plugins at once", active: showChains) {
-                    showChains.toggle()
+                // In the user's order, without the hidden ones; right-click to edit (BL-189).
+                HStack(spacing: 2) {
+                    ForEach(view.topItems.filter { !view.topHidden.contains($0.rawValue) }) { item in topIcon(item) }
                 }
-                .popover(isPresented: $showChains, arrowEdge: .bottom) { ChainsPanel { showChains = false } }
-                ViewControls(model: model)
-                BarIconButton(systemImage: "creditcard", help: "My Purchases") { LicensesWindow.shared.show() }
+                .contextMenu { Button("Edit Icons…") { showTopEditor = true } }
+                .popover(isPresented: $showTopEditor, arrowEdge: .bottom) { TopBarEditor() }
                 BarIconButton(systemImage: "ellipsis", help: "Plugins, screenshots and info", active: showActions) {
                     showActions.toggle()
                 }
@@ -285,6 +276,16 @@ struct LibraryView: View {
         .frame(maxWidth: .infinity).frame(height: 30)
         // Which program plugins go to, bottom left (BL-165).
         .overlay(alignment: .leading) { HostBadge().padding(.leading, 12) }
+        // How many plugins, bottom right (BL-191; it sat beside the name at the top before).
+        .overlay(alignment: .trailing) {
+            Text("\(store.plugins.filter(store.isVisible).count) plugins found")
+                .font(.system(size: Theme.ts(10), weight: .medium)).monospacedDigit()
+                .foregroundStyle(Theme.faint)
+                .padding(.horizontal, 7).frame(height: 18)
+                .background(Capsule().fill(Theme.surface))
+                .help("Plugins shown")
+                .padding(.trailing, 12)
+        }
         .background(Theme.ground)
         .overlay(alignment: .top) { Rectangle().fill(Theme.edge).frame(height: 1) }
     }
@@ -580,6 +581,24 @@ struct LibraryView: View {
         keyMonitor = nil
         mouseMonitor = nil
         flagsMonitor = nil
+    }
+
+    @ViewBuilder
+    private func topIcon(_ item: TopItem) -> some View {
+        switch item {
+        case .shuffle: ShuffleButton(model: model)
+        case .track:
+            BarIconButton(systemImage: "slider.vertical.3", help: "This track in Logic: its plugins, on and off, replace, remove",
+                          active: showTrack) { showTrack.toggle() }
+                .popover(isPresented: $showTrack, arrowEdge: .bottom) { TrackPanel(model: model) { showTrack = false } }
+        case .chains:
+            BarIconButton(systemImage: "link", help: "Chains: add several plugins at once", active: showChains) {
+                showChains.toggle()
+            }
+            .popover(isPresented: $showChains, arrowEdge: .bottom) { ChainsPanel { showChains = false } }
+        case .newCollection, .favorites, .viewOptions: ViewControl(item: item, model: model)
+        case .purchases: BarIconButton(systemImage: "creditcard", help: "My Purchases") { LicensesWindow.shared.show() }
+        }
     }
 
     /// Only for an audio effect, with Logic in use and nothing else open. Every window mode (BL-187).

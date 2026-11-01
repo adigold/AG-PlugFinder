@@ -28,7 +28,7 @@ enum Dialog {
     /// Shows the card and returns which button was pressed, the text typed and the checkbox.
     @discardableResult
     static func show(_ title: String, message: String? = nil, field: (placeholder: String, initial: String)? = nil,
-                     multiline: Bool = false, checkbox: String? = nil, choices: [Choice]) -> Answer {
+                     multiline: Bool = false, checkbox: String? = nil, requireText: Bool = false, choices: [Choice]) -> Answer {
         let parent = NSApp.keyWindow ?? NSApp.mainWindow
         let state = State()
         state.text = field?.initial ?? ""
@@ -41,11 +41,14 @@ enum Dialog {
         let primary = choices.firstIndex(where: \.primary) ?? 0
         let cancel = choices.firstIndex(where: \.cancel) ?? (choices.count - 1)
         var picked: Int?
-        panel.onReturn = { debugLog("return"); picked = primary }
+        // With a text field, OK needs something typed: empty or only spaces is not an answer (BL-190).
+        let needsText = requireText && field != nil
+        func hasText() -> Bool { !state.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        panel.onReturn = { debugLog("return"); if !needsText || hasText() { picked = primary } }
         panel.onEscape = { debugLog("escape"); picked = cancel }
         panel.multiline = multiline
         let host = FirstClickHost(rootView: DialogCard(title: title, message: message, field: field, multiline: multiline,
-                                                      checkbox: checkbox, choices: choices, state: state) { i in
+                                                      checkbox: checkbox, choices: choices, state: state, requireText: requireText) { i in
             debugLog("button \(i)")
             picked = i
         })
@@ -68,6 +71,13 @@ enum Dialog {
         }
         NSApp.activate()
         panel.makeKeyAndOrderFront(nil)
+        // Esc and Return answer even when the keyboard is still with another window (BL-190).
+        let keys = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { e in
+            guard e.window !== panel else { return e }
+            if e.keyCode == 53 { picked = cancel; return nil }
+            if e.keyCode == 36 || e.keyCode == 76 { panel.onReturn(); return nil }
+            return e
+        }
         // Its own modal loop: only a button, Return or Esc ends it. Other windows wait.
         let session = NSApp.beginModalSession(for: panel)
         while picked == nil {
@@ -75,6 +85,7 @@ enum Dialog {
             RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 0.03))
         }
         NSApp.endModalSession(session)
+        if let keys { NSEvent.removeMonitor(keys) }
         let code = picked ?? cancel
         panel.orderOut(nil)
         if let dim { parent?.removeChildWindow(dim); dim.orderOut(nil) }
@@ -86,7 +97,7 @@ enum Dialog {
     /// A name or a short text; nil when cancelled or left empty.
     static func ask(_ title: String, message: String? = nil, placeholder: String, initial: String = "",
                     ok: String = "OK") -> String? {
-        let a = show(title, message: message, field: (placeholder, initial),
+        let a = show(title, message: message, field: (placeholder, initial), requireText: true,
                      choices: [Choice(title: "Cancel", cancel: true), Choice(title: ok, primary: true)])
         return a.index == 1 && !a.text.isEmpty ? a.text : nil
     }
@@ -144,6 +155,8 @@ struct DialogCard: View {
     let checkbox: String?
     let choices: [Dialog.Choice]
     @Bindable var state: Dialog.State
+    /// OK waits for something typed (BL-190); an optional note leaves it on.
+    var requireText = false
     let choose: (Int) -> Void
     @FocusState private var focused: Bool
 
@@ -191,10 +204,15 @@ struct DialogCard: View {
             HStack(spacing: 8) {
                 Spacer(minLength: 0)
                 ForEach(Array(choices.enumerated()), id: \.offset) { i, c in
-                    DialogButton(choice: c) { choose(i) }
+                    // OK appears once something is typed (BL-190).
+                    if !(c.primary && requireText && field != nil && state.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) {
+                        DialogButton(choice: c) { choose(i) }
+                            .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                    }
                 }
             }
             .padding(.top, 2)
+            .animation(.easeOut(duration: 0.15), value: state.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .padding(22)
         .frame(width: 400)

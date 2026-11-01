@@ -249,6 +249,17 @@ enum SelfTest {
                     try? await Task.sleep(for: .seconds(1.2))
                     print("FLOATING back opaque=\(window.isOpaque) \(Int(window.frame.width))x\(Int(window.frame.height))"); fflush(stdout)
                 }
+                if args.contains("--topbar") {
+                    // The icon editor, then the bar with Chains first and My Purchases hidden (BL-189). In memory only.
+                    let v = ViewSettings.shared, order = v.topOrder, hidden = v.topHidden
+                    v.topOrder = ["chains", "shuffle", "track", "newCollection", "favorites", "viewOptions", "purchases"]
+                    v.topHidden = ["purchases"]
+                    await shoot(TopBarEditor(), size: NSSize(width: 290, height: 380), to: out.deletingPathExtension().appendingPathExtension("topeditor.png"))
+                    try? await Task.sleep(for: .seconds(1))
+                    await capture(window, to: out.deletingPathExtension().appendingPathExtension("topbar.png"))
+                    v.topOrder = order; v.topHidden = hidden
+                    print("TOPBAR done"); fflush(stdout)
+                }
                 if args.contains("--later") {
                     // The same window again a little later: a list still moving would look different.
                     let r0 = PluginStore.shared.revision
@@ -710,6 +721,18 @@ enum SelfTest {
                     print("DCLICK clicked"); fflush(stdout)
                 }
                 RunLoop.main.add(t, forMode: .default)
+                // Empty: OK hidden and Return ignored; then a name typed: OK shows (BL-190).
+                let peek = Timer(timeInterval: 1.0, repeats: false) { _ in
+                    guard let panel = NSApp.windows.first(where: { $0 is DialogPanel && $0.isVisible }) else { return }
+                    for t in [NSEvent.EventType.keyDown, .keyUp] {
+                        if let e = NSEvent.keyEvent(with: t, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: panel.windowNumber,
+                                                    context: nil, characters: "\r", charactersIgnoringModifiers: "\r", isARepeat: false, keyCode: 36) { panel.sendEvent(e) }
+                    }
+                    print("DCLICK after Return on empty: still open \(panel.isVisible)")
+                    if let v = panel.contentView { let img = v.bitmapImageRepForCachingDisplay(in: v.bounds)!; v.cacheDisplay(in: v.bounds, to: img)
+                        try? img.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: NSTemporaryDirectory() + "dialog-empty.png")) }
+                }
+                RunLoop.main.add(peek, forMode: .default)
                 let answer = NamePrompt.ask("New collection", placeholder: "For example Mix bus")
                 print("DCLICK answer \(answer ?? "cancelled")"); fflush(stdout)
             }

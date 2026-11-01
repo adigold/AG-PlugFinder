@@ -60,6 +60,33 @@ struct SearchField: View {
     }
 }
 
+/// One of the View controls on its own, for the library's editable top bar (BL-189).
+struct ViewControl: View {
+    let item: TopItem
+    @Bindable var model: PickerModel
+    var view = ViewSettings.shared
+    @State private var showOptions = false
+
+    var body: some View {
+        switch item {
+        case .newCollection:
+            BarIconButton(systemImage: "plus.rectangle.on.rectangle", help: "New collection") {
+                ViewControls(model: model).newCollection()
+            }
+        case .favorites:
+            BarIconButton(systemImage: view.favoritesOnly ? "star.fill" : "star",
+                          help: "Favorites only (⌘F)", active: view.favoritesOnly, activeTint: Theme.favorite) {
+                view.favoritesOnly.toggle()
+                model.selection = 0
+            }
+        default:
+            BarIconButton(systemImage: view.layout == .grid ? "square.grid.2x2" : "list.bullet",
+                          help: "View options", active: showOptions) { showOptions.toggle() }
+                .popover(isPresented: $showOptions, arrowEdge: .bottom) { ViewOptions(model: model) }
+        }
+    }
+}
+
 /// Favorites toggle and the View popover, used in every bar.
 struct ViewControls: View {
     @Bindable var model: PickerModel

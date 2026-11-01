@@ -96,6 +96,15 @@ final class ViewSettings {
     /// How much bigger (BL-172): S 1.15, M 1.25, L 1.4.
     var zoomScale: Double { didSet { save("zoomScale", zoomScale) } }
     var startView: StartView { didSet { save("startView", startView.rawValue) } }
+    /// The icons at the top right, in the user's order, and the ones hidden (BL-189).
+    var topOrder: [String] { didSet { save("topOrder", topOrder) } }
+    var topHidden: [String] { didSet { save("topHidden", topHidden) } }
+
+    /// Every top bar icon, in the chosen order; new ones join at the end.
+    var topItems: [TopItem] {
+        let chosen = topOrder.compactMap(TopItem.init(rawValue:))
+        return chosen + TopItem.allCases.filter { !chosen.contains($0) }
+    }
 
     private init() {
         let d = UserDefaults.standard
@@ -114,6 +123,8 @@ final class ViewSettings {
         let z = d.double(forKey: "view.zoomScale")
         zoomScale = [1.15, 1.25, 1.4].contains(z) ? z : 1.25
         startView = StartView(rawValue: d.string(forKey: "view.startView") ?? "") ?? .all
+        topOrder = d.stringArray(forKey: "view.topOrder") ?? []
+        topHidden = d.stringArray(forKey: "view.topHidden") ?? []
     }
 
     private func save(_ key: String, _ value: Any) {
@@ -134,7 +145,8 @@ final class ViewSettings {
         ["layout": layout.rawValue, "size": size.rawValue, "tileWidth": String(Double(tileWidth)),
          "showName": String(showName), "showDetails": String(showDetails), "showInfoPane": String(showInfoPane),
          "chipRow": chipRow.rawValue, "spacePreview": String(spacePreview), "joinMonoStereo": String(joinMonoStereo),
-         "zoomSelected": String(zoomSelected), "zoomScale": String(zoomScale), "startView": startView.rawValue]
+         "zoomSelected": String(zoomSelected), "zoomScale": String(zoomScale), "startView": startView.rawValue,
+         "topOrder": topOrder.joined(separator: ","), "topHidden": topHidden.joined(separator: ",")]
     }
 
     /// Takes another Mac's view choices; only what differs changes.
@@ -156,5 +168,8 @@ final class ViewSettings {
         if let x = flag("zoomSelected"), x != zoomSelected { zoomSelected = x }
         if let x = v["zoomScale"].flatMap(Double.init), [1.15, 1.25, 1.4].contains(x), x != zoomScale { zoomScale = x }
         if let x = v["startView"].flatMap(StartView.init(rawValue:)), x != startView { startView = x }
+        func list(_ k: String) -> [String]? { v[k].map { $0.split(separator: ",").map(String.init) } }
+        if let x = list("topOrder"), x != topOrder { topOrder = x }
+        if let x = list("topHidden"), x != topHidden { topHidden = x }
     }
 }
