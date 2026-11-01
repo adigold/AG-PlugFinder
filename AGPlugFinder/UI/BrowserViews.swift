@@ -128,6 +128,7 @@ struct ViewOptions: View {
                 toggle("Info panel", $view.showInfoPane)
                 toggle("Favorites only", $view.favoritesOnly)
             }
+            QuietPill(title: "Edit Pills…", systemImage: "line.3.horizontal.decrease", height: 28) { PillsWindow.shared.show() }
         }
         .padding(20)
         .frame(width: 300, alignment: .leading)
@@ -1165,6 +1166,13 @@ enum PickedActions {
         PluginStore.shared.plugins.filter { model.picked.contains($0.id) }
     }
 
+    /// Adds every selected plugin to the selected Logic track, in the order they show (BL-111).
+    static func addAll(_ model: PickerModel) {
+        let list = model.results.filter { model.picked.contains($0.id) }
+        guard !list.isEmpty else { return }
+        InsertRunner.run(list, title: "\(list.count) plugins")
+    }
+
     static func takePictures(_ model: PickerModel) {
         let ids = Set(plugins(model).filter { !$0.isLogic }.map(\.id))
         guard !ids.isEmpty else { Toast.show("Logic's own plugins already have their pictures.", warning: true); return }
@@ -1196,6 +1204,8 @@ struct PickedMenu: View {
 
     var body: some View {
         let n = model.picked.count
+        Button("Add All \(n) to Logic") { PickedActions.addAll(model) }
+        Divider()
         Button("Take Pictures of \(n) Plugins") { PickedActions.takePictures(model) }
         Button("Clear \(n) Pictures") { PluginStore.shared.clearScreenshots(Array(model.picked)) }
         Button("Find \(n) Pictures on the Web") { WebPicture.find(PickedActions.plugins(model)) }
@@ -1227,6 +1237,8 @@ struct PickedBar: View {
             HStack(spacing: 8) {
                 Text("\(model.picked.count) selected").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.text)
                     .padding(.horizontal, 6)
+                PrimaryPill(title: "Add All to Logic", systemImage: "plus", height: 28) { PickedActions.addAll(model) }
+                    .help("Adds the \(model.picked.count) plugins to the selected track, one after another, in the order shown")
                 QuietPill(title: "Take Pictures", systemImage: "camera", height: 28) { PickedActions.takePictures(model) }
                 QuietPill(title: "Favorites", systemImage: "star", height: 28) { PickedActions.favorite(model) }
                 QuietPill(title: "Collection", systemImage: "plus.rectangle.on.rectangle", height: 28) {

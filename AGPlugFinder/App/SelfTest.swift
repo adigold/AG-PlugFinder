@@ -564,6 +564,65 @@ enum SelfTest {
                 print("PREVIEW done"); fflush(stdout)
             }
         }
+        // --selftest-pills <dir>: the pill row and Edit Pills, with nothing saved (BL-110).
+        if let k = args.firstIndex(of: "--selftest-pills"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task {
+                let lib = UserLibrary.shared
+                lib.readOnly = true
+                let saved = lib.pills
+                func say(_ s: String) { print("PILLS " + s); fflush(stdout) }
+                LibraryWindow.show()
+                try? await Task.sleep(for: .seconds(1.5))
+                guard let w = LibraryWindow.window else { say("no window"); return }
+                w.setFrame(NSRect(x: 60, y: 60, width: 1320, height: 560), display: true)
+                NotificationCenter.default.post(name: .demoQuery, object: "")
+                let savedRow = ViewSettings.shared.chipRow
+                ViewSettings.shared.chipRow = .both
+                try? await Task.sleep(for: .seconds(0.6))
+                await capture(w, to: dir.appendingPathComponent("1-default.png"), scale: 1)
+                say("cats " + Pills.categoryPills().map(\.title).joined(separator: ", "))
+                var p = PillPrefs()
+                p.pinned = ["cat:EQ"]
+                p.colors = ["cat:Dynamics": "red", "cat:EQ": "blue"]
+                p.names = ["cat:Amps and Pedals": "Guitar"]
+                p.hidden = ["cat:Metering"]
+                p.showCounts = true
+                lib.pills = p
+                let space = Pills.saveGroup(id: nil, name: "Space", categories: ["Reverb", "Delay"])
+                Pills.setColor(space, "purple")
+                try? await Task.sleep(for: .seconds(0.6))
+                await capture(w, to: dir.appendingPathComponent("2-custom.png"), scale: 1)
+                say("custom " + Pills.categoryPills().map(\.title).joined(separator: ", "))
+                let m = PickerModel()
+                m.pills = ["cat:EQ", space]
+                say("filter EQ+Space -> \(m.results.count) plugins: \(Set(m.results.map(\.displayCategory)).sorted())")
+                await shoot(CollectionBar(model: m).frame(width: 1100).background(Theme.ground),
+                            size: NSSize(width: 1100, height: 60), to: dir.appendingPathComponent("3-multi.png"))
+                var q = lib.pills; q.wrap = true; lib.pills = q
+                try? await Task.sleep(for: .seconds(0.6))
+                await capture(w, to: dir.appendingPathComponent("4-wrap.png"), scale: 1)
+                q.wrap = false; q.compact = true; lib.pills = q
+                try? await Task.sleep(for: .seconds(0.6))
+                await capture(w, to: dir.appendingPathComponent("5-compact.png"), scale: 1)
+                await shoot(MorePills(pills: Array(Pills.categoryPills().suffix(8)), model: m) { _ in }.background(Theme.surface),
+                            size: NSSize(width: 280, height: 380), to: dir.appendingPathComponent("6-more.png"))
+                await shoot(CombinedPillSheet(draft: .init(groupID: nil, name: "Dirt", categories: ["Distortion"])) {},
+                            size: NSSize(width: 400, height: 470), to: dir.appendingPathComponent("7-combine.png"))
+                PillsWindow.shared.show()
+                try? await Task.sleep(for: .seconds(1))
+                if let pw = NSApp.windows.first(where: { $0.isVisible && $0.contentView is NSHostingView<PillsEditor> }) {
+                    await capture(pw, to: dir.appendingPathComponent("8-editor.png"), scale: 1)
+                }
+                let mp = PickerModel()
+                mp.picked = Set(mp.results.prefix(3).map(\.id))
+                await shoot(PickedBar(model: mp).frame(width: 900, height: 80).background(Theme.ground),
+                            size: NSSize(width: 900, height: 80), to: dir.appendingPathComponent("9-picked.png"))
+                lib.pills = saved
+                ViewSettings.shared.chipRow = savedRow
+                say("done")
+            }
+        }
         if let k = args.firstIndex(of: "--selftest-menu-actions"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])
             Task { await menuActions(dir) }

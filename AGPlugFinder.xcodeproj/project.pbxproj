@@ -25,6 +25,7 @@
 		445998CA513B09D710F9282C /* LicensesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5987D3DB7540AEB27720655 /* LicensesView.swift */; };
 		450CA6479EE050AEE218A77A /* UpdateViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F023E1377B6D025990A4AD1D /* UpdateViews.swift */; };
 		48B6DCB114257559637BA3E5 /* Share in Resources */ = {isa = PBXBuildFile; fileRef = B65B4103D33CABD66BA2B1EA /* Share */; };
+		4B4D36B04A8E779EBF45FD68 /* Pills.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B755CD9FF0D19ABBDBC410 /* Pills.swift */; };
 		509183AB719247230E945953 /* PointerSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAEE35F63AB0E34FFC94CEBE /* PointerSlot.swift */; };
 		53482286D36A660C86C491A7 /* PluginCategories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11AFBF5BCA998F73C82D5114 /* PluginCategories.swift */; };
 		55042213A5FBB48BD7609817 /* LogicInserter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE2A7565B4582595AC03716 /* LogicInserter.swift */; };
@@ -54,6 +55,7 @@
 		C531734DE546A332930B0C09 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F227679D76489B61B50D3EF /* DesignSystem.swift */; };
 		D11B1A084B198C0461413B26 /* PickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 972CDC623675D6EAE7C6B741 /* PickerPanel.swift */; };
 		E29AE07D50724A6CC9AB1F9E /* TrackViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196B1A3B9E2A22D37513FD3C /* TrackViews.swift */; };
+		E42EDCC74F30B345DC62DA25 /* PillViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B5AE98AF62E66D61930575 /* PillViews.swift */; };
 		E79202DCA3F084DF43CBA51B /* PluginPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C5E4BA0E97415AA52EF591 /* PluginPreview.swift */; };
 		E80952E50B926A41F630F61F /* BrowserViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0BC245023DFE7ED68CE6AA /* BrowserViews.swift */; };
 		E854273C1E3933DE20D03BA7 /* PickerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B603335B7ED50468B310DE /* PickerModel.swift */; };
@@ -79,6 +81,7 @@
 		1AE2A7565B4582595AC03716 /* LogicInserter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicInserter.swift; sourceTree = "<group>"; };
 		1AED26F1AE92B46F89A94CE6 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		1F96300B45F6AC9AB4D9D915 /* PluginScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginScanner.swift; sourceTree = "<group>"; };
+		22B5AE98AF62E66D61930575 /* PillViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillViews.swift; sourceTree = "<group>"; };
 		23FC6C5138045E623B2A0134 /* Migration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Migration.swift; sourceTree = "<group>"; };
 		2AFB8804982519104A3E9C10 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		2F227679D76489B61B50D3EF /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
@@ -95,6 +98,7 @@
 		56B0F37A30464EBB4764438A /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
 		579F9663660564DC0E89E2CB /* ChannelFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelFormat.swift; sourceTree = "<group>"; };
 		597B1DCFC14B2876ADEF60AA /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		59B755CD9FF0D19ABBDBC410 /* Pills.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pills.swift; sourceTree = "<group>"; };
 		5FD7E657F3026F318121A9D6 /* PluginStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginStore.swift; sourceTree = "<group>"; };
 		65D1DB32E57A0017C2D34478 /* FeatureViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureViews.swift; sourceTree = "<group>"; };
 		68C0948383AEB9D0BE90BBA8 /* WhatsNewWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewWindow.swift; sourceTree = "<group>"; };
@@ -176,6 +180,7 @@
 			children = (
 				D4883EC0D9CCD0812BF8CDAF /* Licenses.swift */,
 				79020B749BE713B285FFCF69 /* LogicCatalog.swift */,
+				59B755CD9FF0D19ABBDBC410 /* Pills.swift */,
 				BB8400D6D1B92CAB96090263 /* PlugDB.swift */,
 				B431D534CB99B5A459D3517F /* Plugin.swift */,
 				11AFBF5BCA998F73C82D5114 /* PluginCategories.swift */,
@@ -213,6 +218,7 @@
 				88B603335B7ED50468B310DE /* PickerModel.swift */,
 				972CDC623675D6EAE7C6B741 /* PickerPanel.swift */,
 				5404214EB311D626E97267AD /* PickerView.swift */,
+				22B5AE98AF62E66D61930575 /* PillViews.swift */,
 				DDD1C34D4EFF0692962BAAE7 /* PluginListEditor.swift */,
 				14C5E4BA0E97415AA52EF591 /* PluginPreview.swift */,
 				2AFB8804982519104A3E9C10 /* SettingsView.swift */,
@@ -367,6 +373,8 @@
 				E854273C1E3933DE20D03BA7 /* PickerModel.swift in Sources */,
 				D11B1A084B198C0461413B26 /* PickerPanel.swift in Sources */,
 				F03AC7DB259F432CAD156DC2 /* PickerView.swift in Sources */,
+				E42EDCC74F30B345DC62DA25 /* PillViews.swift in Sources */,
+				4B4D36B04A8E779EBF45FD68 /* Pills.swift in Sources */,
 				F0139F7726A197C0F1D334FD /* PlugDB.swift in Sources */,
 				7CA982ACA4D63FEE79A2B743 /* Plugin.swift in Sources */,
 				53482286D36A660C86C491A7 /* PluginCategories.swift in Sources */,

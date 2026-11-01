@@ -24,8 +24,14 @@ final class PickerModel {
     var columns = 4
     /// The collection chip that is on (BL-29); nil shows everything.
     var collectionID: String? { didSet { if collectionID != oldValue { selection = 0 } } }
-    /// The category chip that is on (BL-46); nil shows every category.
-    var category: String? { didSet { if category != oldValue { selection = 0 } } }
+    /// The category pills that are on (BL-46, BL-110): "cat:<name>" or "grp:<id>". Empty shows
+    /// every category; ⌘-click turns on several.
+    var pills: Set<String> = [] { didSet { if pills != oldValue { selection = 0 } } }
+    /// One category on its own (self-tests, reveal).
+    var category: String? {
+        get { pills.count == 1 ? pills.first.flatMap { $0.hasPrefix("cat:") ? String($0.dropFirst(4)) : nil } : nil }
+        set { pills = newValue.map { ["cat:" + $0] } ?? [] }
+    }
     /// Set from "Replace" on the track panel: the next plugin chosen takes this slot (BL-36).
     var replaceTarget: StripPlugin?
     /// Set from the pointer shortcut: the slot under the pointer in Logic (BL-65). Only plugins
@@ -76,9 +82,12 @@ final class PickerModel {
             .map { Set($0.pluginIDs) }
         var list = PluginStore.shared.filtered(query: query, sort: sort,
                                                favoritesOnly: ViewSettings.shared.favoritesOnly, only: only)
-        if let category { list = list.filter { $0.displayCategory == category } }
+        if !pills.isEmpty {
+            let cats = Set(pills.flatMap { Pills.categories(for: $0) })
+            list = list.filter { cats.contains($0.displayCategory) }
+        }
         if let t = pointerTarget { list = list.filter { $0.slotKind == t.kind } }
-        guard query.isEmpty, collectionID == nil, category == nil, let s = suggestion, !s.ids.isEmpty else { return list }
+        guard query.isEmpty, collectionID == nil, pills.isEmpty, let s = suggestion, !s.ids.isEmpty else { return list }
         let rank = Dictionary(uniqueKeysWithValues: s.ids.enumerated().map { ($1, $0) })
         let first = list.filter { rank[$0.id] != nil }.sorted { rank[$0.id]! < rank[$1.id]! }
         return first + list.filter { rank[$0.id] == nil }
@@ -105,7 +114,7 @@ final class PickerModel {
         if !results.contains(where: { $0.id == id }) {
             query = ""
             collectionID = nil
-            category = nil
+            pills = []
             ViewSettings.shared.favoritesOnly = false
         }
         select(id)

@@ -46,6 +46,7 @@ final class UserLibrary {
         var hiddenGroups: [String]? = nil
         var hiddenPlugins: [String]? = nil
         var shownPlugins: [String]? = nil
+        var pills: PillPrefs? = nil
     }
 
     var chains: [Chain] = [] { didSet { changed() } }
@@ -55,6 +56,8 @@ final class UserLibrary {
         didSet { changed(); if !loading { HotKey.shared.registerPins() } }
     }
     var useCount: [String: Int] = [:] { didSet { changed() } }
+    /// The pills above the plugins: order, names, colors, combined pills (BL-110).
+    var pills = PillPrefs() { didSet { if pills != oldValue { changed() } } }
 
     var syncEnabled: Bool {
         get { UserDefaults.standard.object(forKey: "sync.iCloud") as? Bool ?? true }
@@ -133,8 +136,11 @@ final class UserLibrary {
 
     // MARK: Saving and sync
 
+    /// Self-tests change the library without saving it here or in iCloud.
+    var readOnly = false
+
     private func changed() {
-        guard !loading else { return }
+        guard !loading, !readOnly else { return }
         updatedAt = Date()
         save(to: fileURL)
         pushToCloud()
@@ -145,7 +151,7 @@ final class UserLibrary {
         return Saved(chains: chains, collections: collections, notes: notes, pins: pins, useCount: useCount,
                      updatedAt: updatedAt, favorites: Array(store.favorites),
                      hiddenGroups: Array(store.hiddenGroups), hiddenPlugins: Array(store.hiddenPlugins),
-                     shownPlugins: Array(store.shownPlugins))
+                     shownPlugins: Array(store.shownPlugins), pills: pills)
     }
 
     private func save(to url: URL) {
@@ -165,6 +171,7 @@ final class UserLibrary {
         notes = s.notes
         pins = s.pins
         useCount = s.useCount
+        pills = s.pills ?? PillPrefs()
         updatedAt = s.updatedAt
         if applyStoreSettings {
             let store = PluginStore.shared
@@ -186,7 +193,7 @@ final class UserLibrary {
 
     /// Settings that changed in PluginStore (favorites, hidden plugins) also go to the cloud.
     func storeSettingsChanged() {
-        guard !loading else { return }
+        guard !loading, !readOnly else { return }
         updatedAt = Date()
         save(to: fileURL)
         pushToCloud()

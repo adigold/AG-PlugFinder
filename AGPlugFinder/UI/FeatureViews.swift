@@ -29,15 +29,8 @@ struct CollectionBar: View {
     @Bindable var model: PickerModel
     var library = UserLibrary.shared
     var view = ViewSettings.shared
-    @State private var dropOn: String?
     /// The library window shows the picture size slider at the right of this row (BL-48).
     var showSizeSlider = false
-
-    private var categories: [String] {
-        let store = PluginStore.shared
-        let counts = Dictionary(grouping: store.plugins.filter(store.isVisible), by: \.displayCategory).mapValues(\.count)
-        return counts.filter { !$0.key.isEmpty }.sorted { $0.value == $1.value ? $0.key < $1.key : $0.value > $1.value }.map(\.key)
-    }
 
     var body: some View {
         let showCollections = view.chipRow.showsCollections && !library.collections.isEmpty
@@ -45,17 +38,16 @@ struct CollectionBar: View {
         if showCollections || showCategories || model.suggestion != nil || showSizeSlider || model.soundHint != nil {
             VStack(alignment: .leading, spacing: 0) {
                 if showCollections || showCategories || showSizeSlider {
-                    HStack(spacing: 8) {
+                    HStack(alignment: .top, spacing: 8) {
                         if showCollections || showCategories {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) { chips(showCollections, showCategories) }
-                            }
-                            .layoutPriority(1)
+                            PillRow(model: model, showCollections: showCollections, showCategories: showCategories)
+                                .layoutPriority(1)
+                        } else {
+                            Spacer(minLength: 8)
                         }
-                        Spacer(minLength: 8)
-                        if showSizeSlider { SizeSlider().padding(.leading, 10) }
+                        if showSizeSlider { SizeSlider().padding(.leading, 10).frame(height: 44) }
                     }
-                    .padding(.horizontal, 18).frame(height: 44)
+                    .padding(.horizontal, 18).frame(minHeight: 44)
                 }
                 // On its own row under the chips, so it never squeezes them (Adi, 2026-10-31).
                 suggestionNote
@@ -68,32 +60,14 @@ struct CollectionBar: View {
                 }
             }
             .onChange(of: view.chipRow) { _, row in
-                if !row.showsCategories { model.category = nil }
+                if !row.showsCategories { model.pills = [] }
                 if !row.showsCollections { model.collectionID = nil }
             }
         }
     }
 
-    @ViewBuilder private func chips(_ showCollections: Bool, _ showCategories: Bool) -> some View {
-        Chip(title: "All", on: model.collectionID == nil && model.category == nil) {
-            model.collectionID = nil; model.category = nil
-        }
-        if showCollections { collectionChips }
-        if showCollections && showCategories {
-            Rectangle().fill(Theme.raised).frame(width: 1, height: 18).padding(.horizontal, 2)
-        }
-        if showCategories {
-            ForEach(categories, id: \.self) { c in
-                Chip(title: c, on: model.category == c) {
-                    model.category = model.category == c ? nil : c
-                    model.collectionID = nil
-                }
-            }
-        }
-    }
-
     @ViewBuilder private var suggestionNote: some View {
-        if let s = model.suggestion, model.query.isEmpty, model.collectionID == nil, model.category == nil {
+        if let s = model.suggestion, model.query.isEmpty, model.collectionID == nil, model.pills.isEmpty {
             HStack(spacing: 7) {
                 Circle().fill(Theme.accent).frame(width: 6, height: 6)
                 Text("Suggested for “\(s.track)” shown first")
@@ -102,42 +76,6 @@ struct CollectionBar: View {
             .fixedSize()
             .help("Plugins that fit the selected Logic track come first while the search is empty")
             .padding(.horizontal, 20).padding(.top, 2).padding(.bottom, 8)
-        }
-    }
-
-    @ViewBuilder private var collectionChips: some View {
-        ForEach(library.collections) { c in
-            Chip(title: "\(c.name)  \(c.pluginIDs.count)", on: model.collectionID == c.id) {
-                model.collectionID = model.collectionID == c.id ? nil : c.id
-                model.category = nil
-            }
-            // Drop plugins on a collection to add them (BL-60).
-            .overlay(Capsule().strokeBorder(Theme.accent, lineWidth: 2).opacity(dropOn == c.id ? 1 : 0))
-            .scaleEffect(dropOn == c.id ? 1.08 : 1)
-            .animation(.easeOut(duration: 0.12), value: dropOn)
-            .dropDestination(for: String.self) { items, _ in
-                let ids = PluginDrag.ids(items)
-                guard !ids.isEmpty, let i = library.collections.firstIndex(where: { $0.id == c.id }) else { return false }
-                let new = ids.filter { !library.collections[i].pluginIDs.contains($0) }
-                library.collections[i].pluginIDs.append(contentsOf: new)
-                let name = ids.count == 1 ? (PluginStore.shared.plugin(ids[0])?.name ?? "Plugin") : "\(ids.count) plugins"
-                Toast.show(new.isEmpty ? "\(name) is already in \(c.name)" : "Added \(name) to \(c.name)")
-                return true
-            } isTargeted: { on in
-                if on { dropOn = c.id } else if dropOn == c.id { dropOn = nil }
-            }
-            .contextMenu {
-                Button("Rename…") {
-                    if let n = NamePrompt.ask("Rename collection", placeholder: "Name", initial: c.name),
-                       let i = library.collections.firstIndex(where: { $0.id == c.id }) {
-                        library.collections[i].name = n
-                    }
-                }
-                Button("Delete Collection") {
-                    if model.collectionID == c.id { model.collectionID = nil }
-                    library.collections.removeAll { $0.id == c.id }
-                }
-            }
         }
     }
 }
