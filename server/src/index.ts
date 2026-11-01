@@ -12,6 +12,8 @@ attachDatabasePool(pool);
 const MAX_PICTURE = 2_000_000;     // bytes
 const MAX_PER_DAY = 400;           // uploads per sender address per day
 const ID = /^[A-Za-z0-9]{4}-[A-Za-z0-9 ._]{1,4}-[A-Za-z0-9 ._]{1,4}$/;
+// Logic's and Ableton's own devices (BL-166): their pictures are added by Adi, never uploaded.
+const BUILTIN = /^(logic|ableton)-[a-z0-9-]{1,48}$/;
 
 const app = new Hono();
 
@@ -299,7 +301,7 @@ app.post("/v1/lookup", async (c) => {
 
 app.get("/v1/pictures/:id", async (c) => {
   const id = c.req.param("id");
-  if (!ID.test(id)) return c.json({ error: "bad id" }, 400);
+  if (!ID.test(id) && !BUILTIN.test(id)) return c.json({ error: "bad id" }, 400);
   const { rows } = await pool.query("select picture, picture_type from plugins where plugin_id = $1", [id]);
   if (!rows[0]) return c.json({ error: "not found" }, 404);
   return c.body(rows[0].picture, 200, { "content-type": rows[0].picture_type, "cache-control": "public, max-age=86400" });
