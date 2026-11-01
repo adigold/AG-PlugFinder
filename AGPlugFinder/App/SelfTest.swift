@@ -657,6 +657,25 @@ enum SelfTest {
                     }
                     try? await Task.sleep(for: .milliseconds(900))
                 }
+                // --pill x y: scrolled down, click a category pill; the grid must be back at the top (BL-138).
+                if let k3 = args.firstIndex(of: "--pill") {
+                    let at = NSPoint(x: Double(args[k3 + 1]) ?? 0, y: lib.frame.height - (Double(args[k3 + 2]) ?? 0))
+                    await shot("pill-0-scrolled")
+                    let screen = lib.convertPoint(toScreen: at)
+                    CGWarpMouseCursorPosition(CGPoint(x: screen.x, y: (NSScreen.screens.first?.frame.maxY ?? 0) - screen.y))
+                    try? await Task.sleep(for: .milliseconds(250))
+                    for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+                        if let e = NSEvent.mouseEvent(with: type, location: at, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                                      windowNumber: lib.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1) {
+                            NSApp.postEvent(e, atStart: false)
+                        }
+                        try? await Task.sleep(for: .milliseconds(60))
+                    }
+                    try? await Task.sleep(for: .milliseconds(900))
+                    await shot("pill-1-after")
+                    print("PREVIEW done pill"); fflush(stdout)
+                    return
+                }
                 // --shuffle x y: click the dice twice; pictures mid-spin and where it landed (BL-133).
                 if let k2 = args.firstIndex(of: "--shuffle") {
                     let at = NSPoint(x: Double(args[k2 + 1]) ?? 0, y: lib.frame.height - (Double(args[k2 + 2]) ?? 0))

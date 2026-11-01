@@ -464,6 +464,9 @@ struct PluginGrid: View {
                         withAnimation(.easeOut(duration: 0.14)) { proxy.scrollTo(results[new].id) }
                     }
                 }
+                // A category or collection click slides back to the top (BL-138).
+                .onChange(of: model.pills) { _, _ in scrollToTop(proxy) }
+                .onChange(of: model.collectionID) { _, _ in scrollToTop(proxy) }
                 .onChange(of: model.shuffleLanded) { _, id in
                     guard let id else { return }
                     withAnimation(.spring(duration: 0.4, bounce: 0.1)) { proxy.scrollTo(id, anchor: .center) }
@@ -477,6 +480,14 @@ struct PluginGrid: View {
             }
             .overlay(alignment: .bottom) { PickedBar(model: model) }
             .animation(.easeOut(duration: 0.18), value: model.picked.count > 1)
+        }
+    }
+
+    /// Once the new list is in place, glide to its first plugin.
+    private func scrollToTop(_ proxy: ScrollViewProxy) {
+        DispatchQueue.main.async {
+            guard let first = model.results.first?.id else { return }
+            withAnimation(.spring(duration: 0.45, bounce: 0.05)) { proxy.scrollTo(first, anchor: .top) }
         }
     }
 
