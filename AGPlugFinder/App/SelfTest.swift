@@ -596,8 +596,19 @@ enum SelfTest {
             let dir = URL(fileURLWithPath: args[k + 1])
             Task {
                 let m = PluginManager.shared
+                let t0 = Date()
                 m.scan()
-                while m.scanning || m.lastScan == nil { try? await Task.sleep(for: .milliseconds(200)) }
+                if args.contains("--ticker") {
+                    // The scan screen while it reads, in the same window size as Settings.
+                    let w = NSWindow(contentRect: NSRect(x: 80, y: 80, width: 780, height: 580), styleMask: [.titled], backing: .buffered, defer: false)
+                    w.contentView = NSHostingView(rootView: PluginManagerView())
+                    w.makeKeyAndOrderFront(nil)
+                    try? await Task.sleep(for: .milliseconds(450))
+                    await capture(w, to: dir.appendingPathComponent("ticker.png"), scale: 1)
+                    w.orderOut(nil)
+                }
+                while m.scanning || m.lastScan == nil { try? await Task.sleep(for: .milliseconds(50)) }
+                print("PM scan took \(String(format: "%.2f", Date().timeIntervalSince(t0)))s"); fflush(stdout)
                 let byFormat = Dictionary(grouping: m.items, by: \.format).map { "\($0.key.rawValue):\($0.value.count)" }.sorted()
                 let notes = m.notes()
                 print("PM items=\(m.items.count) \(byFormat) receipts=\(m.items.filter { $0.receipt != nil }.count) notes=\(notes.count)")
@@ -1040,9 +1051,22 @@ enum SelfTest {
                 say("done")
             }
         }
+        // --selftest-dynnames: well-known dynamics plugins sorted by name alone (BL-150).
+        if args.contains("--selftest-dynnames") {
+            let names = ["CLA-76", "FabFilter Pro-C 2", "SSL Native Bus Compressor 2", "API-2500", "dbx-160", "Kotelnikov",
+                         "FabFilter Pro-L 2", "L2", "bx_clipper", "Ozone Maximizer", "StandardCLIP",
+                         "C4", "C6", "FabFilter Pro-MB", "Multipressor", "UAD Precision Multiband",
+                         "FabFilter Pro-DS", "RDeEsser", "Sibilance", "SSL DeEss", "TrackDS",
+                         "SPL Transient Designer Plus", "Smack Attack", "TransX Multi", "Transient Master", "EnvelopeShaper",
+                         "FabFilter Pro-G", "C1 gate", "Noise Gate", "smart:gate", "DrGate",
+                         "Vocal Rider", "Bass Rider", "Drum Leveler", "pure:level",
+                         "Expander", "Dyn3 Expander/Gate", "Blue Cat's Dynamics", "Silika", "VolumeShaper 6"]
+            for n in names { print("DYNNAME \(n) -> \(PluginCategories.refineDynamics(name: n, kind: nil))") }
+            fflush(stdout)
+        }
         // --selftest-dynamics: how every dynamics plugin is sorted (BL-121).
         if args.contains("--selftest-dynamics") {
-            for c in ["Compressor", "Limiter", "Dynamics"] {
+            for c in ["Compressor", "Limiter", "Multiband", "De-esser", "Transient", "Gate", "Rider", "Expander", "Dynamics"] {
                 let names = PluginStore.shared.plugins.filter { $0.displayCategory == c }.map(\.name).sorted()
                 print("DYN \(c) (\(names.count)): \(names.joined(separator: ", "))")
             }

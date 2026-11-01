@@ -48,8 +48,8 @@ struct PluginManagerView: View {
                 }
             }
             header
-            if manager.scanning && manager.items.isEmpty {
-                ProgressView("Scanning your plugins…").frame(maxWidth: .infinity, maxHeight: .infinity)
+            if manager.scanning {
+                ScanTicker(manager: manager).frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if shown.isEmpty {
                 Text(mode == .duplicates ? "No duplicates found." : "No plugins match.")
                     .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint)
@@ -275,5 +275,35 @@ struct PluginManagerView: View {
             PrimaryPill(title: "Done", height: 32) { done = nil }.keyboardShortcut(.defaultAction)
         }
         .padding(.top, 4)
+    }
+}
+
+/// The scan as it happens (BL-151): the file being read slides in on top, the ones before it
+/// fade down the list, with how many plugin files were found so far.
+struct ScanTicker: View {
+    var manager: PluginManager
+
+    var body: some View {
+        VStack(spacing: 14) {
+            ProgressView().controlSize(.small)
+            Text(manager.scanStep).font(.system(size: Theme.ts(13), weight: .semibold)).foregroundStyle(Theme.text)
+            Text("\(manager.scanFound) plugin file\(manager.scanFound == 1 ? "" : "s") found")
+                .font(.system(size: Theme.ts(11))).monospacedDigit().foregroundStyle(Theme.faint)
+                .contentTransition(.numericText())
+            VStack(spacing: 4) {
+                ForEach(Array(manager.scanTrail.enumerated()), id: \.element) { i, name in
+                    Text(name)
+                        .font(.system(size: Theme.ts(i == 0 ? 13 : 12), weight: i == 0 ? .medium : .regular, design: .monospaced))
+                        .foregroundStyle(i == 0 ? Theme.text : Theme.muted)
+                        .opacity(1 - Double(i) * 0.1)
+                        .lineLimit(1)
+                        .transition(.asymmetric(insertion: .move(edge: .top), removal: .opacity))
+                }
+            }
+            .frame(width: 380, height: 150, alignment: .top)
+            .clipped()
+            .animation(.spring(duration: 0.25, bounce: 0.1), value: manager.scanTrail)
+        }
+        .animation(.easeOut(duration: 0.2), value: manager.scanFound)
     }
 }

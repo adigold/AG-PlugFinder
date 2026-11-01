@@ -85,7 +85,8 @@ struct Plugin: Identifiable, Codable, Hashable {
 
     /// Category shown in the UI: the looked-up one wins over our guess.
     var displayCategory: String {
-        if let c = userCategory { return c }
+        // A category chosen before Dynamics was split is split the same way (BL-150).
+        if let c = userCategory { return Self.splitDynamics(c, name: name, id: id) }
         if !isLogic, MainActor.assumeIsolated({ PluginCategories.isChannelStrip(name) }) { return "Channel Strip" }
         return Self.splitDynamics(baseCategory, name: name, id: id)
     }
@@ -98,7 +99,7 @@ struct Plugin: Identifiable, Codable, Hashable {
         return category
     }
 
-    /// Dynamics shows as Compressor, Limiter or Dynamics (BL-121).
+    /// Dynamics shows as one of its eight kinds (BL-121, BL-150).
     @MainActor private static var kinds: [String: String] = UserDefaults.standard.dictionary(forKey: "plugin.kinds") as? [String: String] ?? [:]
     @MainActor static func reloadKinds() {
         kinds = UserDefaults.standard.dictionary(forKey: "plugin.kinds") as? [String: String] ?? [:]

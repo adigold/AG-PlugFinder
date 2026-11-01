@@ -160,7 +160,7 @@ enum PlugDB {
               let rows = json["categories"] as? [[String: Any]] else { return }
         let agreed = Dictionary(rows.compactMap { r -> (String, String)? in
             guard let id = r["plugin_id"] as? String, let c = r["category"] as? String,
-                  PluginCategories.all.contains(c) else { return nil }
+                  PluginCategories.all.contains(c) || c == "Dynamics" else { return nil }
             return (id, c)
         }, uniquingKeysWith: { a, _ in a })
         store.setCommunityCategories(agreed)

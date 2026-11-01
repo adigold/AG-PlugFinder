@@ -42,6 +42,10 @@ final class PluginManager {
 
     private(set) var items: [Item] = []
     private(set) var scanning = false
+    /// What the scan is reading right now, for the scan screen (BL-151): the latest names first.
+    private(set) var scanTrail: [String] = []
+    private(set) var scanFound = 0
+    private(set) var scanStep = ""
     private(set) var lastScan: Date?
     var selected: Set<String> = []
     /// Files each installer put outside the plugin folders (support files, presets, manuals),
@@ -64,10 +68,29 @@ final class PluginManager {
     func scan() {
         guard !scanning else { return }
         scanning = true
+        scanTrail = []
+        scanFound = 0
+        scanStep = "Looking in your plugin folders"
+        let started = Date()
+        // Names arrive from the scan as it goes; the screen shows them as they come.
+        let report: @Sendable (String, String?) -> Void = { step, name in
+            Task { @MainActor in
+                PluginManager.shared.scanStep = step
+                if let name {
+                    PluginManager.shared.scanTrail.insert(name, at: 0)
+                    if PluginManager.shared.scanTrail.count > 7 { PluginManager.shared.scanTrail.removeLast() }
+                    if step.hasPrefix("Looking") { PluginManager.shared.scanFound += 1 }
+                }
+            }
+        }
         Task.detached(priority: .userInitiated) {
-            let found = Self.findAll()
-            let (receipts, extras) = Self.receipts(for: Set(found.map(\.url.path)))
+            let found = Self.findAll(report: report)
+            report("Matching plugins to their installers", nil)
+            let (receipts, extras) = Self.receipts(for: Set(found.map(\.url.path)), report: report)
             let withReceipts = found.map { i -> Item in var j = i; j.receipt = receipts[i.url.path]; return j }
+            // Long enough to see the names go by on a Mac with few plugins; a longer scan never waits.
+            let shown = Date().timeIntervalSince(started)
+            if shown < 1.2 { try? await Task.sleep(for: .seconds(1.2 - shown)) }
             await MainActor.run {
                 self.leftoverFiles = extras
                 self.items = withReceipts.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
@@ -78,7 +101,7 @@ final class PluginManager {
         }
     }
 
-    nonisolated private static func findAll() -> [Item] {
+    nonisolated private static func findAll(report: (String, String?) -> Void = { _, _ in }) -> [Item] {
         let fm = FileManager.default
         var out: [Item] = []
         for (folder, system) in folders {
@@ -92,6 +115,7 @@ final class PluginManager {
             }
             for u in candidates {
                 guard let format = Format.of(u) else { continue }
+                report("Looking in your plugin folders", u.lastPathComponent)
                 let info = Bundle(url: u)?.infoDictionary ?? [:]
                 let name = (info["CFBundleName"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? u.deletingPathExtension().lastPathComponent
                 out.append(Item(url: u, format: format,
@@ -118,7 +142,7 @@ final class PluginManager {
 
     /// Which installer put each plugin there, from the receipts macOS keeps (pkgutil), and the
     /// other files each installer left outside the plugin folders. Read only.
-    nonisolated private static func receipts(for paths: Set<String>) -> ([String: String], [String: [String]]) {
+    nonisolated private static func receipts(for paths: Set<String>, report: @escaping @Sendable (String, String?) -> Void = { _, _ in }) -> ([String: String], [String: [String]]) {
         func run(_ args: [String]) -> String {
             let p = Process()
             p.executableURL = URL(fileURLWithPath: "/usr/sbin/pkgutil")
@@ -136,15 +160,47 @@ final class PluginManager {
         var out: [String: String] = [:]
         var others: [String: [String]] = [:]
         var owners: [String: Int] = [:]
-        let pkgs = run(["--pkgs"]).split(separator: "\n").map(String.init).filter { !$0.hasPrefix("com.apple.") }
-        for pkg in pkgs {
-            let info = run(["--pkg-info", pkg])
-            let volume = info.split(separator: "\n").first { $0.hasPrefix("volume: ") }.map { String($0.dropFirst(8)) } ?? "/"
-            let location = info.split(separator: "\n").first { $0.hasPrefix("location: ") }.map { String($0.dropFirst(10)) } ?? ""
-            let base = URL(fileURLWithPath: volume).appendingPathComponent(location)
+        // Each installer's record is a small file in /var/db/receipts: reading it directly saves
+        // starting a program per installer. Installers that only put an app in Applications are
+        // skipped, they have no plugins or Library files (BL-151).
+        var pkgs: [(id: String, base: URL)] = []
+        let receiptsDir = URL(fileURLWithPath: "/var/db/receipts")
+        if let files = try? fm.contentsOfDirectory(atPath: receiptsDir.path) {
+            for f in files where f.hasSuffix(".plist") && !f.hasPrefix("com.apple.") {
+                let plist = NSDictionary(contentsOf: receiptsDir.appendingPathComponent(f)) as? [String: Any] ?? [:]
+                let prefix = plist["InstallPrefixPath"] as? String ?? ""
+                if prefix.hasPrefix("Applications") { continue }
+                pkgs.append((plist["PackageIdentifier"] as? String ?? String(f.dropLast(6)), URL(fileURLWithPath: "/").appendingPathComponent(prefix)))
+            }
+        } else {
+            for pkg in run(["--pkgs"]).split(separator: "\n").map(String.init) where !pkg.hasPrefix("com.apple.") {
+                let info = run(["--pkg-info", pkg])
+                let volume = info.split(separator: "\n").first { $0.hasPrefix("volume: ") }.map { String($0.dropFirst(8)) } ?? "/"
+                let location = info.split(separator: "\n").first { $0.hasPrefix("location: ") }.map { String($0.dropFirst(10)) } ?? ""
+                pkgs.append((pkg, URL(fileURLWithPath: volume).appendingPathComponent(location)))
+            }
+        }
+        // The file lists, several installers at once.
+        final class Lists: @unchecked Sendable { var text: [String]; let lock = NSLock(); init(_ n: Int) { text = Array(repeating: "", count: n) } }
+        let lists = Lists(pkgs.count)
+        let ids = pkgs.map(\.id)
+        DispatchQueue.concurrentPerform(iterations: ids.count) { i in
+            report("Matching plugins to their installers", ids[i])
+            let p = Process()
+            p.executableURL = URL(fileURLWithPath: "/usr/sbin/pkgutil")
+            p.arguments = ["--files", ids[i]]
+            let pipe = Pipe()
+            p.standardOutput = pipe
+            p.standardError = FileHandle.nullDevice
+            guard (try? p.run()) != nil else { return }
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            p.waitUntilExit()
+            lists.lock.lock(); lists.text[i] = String(decoding: data, as: UTF8.self); lists.lock.unlock()
+        }
+        for (i, (pkg, base)) in pkgs.enumerated() {
             var mine = false
             var extra: [String] = []
-            for line in run(["--files", pkg]).split(separator: "\n") {
+            for line in lists.text[i].split(separator: "\n") {
                 let full = base.appendingPathComponent(String(line)).standardizedFileURL.path
                 if paths.contains(full) { mine = true; if out[full] == nil { out[full] = pkg } }
                 // A leftover is a single file in a Library folder, never part of a plugin or an app.
