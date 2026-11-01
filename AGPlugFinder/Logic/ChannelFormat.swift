@@ -65,7 +65,15 @@ final class ChannelFormats {
     func set(_ f: ChannelFormat?, for id: String) {
         perPlugin[id] = f?.rawValue
         UserDefaults.standard.set(perPlugin, forKey: "channelFormat.perPlugin")
+        Task { @MainActor in UserLibrary.shared.pluginDataChanged() }
     }
 
     func choice(for id: String?) -> ChannelFormat { id.flatMap(own) ?? mode }
+
+    /// Another Mac's choices (BL-193).
+    func replaceAll(_ map: [String: String]) {
+        guard map != perPlugin else { return }
+        perPlugin = map
+        if !UserLibrary.testing { UserDefaults.standard.set(perPlugin, forKey: "channelFormat.perPlugin") }
+    }
 }

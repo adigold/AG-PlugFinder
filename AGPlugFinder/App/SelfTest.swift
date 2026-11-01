@@ -1350,6 +1350,33 @@ enum SelfTest {
                 say("done")
             }
         }
+        // --selftest-cloudjoin --sync-cloud <dir>/library.json: a Mac joining iCloud keeps both sides,
+        // categories arrive, and screenshots travel both ways and clear on both (BL-193). Only the
+        // stand-in folders are touched.
+        if args.contains("--selftest-cloudjoin"), let cloud = UserLibrary.cloudFile {
+            Task { @MainActor in
+                let lib = UserLibrary.shared, store = PluginStore.shared
+                print("JOIN readOnly lib=\(lib.readOnly) store=\(store.readOnly)")
+                print("JOIN favorites has cloud-fav=\(store.favorites.contains("cloud-fav")) total=\(store.favorites.count)")
+                print("JOIN collections=\(lib.collections.map(\.name))")
+                print("JOIN note x=\(lib.notes["x"] ?? "none")")
+                print("JOIN category logic-compressor=\(store.plugin("logic-compressor")?.userCategory ?? "none")")
+                let base = cloud.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+                PictureSync.testLocal = base.appendingPathComponent("local")
+                PictureSync.run()
+                try? await Task.sleep(for: .seconds(2))
+                func list(_ u: URL) -> String { ((try? FileManager.default.contentsOfDirectory(atPath: u.path)) ?? []).sorted().joined(separator: ",") }
+                let cdir = cloud.deletingLastPathComponent().appendingPathComponent("Screenshots")
+                print("JOIN pictures local=[\(list(PictureSync.testLocal!))] cloud=[\(list(cdir))]")
+                PictureSync.removed(["aufx-mine-mine"])
+                try? await Task.sleep(for: .seconds(1))
+                // The other Mac still has it, older than the clearing: it goes there too.
+                PictureSync.run()
+                try? await Task.sleep(for: .seconds(2))
+                print("JOIN after clearing local=[\(list(PictureSync.testLocal!))] cloud=[\(list(cdir))]")
+                print("JOIN done"); fflush(stdout)
+            }
+        }
         // --selftest-syncsections --sync-cloud <file>: sections kept to this Mac keep the other
         // Macs' copy in iCloud, and a section turned back on takes the iCloud copy (BL-157).
         // Library read only, the real iCloud file and settings untouched.

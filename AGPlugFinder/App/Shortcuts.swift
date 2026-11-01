@@ -154,6 +154,14 @@ final class Shortcuts {
         }
     }
 
+    /// Another Mac's shortcuts (BL-193).
+    func applySynced(_ data: Data) {
+        guard let saved = try? JSONDecoder().decode([String: KeyCombo?].self, from: data) else { return }
+        for a in ShortcutAction.allCases { combos[a] = saved[a.rawValue] ?? a.defaultCombo }
+        if !UserLibrary.testing { UserDefaults.standard.set(data, forKey: "shortcuts") }
+        HotKey.shared.apply()
+    }
+
     func combo(_ a: ShortcutAction) -> KeyCombo? { combos[a] }
 
     func label(_ a: ShortcutAction) -> String { combos[a]?.display ?? "" }
@@ -186,6 +194,7 @@ final class Shortcuts {
         var out: [String: KeyCombo?] = [:]
         for a in ShortcutAction.allCases { out[a.rawValue] = .some(combos[a] ?? nil) }
         if let data = try? JSONEncoder().encode(out) { UserDefaults.standard.set(data, forKey: "shortcuts") }
+        Task { @MainActor in UserLibrary.shared.pluginDataChanged() }
     }
 
     // MARK: Running an action

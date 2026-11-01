@@ -367,12 +367,29 @@ final class LogicTrack {
         let spot: AXNode?
         if before || t + 1 < audio.count {
             let slot = audio[before ? t : t + 1].frame
+            // The bar right above that slot; a little room, since the top slot sits differently (BL-196).
             spot = bars.min { abs($0.frame.maxY - slot.minY) < abs($1.frame.maxY - slot.minY) }
-                .flatMap { abs($0.frame.maxY - slot.minY) < 4 ? $0 : nil }
+                .flatMap { abs($0.frame.maxY - slot.minY) < 10 ? $0 : nil }
+            if spot == nil {
+                inserter.log("TRACK insert: no bar near \(audio[before ? t : t + 1].name) y=\(Int(slot.minY)); bars at "
+                             + bars.map { "\(Int($0.frame.maxY))" }.joined(separator: " "))
+            }
         } else {
             spot = kids.first { $0.role == "AXButton" && $0.help.hasPrefix("Audio Effect slot") }
         }
-        guard let spot else { return "I couldn't find the place \(before ? "before" : "after") \(target.name)." }
+        guard let spot else {
+            // No bar there: add it at the end of the effects, then move it into place, the way
+            // dragging it in the track panel does (BL-196).
+            let outcome = await inserter.insert(plugin)
+            guard case .inserted = outcome else { return message(outcome, plugin) }
+            try? await Task.sleep(for: .milliseconds(600))
+            guard let added = read()?.plugins.filter({ $0.kind == .audioFX }).last else {
+                return "Added \(plugin.name) at the end of the effects."
+            }
+            lastAdded = plugin.name
+            if await move(added, toEffect: before ? t : t + 1) { return nil }
+            return "Added \(plugin.name) at the end of the effects; it could not be moved \(before ? "before" : "after") \(target.name)."
+        }
         logic.activate()
         try? await Task.sleep(for: .milliseconds(150))
         inserter.log("TRACK insert \(plugin.name) \(before ? "before" : "after") \(target.name)")

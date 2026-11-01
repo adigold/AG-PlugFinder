@@ -282,12 +282,18 @@ final class Licenses {
     /// Same switch and same iCloud Drive folder as the library sync. License keys are not in
     /// this file: they stay in each Mac's own Keychain.
     static var cloudFile: URL? {
-        guard !testMode else { return nil }
+        guard !testMode, !UserLibrary.testing else { return nil }
         return UserLibrary.cloudFile?.deletingLastPathComponent().appendingPathComponent("licenses.json")
     }
 
     private func pushToCloud() {
         guard UserLibrary.shared.syncs(.purchases), let cloud = Self.cloudFile else { return }
+        // Never over an iCloud copy this Mac has not read yet (BL-193).
+        switch CloudFile.state(cloud) {
+        case .notDownloaded: return
+        case .ready where !UserDefaults.standard.bool(forKey: "licenses.synced"): pullFromCloud(); return
+        default: break
+        }
         try? FileManager.default.createDirectory(at: cloud.deletingLastPathComponent(), withIntermediateDirectories: true)
         save(to: cloud)
         UserDefaults.standard.set(true, forKey: "licenses.synced")
@@ -297,8 +303,15 @@ final class Licenses {
     /// The first time a Mac syncs, its entries and the iCloud ones are merged, so nothing is lost.
     func pullFromCloud() {
         guard UserLibrary.shared.syncs(.purchases), let cloud = Self.cloudFile else { return }
+        // Still arriving from iCloud: wait, the next look will take it (BL-193).
+        let state = CloudFile.state(cloud)
+        if state == .notDownloaded { return }
         guard let s = Self.read(cloud) else {
-            if !licenses.isEmpty || !plans.isEmpty { pushToCloud() }
+            // Only start the iCloud copy when there is none; an unreadable one is left alone.
+            if state == .missing, !licenses.isEmpty || !plans.isEmpty {
+                UserDefaults.standard.set(true, forKey: "licenses.synced")
+                pushToCloud()
+            }
             return
         }
         if !UserDefaults.standard.bool(forKey: "licenses.synced") {
@@ -306,6 +319,7 @@ final class Licenses {
             for (k, v) in licenses where merged.licenses[k] == nil { merged.licenses[k] = v }
             for p in plans where !merged.plans.contains(where: { $0.id == p.id }) { merged.plans.append(p) }
             apply(merged)
+            UserDefaults.standard.set(true, forKey: "licenses.synced")
             changed()
             return
         }

@@ -8,6 +8,8 @@ import Observation
 /// The parts of the library a Mac can choose to sync or keep to itself (BL-157).
 enum SyncSection: String, CaseIterable, Identifiable {
     case favorites, collections, chains, notes, keys, hidden, pills, purchases, appearance, view
+    // From BL-193 on.
+    case plugins, shortcuts, pictures
     var id: String { rawValue }
     var title: String {
         switch self {
@@ -21,6 +23,9 @@ enum SyncSection: String, CaseIterable, Identifiable {
         case .purchases: return "My Purchases: purchases and subscriptions"
         case .appearance: return "Theme and text size"
         case .view: return "View: grid or list, picture size, names and details"
+        case .plugins: return "Your categories, plugin descriptions and channel formats"
+        case .shortcuts: return "Shortcuts"
+        case .pictures: return "Your plugin screenshots"
         }
     }
 }
@@ -71,6 +76,11 @@ final class UserLibrary {
         // Synced from BL-157 on: the look and the view choices, as plain text values.
         var appearance: [String: String]? = nil
         var view: [String: String]? = nil
+        // From BL-193 on: what each plugin got on this Mac, and the shortcuts.
+        var categories: [String: String]? = nil
+        var details: [String: PluginDetails]? = nil
+        var channelFormats: [String: String]? = nil
+        var shortcuts: Data? = nil
     }
 
     var chains: [Chain] = [] { didSet { changed() } }
@@ -114,6 +124,10 @@ final class UserLibrary {
 
     private init() {
         fileURL = PluginStore.shared.supportDir.appendingPathComponent("library.json")
+        #if DEBUG
+        // A sync test with a stand-in iCloud file changes nothing real on this Mac (BL-193).
+        if Self.testing, CommandLine.arguments.contains("--sync-cloud") { readOnly = true; PluginStore.shared.readOnly = true }
+        #endif
         if !load(from: fileURL) {
             // First run of this version: plugins used before count once each.
             loading = true
@@ -122,6 +136,8 @@ final class UserLibrary {
         }
         pullFromCloud()
         PluginStore.shared.onSettingsChanged = { [weak self] in self?.storeSettingsChanged() }
+        PluginStore.shared.onCatalogSaved = { [weak self] in self?.pluginDataChanged() }
+        seedPluginData()
         Self.ready = true
     }
 
@@ -200,7 +216,11 @@ final class UserLibrary {
                      shownPlugins: Array(store.shownPlugins), pills: pills,
                      appearance: ["theme": look.paletteID, "textScale": String(look.textScale),
                                   "followSystem": look.followSystem ? "1" : "0", "themeLight": look.lightID, "themeDark": look.darkID],
-                     view: ViewSettings.shared.syncValues)
+                     view: ViewSettings.shared.syncValues,
+                     categories: Dictionary(uniqueKeysWithValues: store.plugins.compactMap { p in p.userCategory.map { (p.id, $0) } }),
+                     details: Dictionary(uniqueKeysWithValues: store.plugins.compactMap { p in p.details.map { (p.id, $0) } }),
+                     channelFormats: ChannelFormats.shared.perPlugin,
+                     shortcuts: UserDefaults.standard.data(forKey: "shortcuts"))
     }
 
     private func save(to url: URL) { write(snapshot(), to: url) }
@@ -227,6 +247,7 @@ final class UserLibrary {
               cloud: applyStoreSettings)
         useCount = s.useCount
         updatedAt = s.updatedAt
+        if Self.ready { seedPluginData() }
         return true
     }
 
@@ -254,6 +275,14 @@ final class UserLibrary {
             if let t = a["themeDark"], t != look.darkID, Palette.all.contains(where: { $0.id == t }) { look.darkID = t }
         }
         if only.contains(.view), let v = s.view { ViewSettings.shared.applySync(v) }
+        if only.contains(.plugins) {
+            // Older copies of the app send none of these: nothing changes then.
+            store.applySynced(categories: s.categories, details: s.details)
+            if let c = s.channelFormats { ChannelFormats.shared.replaceAll(c) }
+        }
+        if only.contains(.shortcuts), let k = s.shortcuts, k != UserDefaults.standard.data(forKey: "shortcuts") {
+            Shortcuts.shared.applySynced(k)
+        }
     }
 
     /// A section just turned on takes the iCloud copy, so this Mac does not overwrite the others.
@@ -272,6 +301,8 @@ final class UserLibrary {
         if let k = CommandLine.arguments.firstIndex(of: "--sync-cloud"), k + 1 < CommandLine.arguments.count {
             return URL(fileURLWithPath: CommandLine.arguments[k + 1])
         }
+        // Any other test run never reaches the real iCloud folder (BL-193).
+        if CommandLine.arguments.contains(where: { $0.hasPrefix("--selftest") }) { return nil }
         #endif
         let drive = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/Mobile Documents/com~apple~CloudDocs", isDirectory: true)
@@ -287,12 +318,44 @@ final class UserLibrary {
         pushToCloud()
     }
 
+    /// Whether this Mac has read the iCloud copy at least once (BL-193). Until then it never
+    /// writes there, so a Mac that just joined cannot wipe the others' library.
+    private var joined: Bool {
+        get { Self.testing ? testJoined : UserDefaults.standard.bool(forKey: "sync.joined") }
+        set { if Self.testing { testJoined = newValue } else if !readOnly { UserDefaults.standard.set(newValue, forKey: "sync.joined") } }
+    }
+    /// Test runs share this Mac's settings: their sync state stays in memory.
+    private var testJoined = false
+    static var testing: Bool {
+        #if DEBUG
+        return CommandLine.arguments.contains { $0.hasPrefix("--selftest") }
+        #else
+        return false
+        #endif
+    }
+
     private func pushToCloud() {
         guard syncEnabled, let cloud = Self.cloudFile else { return }
+        guard joined else { pullFromCloud(); return }
+        let state = CloudFile.state(cloud)
+        guard state != .notDownloaded else { retrySoon(); return }
         try? FileManager.default.createDirectory(at: cloud.deletingLastPathComponent(), withIntermediateDirectories: true)
         var out = snapshot()
+        let old = state == .ready ? Self.decode(cloud) : nil
+        // Plugins that are not on this Mac keep what the other Macs gave them.
+        if let old {
+            let here = Set(PluginStore.shared.plugins.map(\.id))
+            func keep<V>(_ theirs: [String: V]?, _ mine: [String: V]?) -> [String: V]? {
+                guard let theirs else { return mine }
+                var m = mine ?? [:]
+                for (k, v) in theirs where !here.contains(k) && m[k] == nil { m[k] = v }
+                return m
+            }
+            out.categories = keep(old.categories, out.categories)
+            out.details = keep(old.details, out.details)
+        }
         // Sections this Mac keeps to itself: the iCloud copy keeps the other Macs' version.
-        if !syncOff.isEmpty, let old = Self.decode(cloud) {
+        if !syncOff.isEmpty, let old {
             for s in syncOff.compactMap(SyncSection.init(rawValue:)) {
                 switch s {
                 case .favorites: out.favorites = old.favorites
@@ -304,11 +367,32 @@ final class UserLibrary {
                 case .pills: out.pills = old.pills
                 case .appearance: out.appearance = old.appearance
                 case .view: out.view = old.view
-                case .purchases: break
+                case .plugins: out.categories = old.categories; out.details = old.details; out.channelFormats = old.channelFormats
+                case .shortcuts: out.shortcuts = old.shortcuts
+                case .purchases, .pictures: break
                 }
             }
         }
         write(out, to: cloud)
+    }
+
+    /// Categories, descriptions, channel formats or shortcuts may have changed (BL-193). The
+    /// catalog is saved often (screenshots, scans), so only a real change is shared; anything else
+    /// would make this Mac look newer and hold back what the other Macs changed.
+    private var lastPluginData: (categories: [String: String]?, details: [String: PluginDetails]?, channels: [String: String]?, keys: Data?)?
+    private func seedPluginData() {
+        let s = snapshot()
+        lastPluginData = (s.categories, s.details, s.channelFormats, s.shortcuts)
+    }
+
+    func pluginDataChanged() {
+        guard Self.ready, !loading, !readOnly else { return }
+        let s = snapshot()
+        let now = (s.categories, s.details, s.channelFormats, s.shortcuts)
+        defer { lastPluginData = now }
+        guard let last = lastPluginData else { return }
+        guard last.categories != now.0 || last.details != now.1 || last.channels != now.2 || last.keys != now.3 else { return }
+        storeSettingsChanged()
     }
 
     /// The look or a view choice changed on this Mac: share it (BL-157).
@@ -320,11 +404,79 @@ final class UserLibrary {
     /// Takes the cloud copy when it is newer than this Mac's (on launch and when the app
     /// comes to the front).
     func pullFromCloud() {
-        guard syncEnabled, let cloud = Self.cloudFile,
-              let data = try? Data(contentsOf: cloud),
-              let s = try? JSONDecoder().decode(Saved.self, from: data),
-              s.updatedAt > updatedAt.addingTimeInterval(1) else { return }
+        guard syncEnabled, let cloud = Self.cloudFile else { return }
+        // Later, never inside this init: the picture sync asks for the library itself.
+        DispatchQueue.main.async { PictureSync.whenActive() }
+        switch CloudFile.state(cloud) {
+        case .missing:
+            // Nothing in iCloud yet: this Mac starts it.
+            if !joined { joined = true; pushToCloud() }
+            return
+        case .notDownloaded:
+            retrySoon()
+            return
+        case .ready:
+            break
+        }
+        guard let s = Self.decode(cloud) else { retrySoon(); return }
+        if !joined {
+            join(s)
+            return
+        }
+        guard s.updatedAt > updatedAt.addingTimeInterval(1) else { return }
         if load(from: cloud, applyStoreSettings: true) { save(to: fileURL) }
+    }
+
+    /// The first time this Mac meets the iCloud copy (BL-193): both are kept. Favorites,
+    /// collections, chains, notes, hidden plugins and categories are added together; where both
+    /// have a value, iCloud's wins. Then the joined library is saved here and shared.
+    private func join(_ s: Saved) {
+        let on = Set(SyncSection.allCases.filter { !syncOff.contains($0.rawValue) })
+        let store = PluginStore.shared
+        var m = s
+        if on.contains(.favorites) { m.favorites = Array(Set(s.favorites ?? []).union(store.favorites)) }
+        if on.contains(.collections) { m.collections = s.collections + collections.filter { c in !s.collections.contains { $0.id == c.id } } }
+        if on.contains(.chains) { m.chains = s.chains + chains.filter { c in !s.chains.contains { $0.id == c.id } } }
+        if on.contains(.notes) { m.notes = notes.merging(s.notes) { _, cloud in cloud } }
+        if on.contains(.keys) { m.pins = pins.merging(s.pins) { _, cloud in cloud } }
+        if on.contains(.hidden) {
+            m.hiddenGroups = Array(Set(s.hiddenGroups ?? []).union(store.hiddenGroups))
+            m.hiddenPlugins = Array(Set(s.hiddenPlugins ?? []).union(store.hiddenPlugins))
+            m.shownPlugins = Array(Set(s.shownPlugins ?? []).union(store.shownPlugins))
+        }
+        if on.contains(.pills), s.pills == nil { m.pills = pills }
+        if on.contains(.plugins) {
+            let mine = snapshot()
+            m.categories = (mine.categories ?? [:]).merging(s.categories ?? [:]) { _, cloud in cloud }
+            m.details = (mine.details ?? [:]).merging(s.details ?? [:]) { _, cloud in cloud }
+            m.channelFormats = (mine.channelFormats ?? [:]).merging(s.channelFormats ?? [:]) { _, cloud in cloud }
+        }
+        if on.contains(.shortcuts), s.shortcuts == nil { m.shortcuts = UserDefaults.standard.data(forKey: "shortcuts") }
+        let counts = useCount.merging(s.useCount) { max($0, $1) }
+        loading = true
+        apply(m, only: on, cloud: true)
+        useCount = counts
+        loading = false
+        joined = true
+        seedPluginData()
+        guard !readOnly else { return }
+        updatedAt = Date()
+        save(to: fileURL)
+        pushToCloud()
+        DispatchQueue.main.async { PictureSync.soon(.seconds(1)) }
+    }
+
+    /// iCloud is still bringing the file down: look again shortly, a few times.
+    private var retries = 0
+    private var retryTask: Task<Void, Never>?
+    private func retrySoon() {
+        guard retryTask == nil, retries < 40 else { return }
+        retries += 1
+        retryTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(3))
+            self?.retryTask = nil
+            self?.pullFromCloud()
+        }
     }
 
     /// Sync right now (BL-131): take the newer cloud copy, write this Mac's, then wait for iCloud

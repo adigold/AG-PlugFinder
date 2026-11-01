@@ -69,6 +69,7 @@
 		D4AFB703DCD80602B55254ED /* AbletonCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9591272BC900BB49089EB748 /* AbletonCatalog.swift */; };
 		E29AE07D50724A6CC9AB1F9E /* TrackViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196B1A3B9E2A22D37513FD3C /* TrackViews.swift */; };
 		E42EDCC74F30B345DC62DA25 /* PillViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B5AE98AF62E66D61930575 /* PillViews.swift */; };
+		E6C97EF9092E16DDC93FA79F /* CloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D6D866FCD84430CB7A1CE7 /* CloudSync.swift */; };
 		E79202DCA3F084DF43CBA51B /* PluginPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C5E4BA0E97415AA52EF591 /* PluginPreview.swift */; };
 		E80952E50B926A41F630F61F /* BrowserViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0BC245023DFE7ED68CE6AA /* BrowserViews.swift */; };
 		E854273C1E3933DE20D03BA7 /* PickerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B603335B7ED50468B310DE /* PickerModel.swift */; };
@@ -128,6 +129,7 @@
 		6D4464B062DDF82604F2AB1A /* AbletonBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbletonBridge.swift; sourceTree = "<group>"; };
 		6FA6CF5B0D9E2763B613D90B /* TopBarEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopBarEditor.swift; sourceTree = "<group>"; };
 		73BE9C76C349750CE02E0E1B /* ShareWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareWindow.swift; sourceTree = "<group>"; };
+		73D6D866FCD84430CB7A1CE7 /* CloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSync.swift; sourceTree = "<group>"; };
 		79020B749BE713B285FFCF69 /* LogicCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicCatalog.swift; sourceTree = "<group>"; };
 		81B74FA4A5CFB65E2CFEDE04 /* AGPlugFinder.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AGPlugFinder.entitlements; sourceTree = "<group>"; };
 		88B603335B7ED50468B310DE /* PickerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerModel.swift; sourceTree = "<group>"; };
@@ -210,6 +212,7 @@
 		988798C5A488F0B3B7E3054C /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				73D6D866FCD84430CB7A1CE7 /* CloudSync.swift */,
 				D4883EC0D9CCD0812BF8CDAF /* Licenses.swift */,
 				F570040051B31B27FD4FC484 /* Locked.swift */,
 				79020B749BE713B285FFCF69 /* LogicCatalog.swift */,
@@ -412,6 +415,7 @@
 				F04C19DCCE0385AB2F028426 /* Appearance.swift in Sources */,
 				E80952E50B926A41F630F61F /* BrowserViews.swift in Sources */,
 				3C4BCBCC68DB9EFD408B3897 /* ChannelFormat.swift in Sources */,
+				E6C97EF9092E16DDC93FA79F /* CloudSync.swift in Sources */,
 				A244E15B48EF37970CDC78F4 /* CrashReports.swift in Sources */,
 				C531734DE546A332930B0C09 /* DesignSystem.swift in Sources */,
 				5B342DD47C05CB8E16FE08B5 /* Dialog.swift in Sources */,

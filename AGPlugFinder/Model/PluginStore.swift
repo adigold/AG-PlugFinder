@@ -55,6 +55,8 @@ final class PluginStore {
     }
     /// Called when favorites or visibility change, so they sync to the user's other Macs.
     var onSettingsChanged: (() -> Void)?
+    /// The catalog was saved; the library shares categories and descriptions from it (BL-193).
+    @ObservationIgnored var onCatalogSaved: (() -> Void)?
     /// Bumped whenever a screenshot file changes, so views reload images.
     private(set) var imageGeneration = 0
 
@@ -161,7 +163,22 @@ final class PluginStore {
                 if !p.isLogic { p.snapshotState = .pending; p.snapshotError = nil }
             }
         }
+        PictureSync.removed(ids)
         snapshotChanged()
+    }
+
+    /// Categories and descriptions from another Mac (BL-193). Categories follow the other Mac
+    /// for every plugin here; a description is only ever added or updated, never removed.
+    func applySynced(categories: [String: String]?, details: [String: PluginDetails]?) {
+        guard categories != nil || details != nil else { return }
+        var list = plugins
+        var changed = false
+        for i in list.indices {
+            let id = list[i].id
+            if let categories, list[i].userCategory != categories[id] { list[i].userCategory = categories[id]; changed = true }
+            if let d = details?[id], list[i].details != d { list[i].details = d; changed = true }
+        }
+        if changed { plugins = list; save(notify: false) }
     }
 
     func clearInfo(_ ids: [String]) {
@@ -177,6 +194,8 @@ final class PluginStore {
     func snapshotChanged() {
         imageCache.removeAllObjects()
         imageGeneration += 1
+        // A new or changed picture goes to the other Macs (BL-193).
+        PictureSync.soon()
     }
 
     // MARK: Favorites / recents
@@ -373,7 +392,7 @@ final class PluginStore {
     let readOnly = false
     #endif
 
-    private func save() {
+    private func save(notify: Bool = true) {
         guard !readOnly else { return }
         do {
             let data = try JSONEncoder().encode(plugins)
@@ -381,6 +400,8 @@ final class PluginStore {
         } catch {
             NSLog("AG PlugFinder: could not save catalog: \(error)")
         }
+        // A category or a description set here goes to the other Macs (BL-193).
+        if notify { onCatalogSaved?() }
     }
 
     private func saveDefaults() {
