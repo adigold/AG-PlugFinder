@@ -287,7 +287,7 @@ final class Licenses {
     }
 
     private func pushToCloud() {
-        guard UserLibrary.shared.syncEnabled, let cloud = Self.cloudFile else { return }
+        guard UserLibrary.shared.syncs(.purchases), let cloud = Self.cloudFile else { return }
         try? FileManager.default.createDirectory(at: cloud.deletingLastPathComponent(), withIntermediateDirectories: true)
         save(to: cloud)
         UserDefaults.standard.set(true, forKey: "licenses.synced")
@@ -296,7 +296,7 @@ final class Licenses {
     /// Takes the iCloud copy when it is newer (at launch and when the app comes to the front).
     /// The first time a Mac syncs, its entries and the iCloud ones are merged, so nothing is lost.
     func pullFromCloud() {
-        guard UserLibrary.shared.syncEnabled, let cloud = Self.cloudFile else { return }
+        guard UserLibrary.shared.syncs(.purchases), let cloud = Self.cloudFile else { return }
         guard let s = Self.read(cloud) else {
             if !licenses.isEmpty || !plans.isEmpty { pushToCloud() }
             return

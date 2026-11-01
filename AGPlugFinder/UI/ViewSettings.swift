@@ -93,6 +93,40 @@ final class ViewSettings {
     }
 
     private func save(_ key: String, _ value: Any) {
+        #if DEBUG
+        // Test runs share the real app's settings: never save a view tried during a test.
+        if CommandLine.arguments.contains(where: { $0.hasPrefix("--selftest") }) { return }
+        #endif
         UserDefaults.standard.set(value, forKey: "view." + key)
+        if !applying, UserLibrary.ready { UserLibrary.shared.settingChanged() }
+    }
+
+    // MARK: Sync (BL-157)
+
+    private var applying = false
+
+    /// The view choices other Macs take, as text.
+    var syncValues: [String: String] {
+        ["layout": layout.rawValue, "size": size.rawValue, "tileWidth": String(Double(tileWidth)),
+         "showName": String(showName), "showDetails": String(showDetails), "showInfoPane": String(showInfoPane),
+         "chipRow": chipRow.rawValue, "spacePreview": String(spacePreview), "joinMonoStereo": String(joinMonoStereo)]
+    }
+
+    /// Takes another Mac's view choices; only what differs changes.
+    func applySync(_ v: [String: String]) {
+        applying = true
+        defer { applying = false }
+        if let x = v["layout"].flatMap(Layout.init(rawValue:)), x != layout { layout = x }
+        if let x = v["size"].flatMap(Size.init(rawValue:)), x != size { settingWidth = true; size = x; settingWidth = false }
+        if let x = v["tileWidth"].flatMap(Double.init), abs(CGFloat(x) - tileWidth) > 0.5 {
+            tileWidth = min(max(CGFloat(x), Self.tileRange.lowerBound), Self.tileRange.upperBound)
+        }
+        func flag(_ k: String) -> Bool? { v[k].flatMap(Bool.init) }
+        if let x = flag("showName"), x != showName { showName = x }
+        if let x = flag("showDetails"), x != showDetails { showDetails = x }
+        if let x = flag("showInfoPane"), x != showInfoPane { showInfoPane = x }
+        if let x = v["chipRow"].flatMap(ChipRow.init(rawValue:)), x != chipRow { chipRow = x }
+        if let x = flag("spacePreview"), x != spacePreview { spacePreview = x }
+        if let x = flag("joinMonoStereo"), x != joinMonoStereo { joinMonoStereo = x }
     }
 }

@@ -83,6 +83,8 @@ final class AppearanceSettings {
         if CommandLine.arguments.contains(where: { $0.hasPrefix("--selftest") }) { return }
         #endif
         UserDefaults.standard.set(value, forKey: "view." + key)
+        // Shared with the other Macs when that is on (BL-157).
+        if UserLibrary.ready, Thread.isMainThread { MainActor.assumeIsolated { UserLibrary.shared.settingChanged() } }
     }
 
     /// Windows made in AppKit take the new look at once. See-through windows (the dim behind a

@@ -4,6 +4,27 @@ import Observation
 /// What the user builds on top of the catalog: chains (BL-25), number pins (BL-26),
 /// collections (BL-29), notes (BL-30) and usage counts (BL-31). Saved in library.json and,
 /// when sync is on, mirrored through iCloud Drive to the user's other Macs (BL-34).
+
+/// The parts of the library a Mac can choose to sync or keep to itself (BL-157).
+enum SyncSection: String, CaseIterable, Identifiable {
+    case favorites, collections, chains, notes, keys, hidden, pills, purchases, appearance, view
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .favorites: return "Favorites"
+        case .collections: return "Collections"
+        case .chains: return "Chains"
+        case .notes: return "Notes"
+        case .keys: return "Number keys 1 to 9"
+        case .hidden: return "Hidden plugins"
+        case .pills: return "Pills: order, names, colors and combined pills"
+        case .purchases: return "My Purchases: purchases and subscriptions"
+        case .appearance: return "Theme and text size"
+        case .view: return "View: grid or list, picture size, names and details"
+        }
+    }
+}
+
 @MainActor
 @Observable
 final class UserLibrary {
@@ -47,6 +68,9 @@ final class UserLibrary {
         var hiddenPlugins: [String]? = nil
         var shownPlugins: [String]? = nil
         var pills: PillPrefs? = nil
+        // Synced from BL-157 on: the look and the view choices, as plain text values.
+        var appearance: [String: String]? = nil
+        var view: [String: String]? = nil
     }
 
     var chains: [Chain] = [] { didSet { changed() } }
@@ -64,6 +88,26 @@ final class UserLibrary {
         set { UserDefaults.standard.set(newValue, forKey: "sync.iCloud"); if newValue { pushToCloud() } }
     }
 
+    /// Sections this Mac keeps to itself (BL-157). Empty means everything syncs.
+    var syncOff: Set<String> = Set(UserDefaults.standard.stringArray(forKey: "sync.off") ?? []) {
+        didSet {
+            guard syncOff != oldValue else { return }
+            if !readOnly { UserDefaults.standard.set(Array(syncOff), forKey: "sync.off") }
+            // A section turned back on takes what the other Macs have, then shares from here on.
+            for s in oldValue.subtracting(syncOff).compactMap(SyncSection.init(rawValue:)) { adoptCloud(s) }
+            if oldValue.contains(SyncSection.purchases.rawValue), !syncOff.contains(SyncSection.purchases.rawValue) {
+                Licenses.shared.pullFromCloud()
+            }
+            pushToCloud()
+        }
+    }
+
+    /// Whether this part syncs on this Mac.
+    func syncs(_ s: SyncSection) -> Bool { syncEnabled && !syncOff.contains(s.rawValue) }
+
+    /// Settings made outside the library (look, view) arrive here once the library is ready.
+    nonisolated(unsafe) static var ready = false
+
     private let fileURL: URL
     private var loading = false
     private var updatedAt = Date.distantPast
@@ -78,6 +122,7 @@ final class UserLibrary {
         }
         pullFromCloud()
         PluginStore.shared.onSettingsChanged = { [weak self] in self?.storeSettingsChanged() }
+        Self.ready = true
     }
 
     // MARK: Chains
@@ -148,43 +193,81 @@ final class UserLibrary {
 
     private func snapshot() -> Saved {
         let store = PluginStore.shared
+        let look = AppearanceSettings.shared
         return Saved(chains: chains, collections: collections, notes: notes, pins: pins, useCount: useCount,
                      updatedAt: updatedAt, favorites: Array(store.favorites),
                      hiddenGroups: Array(store.hiddenGroups), hiddenPlugins: Array(store.hiddenPlugins),
-                     shownPlugins: Array(store.shownPlugins), pills: pills)
+                     shownPlugins: Array(store.shownPlugins), pills: pills,
+                     appearance: ["theme": look.paletteID, "textScale": String(look.textScale)],
+                     view: ViewSettings.shared.syncValues)
     }
 
-    private func save(to url: URL) {
+    private func save(to url: URL) { write(snapshot(), to: url) }
+
+    private func write(_ saved: Saved, to url: URL) {
         let enc = JSONEncoder()
         enc.outputFormatting = [.prettyPrinted, .sortedKeys]
-        if let data = try? enc.encode(snapshot()) { try? data.write(to: url, options: .atomic) }
+        if let data = try? enc.encode(saved) { try? data.write(to: url, options: .atomic) }
     }
 
+    private static func decode(_ url: URL) -> Saved? {
+        guard let data = try? Data(contentsOf: url) else { return nil }
+        return try? JSONDecoder().decode(Saved.self, from: data)
+    }
+
+    /// Reads a saved library. From iCloud (`applyStoreSettings`), only the sections this Mac
+    /// syncs are taken (BL-157); this Mac's own file always loads whole.
     @discardableResult
     private func load(from url: URL, applyStoreSettings: Bool = false) -> Bool {
-        guard let data = try? Data(contentsOf: url), let s = try? JSONDecoder().decode(Saved.self, from: data)
-        else { return false }
+        guard let s = Self.decode(url) else { return false }
         loading = true
         defer { loading = false }
-        chains = s.chains
-        collections = s.collections
-        notes = s.notes
-        pins = s.pins
+        apply(s, only: applyStoreSettings ? Set(SyncSection.allCases.filter { !syncOff.contains($0.rawValue) }) : Set(SyncSection.allCases),
+              cloud: applyStoreSettings)
         useCount = s.useCount
-        pills = s.pills ?? PillPrefs()
         updatedAt = s.updatedAt
-        if applyStoreSettings {
-            let store = PluginStore.shared
-            if let f = s.favorites { store.favorites = Set(f) }
+        return true
+    }
+
+    private func apply(_ s: Saved, only: Set<SyncSection>, cloud: Bool) {
+        if only.contains(.chains) { chains = s.chains }
+        if only.contains(.collections) { collections = s.collections }
+        if only.contains(.notes) { notes = s.notes }
+        if only.contains(.keys) { pins = s.pins }
+        if only.contains(.pills) { pills = s.pills ?? PillPrefs() }
+        guard cloud else { return }
+        let store = PluginStore.shared
+        if only.contains(.favorites), let f = s.favorites { store.favorites = Set(f) }
+        if only.contains(.hidden) {
             if let g = s.hiddenGroups { store.hiddenGroups = Set(g) }
             if let h = s.hiddenPlugins { store.hiddenPlugins = Set(h) }
             if let v = s.shownPlugins { store.shownPlugins = Set(v) }
         }
-        return true
+        if only.contains(.appearance), let a = s.appearance {
+            let look = AppearanceSettings.shared
+            if let t = a["theme"], t != look.paletteID, Palette.all.contains(where: { $0.id == t }) { look.paletteID = t }
+            if let z = a["textScale"].flatMap(Double.init), abs(z - look.textScale) > 0.001 { look.textScale = min(max(z, 0.85), 1.3) }
+        }
+        if only.contains(.view), let v = s.view { ViewSettings.shared.applySync(v) }
+    }
+
+    /// A section just turned on takes the iCloud copy, so this Mac does not overwrite the others.
+    private func adoptCloud(_ section: SyncSection) {
+        guard syncEnabled, section != .purchases, let cloud = Self.cloudFile, let s = Self.decode(cloud) else { return }
+        loading = true
+        apply(s, only: [section], cloud: true)
+        loading = false
+        if !readOnly { save(to: fileURL) }
     }
 
     /// iCloud Drive's folder on this Mac; nil when iCloud Drive is off.
     static var cloudFile: URL? {
+        #if DEBUG
+        // Self-test only: a stand-in for the iCloud file, so a test never touches the real one.
+        if let k = CommandLine.arguments.firstIndex(of: "--sync-cloud"), k + 1 < CommandLine.arguments.count {
+            return URL(fileURLWithPath: CommandLine.arguments[k + 1])
+        }
+        #endif
         let drive = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/Mobile Documents/com~apple~CloudDocs", isDirectory: true)
         guard FileManager.default.fileExists(atPath: drive.path) else { return nil }
@@ -202,7 +285,31 @@ final class UserLibrary {
     private func pushToCloud() {
         guard syncEnabled, let cloud = Self.cloudFile else { return }
         try? FileManager.default.createDirectory(at: cloud.deletingLastPathComponent(), withIntermediateDirectories: true)
-        save(to: cloud)
+        var out = snapshot()
+        // Sections this Mac keeps to itself: the iCloud copy keeps the other Macs' version.
+        if !syncOff.isEmpty, let old = Self.decode(cloud) {
+            for s in syncOff.compactMap(SyncSection.init(rawValue:)) {
+                switch s {
+                case .favorites: out.favorites = old.favorites
+                case .collections: out.collections = old.collections
+                case .chains: out.chains = old.chains
+                case .notes: out.notes = old.notes
+                case .keys: out.pins = old.pins
+                case .hidden: out.hiddenGroups = old.hiddenGroups; out.hiddenPlugins = old.hiddenPlugins; out.shownPlugins = old.shownPlugins
+                case .pills: out.pills = old.pills
+                case .appearance: out.appearance = old.appearance
+                case .view: out.view = old.view
+                case .purchases: break
+                }
+            }
+        }
+        write(out, to: cloud)
+    }
+
+    /// The look or a view choice changed on this Mac: share it (BL-157).
+    func settingChanged() {
+        guard Self.ready, !loading else { return }
+        storeSettingsChanged()
     }
 
     /// Takes the cloud copy when it is newer than this Mac's (on launch and when the app

@@ -1076,6 +1076,48 @@ enum SelfTest {
                 say("done")
             }
         }
+        // --selftest-syncsections --sync-cloud <file>: sections kept to this Mac keep the other
+        // Macs' copy in iCloud, and a section turned back on takes the iCloud copy (BL-157).
+        // Library read only, the real iCloud file and settings untouched.
+        if args.contains("--selftest-syncsections"), let cloud = UserLibrary.cloudFile {
+            Task {
+                let lib = UserLibrary.shared
+                lib.readOnly = true
+                let seed = #"{"chains":[],"collections":[],"notes":{"probe":"cloud note"},"pins":{},"useCount":{},"updatedAt":0,"favorites":["cloud-fav"],"appearance":{"theme":"ocean","textScale":"1.1"}}"#
+                try? Data(seed.utf8).write(to: cloud)
+                print("SYNC this Mac notes=\(lib.notes["probe"] ?? "none") theme=\(AppearanceSettings.shared.paletteID)")
+                lib.syncOff = ["favorites", "notes"]
+                let after = (try? JSONSerialization.jsonObject(with: Data(contentsOf: cloud))) as? [String: Any] ?? [:]
+                print("SYNC kept favorites=\(after["favorites"] ?? "nil") notes=\(after["notes"] ?? "nil")")
+                print("SYNC shared theme=\((after["appearance"] as? [String: String])?["theme"] ?? "nil") view=\((after["view"] as? [String: String])?["layout"] ?? "nil")")
+                lib.syncOff = ["favorites"]
+                print("SYNC notes turned on, this Mac now has: \(lib.notes["probe"] ?? "none")")
+                print("SYNC syncs favorites=\(lib.syncs(.favorites)) notes=\(lib.syncs(.notes)) purchases=\(lib.syncs(.purchases))")
+                let w = NSWindow(contentRect: NSRect(x: 80, y: 80, width: 780, height: 900), styleMask: [.titled], backing: .buffered, defer: false)
+                w.contentView = NSHostingView(rootView: GeneralSettings().frame(width: 780, height: 900))
+                w.makeKeyAndOrderFront(nil)
+                try? await Task.sleep(for: .seconds(1))
+                await capture(w, to: cloud.deletingLastPathComponent().appendingPathComponent("sync-settings.png"), scale: 1)
+                print("SYNC done"); fflush(stdout)
+            }
+        }
+        // --selftest-icloudkeychain: can this app keep a key in iCloud Keychain? Adds a test item,
+        // reads it back and deletes it (BL-157).
+        if args.contains("--selftest-icloudkeychain") {
+            let base: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                       kSecAttrService as String: "com.adigoldstein.AGPlugFinder.synctest",
+                                       kSecAttrAccount as String: "probe", kSecAttrSynchronizable as String: true]
+            SecItemDelete(base as CFDictionary)
+            var add = base
+            add[kSecValueData as String] = Data("x".utf8)
+            add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            let a = SecItemAdd(add as CFDictionary, nil)
+            var q = base; q[kSecReturnData as String] = true
+            var out: CFTypeRef?
+            let r = SecItemCopyMatching(q as CFDictionary, &out)
+            let d = SecItemDelete(base as CFDictionary)
+            print("ICK add=\(a) read=\(r) delete=\(d)"); fflush(stdout)
+        }
         // --selftest-dynnames: well-known dynamics plugins sorted by name alone (BL-150).
         if args.contains("--selftest-dynnames") {
             let names = ["CLA-76", "FabFilter Pro-C 2", "SSL Native Bus Compressor 2", "API-2500", "dbx-160", "Kotelnikov",

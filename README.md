@@ -102,7 +102,7 @@ You know the plugin you want. You can picture its window. But Logic's plugin men
 
 ## Sync
 
-Favorites, collections, chains, notes, number keys, hidden plugins, pills, licenses and subscriptions sync with your other Macs through iCloud Drive, and you see the sync happen when you turn it on. License keys stay on each Mac.
+Favorites, collections, chains, notes, number keys, hidden plugins, pills, purchases and subscriptions, your theme and text size, and your view choices sync with your other Macs through iCloud Drive, and you see the sync happen when you turn it on. Choose in Settings which of them each Mac shares. License keys stay on each Mac.
 
 ## Your keys
 

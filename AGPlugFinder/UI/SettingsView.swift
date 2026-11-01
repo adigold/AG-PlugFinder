@@ -100,9 +100,20 @@ struct GeneralSettings: View {
                     }
                     .disabled(UserLibrary.cloudFile == nil || syncState == .syncing)
                 if syncState != .idle { SyncProgressRow(state: syncState) }
+                // What syncs, chosen on each Mac (BL-157).
+                ForEach(SyncSection.allCases) { section in
+                    Toggle(section.title, isOn: Binding(
+                        get: { !UserLibrary.shared.syncOff.contains(section.rawValue) },
+                        set: { on in
+                            if on { UserLibrary.shared.syncOff.remove(section.rawValue) }
+                            else { UserLibrary.shared.syncOff.insert(section.rawValue) }
+                        }))
+                    .padding(.leading, 14)
+                    .disabled(!sync || UserLibrary.cloudFile == nil)
+                }
                 Text(UserLibrary.cloudFile == nil
-                     ? "Turn on iCloud Drive in System Settings to sync favorites, collections, chains, notes, number keys, hidden plugins and licenses."
-                     : "Favorites, collections, chains, notes, number keys, hidden plugins, licenses and subscriptions. License keys stay on each Mac"
+                     ? "Turn on iCloud Drive in System Settings to sync with your other Macs."
+                     : "Turn off what this Mac should keep to itself. License keys stay in each Mac's own Keychain"
                         + (UserLibrary.shared.lastSynced.map { ". Last synced \($0.formatted(.relative(presentation: .named)))." } ?? "."))
                     .font(.caption).foregroundStyle(.secondary)
             }
