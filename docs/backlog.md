@@ -22,7 +22,6 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 ## Now
-- [~] **BL-181** `P2 · Medium` **Favorites are yellow in every theme and come first:** the favorite star is always yellow whatever theme is chosen, and favorites lead the results in every sort and search. Adi, 2026-11-01.
 - [~] **BL-100** `P2 · Medium` **Wish list and price alerts:** add plugins you want (name, maker, store link, target price); the app checks the store page's price and tells you when it drops or reaches your target; wish list total next to the collection value. Adi, 2026-10-31.
 - [ ] **BL-101** `P2 · Medium` **Project plugin report:** for the open Logic project, which plugins it uses, on which tracks, and which are missing on this Mac; export a list for a collaborator. Adi, 2026-10-31.
 - [ ] **BL-102** `P2 · Medium` **Plugin presets:** the user's saved Logic settings for each plugin, shown in its info panel; insert a plugin with a chosen setting loaded, from the picker or a number key; synced. Adi, 2026-10-31.
@@ -42,6 +41,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-181** `P2 · Medium` **Favorites are yellow in every theme and come first:** the favorite star is always yellow whatever theme is chosen, and favorites lead the results in every sort and search. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-180** `P2 · Medium` **Hold Option to choose where the plugin goes:** while a plugin is selected, holding Option shows the selected track's effects in order with a line between them; Option with the arrows moves the line, and the plugin is added right there. Uses the existing before and after insert. Logic first. Adi, 2026-11-01. Return adds, letting go of Option cancels, shown where the info panel is. · done 2026-11-01
 - [x] **BL-179** `P2 · Medium` **Favorites star in the mini window:** beside the pin, the same Favorites only switch as the full window. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-178** `P2 · Medium` **README brought up to date:** every section matches what the app does today (Ableton Live, Sideview, Plugin Manager, sync choices, Zoom, new categories, menu). Adi, 2026-11-01. · done 2026-11-01

@@ -119,10 +119,15 @@ final class PickerModel {
             list = list.filter { cats.contains($0.displayCategory) }
         }
         if let t = pointerTarget { list = list.filter { $0.slotKind == t.kind } }
-        guard query.isEmpty, collectionID == nil, pills.isEmpty, let s = suggestion, !s.ids.isEmpty else { return list }
+        // Favorites always lead, in the order the rest would have had (BL-181).
+        let favs = PluginStore.shared.favorites
+        func favoritesFirst(_ l: [Plugin]) -> [Plugin] {
+            favs.isEmpty ? l : l.filter { favs.contains($0.id) } + l.filter { !favs.contains($0.id) }
+        }
+        guard query.isEmpty, collectionID == nil, pills.isEmpty, let s = suggestion, !s.ids.isEmpty else { return favoritesFirst(list) }
         let rank = Dictionary(uniqueKeysWithValues: s.ids.enumerated().map { ($1, $0) })
         let first = list.filter { rank[$0.id] != nil }.sorted { rank[$0.id]! < rank[$1.id]! }
-        return first + list.filter { rank[$0.id] == nil }
+        return favoritesFirst(first + list.filter { rank[$0.id] == nil })
     }
 
     /// Reads the selected Logic track's name and picks plugins for it. Read only: nothing in

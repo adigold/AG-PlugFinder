@@ -332,7 +332,7 @@ struct LibraryView: View {
                 // Favorites only, the same switch as the full window's star (BL-179).
                 BarIconButton(systemImage: ViewSettings.shared.favoritesOnly ? "star.fill" : "star",
                               help: "Favorites only (⌘F)", active: ViewSettings.shared.favoritesOnly,
-                              activeTint: Theme.accent) {
+                              activeTint: Theme.favorite) {
                     ViewSettings.shared.favoritesOnly.toggle()
                     model.selection = 0
                 }

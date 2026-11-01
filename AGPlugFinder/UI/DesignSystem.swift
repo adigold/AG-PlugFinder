@@ -23,6 +23,8 @@ enum Theme {
 
     /// The one hue. Data and the selection only: never buttons, tabs or navigation.
     static var accent: Color { Color(hex: palette.accent) }
+    /// Favorites are yellow in every theme (BL-181).
+    static let favorite = Color(red: 1.0, green: 0.78, blue: 0.16)
     /// Text or marks drawn on the accent.
     static var onAccent: Color { Color(hex: palette.onAccent) }
     /// The strongest fill (a chosen pill, the main button) and what sits on it: white on black

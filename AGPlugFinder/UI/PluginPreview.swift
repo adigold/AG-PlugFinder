@@ -227,7 +227,7 @@ struct PluginPreview: View {
                 .disabled(model.isBusy)
             BarIconButton(systemImage: store.favorites.contains(plugin.id) ? "star.fill" : "star",
                           help: "Favorite (⌘D)", active: store.favorites.contains(plugin.id),
-                          activeTint: Theme.accent) {
+                          activeTint: Theme.favorite) {
                 store.favoriteTapped(plugin.id)
             }
             BarIconButton(systemImage: "xmark", help: "Close (Space)") { model.previewing = false }

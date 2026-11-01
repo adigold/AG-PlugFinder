@@ -69,7 +69,7 @@ struct ViewControls: View {
             BarIconButton(systemImage: "plus.rectangle.on.rectangle", help: "New collection") { newCollection() }
             BarIconButton(systemImage: view.favoritesOnly ? "star.fill" : "star",
                           help: "Favorites only (⌘F)", active: view.favoritesOnly,
-                          activeTint: Theme.accent) {
+                          activeTint: Theme.favorite) {
                 view.favoritesOnly.toggle()
                 model.selection = 0
             }
@@ -374,7 +374,7 @@ struct PluginRow: View {
                         .lineLimit(1)
                     MonoStereoMark(plugin: plugin)
                     if store.favorites.contains(plugin.id) {
-                        Image(systemName: "star.fill").font(.system(size: Theme.ts(9))).foregroundStyle(Theme.accent)
+                        Image(systemName: "star.fill").font(.system(size: Theme.ts(9))).foregroundStyle(Theme.favorite)
                     }
                 }
                 if view.showDetails || compact {
@@ -693,7 +693,7 @@ struct PluginDetailView: View {
                     .help("Add \(plugin.name) to the selected track in Logic")
                 BarIconButton(systemImage: store.favorites.contains(plugin.id) ? "star.fill" : "star",
                               help: "Favorite (⌘D)", active: store.favorites.contains(plugin.id),
-                              activeTint: Theme.accent) {
+                              activeTint: Theme.favorite) {
                     store.favoriteTapped(plugin.id)
                 }
                 BarIconButton(systemImage: "sidebar.right", help: "Hide the info panel (⌘I). The button at the top brings it back.") {
@@ -1202,7 +1202,7 @@ struct FavoriteStar: View {
         Button { store.favoriteTapped(plugin.id) } label: {
             Image(systemName: on ? "star.fill" : "star")
                 .font(.system(size: Theme.ts(11), weight: .semibold))
-                .foregroundStyle(on ? Theme.accent : (hovering ? Theme.text : Color.white.opacity(cardHovered ? 0.55 : 0.32)))
+                .foregroundStyle(on ? Theme.favorite : (hovering ? Theme.text : Color.white.opacity(cardHovered ? 0.55 : 0.32)))
                 .frame(width: 24, height: 24)
                 .background(Circle().fill(Color.black.opacity(on || hovering || cardHovered ? 0.7 : 0.45)))
                 .scaleEffect(hovering ? 1.12 : 1)
