@@ -162,6 +162,10 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.41**
+
+- **New:** LoFi category. RC-20 Retro Color, Retro Fi, Lofi Space, Tape MELLO-FI, UFX-LOFI and other lo-fi effects have their own pill.
+
 **0.9.40**
 
 - **Fixed:** The app could close right after the first scan, while looking up plugin information. It now finishes the setup without stopping.
@@ -170,14 +174,14 @@ Everything each version brought, newest first. The same notes appear in the app'
 
 - **Fixed:** Dragging several chosen plugins onto a collection adds all of them, not only the one you dragged.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.38)</summary>
+
 **0.9.38**
 
 - **New:** Pictures of Ableton Live's own devices, from Amp to Wavetable.
 - **New:** A small badge at the bottom left shows whether plugins go to Logic Pro or Ableton Live, and whether it is open.
 - **Improved:** After adding to Ableton you get a message naming the track, or telling you what to turn on in Live when a plugin is missing.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.37)</summary>
 
 **0.9.37**
 
