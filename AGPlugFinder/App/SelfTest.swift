@@ -1184,6 +1184,14 @@ enum SelfTest {
                 print("BGCAT survived \(plugins.count) plugins x 5 threads: \(cats.joined(separator: ", "))"); fflush(stdout)
             }
         }
+        // --selftest-lofi: which names count as LoFi (BL-169).
+        if args.contains("--selftest-lofi") {
+            for n in ["FIN-RETRO", "RC-20 Retro Color", "Retro Fi", "LoFi - Flux Light", "Lofi Oddity", "Lofi Space", "Tape MELLO-FI",
+                      "UFX-LOFI", "Unfiltered Audio Needlepoint", "Vinyl Distortion", "Retro Synth", "ChromaVerb", "Saturator", "Decapitator"] {
+                print("LOFI \(n) -> \(PluginCategories.isLoFi(n))")
+            }
+            fflush(stdout)
+        }
         // --selftest-icloudkeychain: can this app keep a key in iCloud Keychain? Adds a test item,
         // reads it back and deletes it (BL-157).
         if args.contains("--selftest-icloudkeychain") {

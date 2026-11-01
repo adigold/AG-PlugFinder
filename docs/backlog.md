@@ -40,6 +40,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-169** `P2 · Medium` **LoFi category:** a LoFi pill for lo-fi effects (RC-20 Retro Color, Retro Fi, Lofi Space, Tape MELLO-FI, UFX-LOFI, FIN-RETRO, Needlepoint, anything named lofi, cassette or vinyl), taken by name ahead of their other category. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-168** `P1 · Critical` **Crash after the first scan (report 3, v0.9.37):** looking up plugin info in the background asked for a plugin's category, and the Channel Strip check and the Dynamics split insisted on the main thread, so the app stopped itself; make both safe from any thread. User report, 2026-11-01. · done 2026-11-01
 - [x] **BL-167** `P1 · High` **Drag several plugins to a collection:** when several plugins are picked and dragged onto a collection pill, all of them go into the collection, not only the one dragged. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-166** `P2 · Medium` **Ableton device pictures in the shared database:** the server also serves pictures for Ableton's own devices, and the 68 pictures are added to the live database. Adi, 2026-11-01. · done 2026-11-01

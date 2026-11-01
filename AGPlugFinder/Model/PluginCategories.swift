@@ -5,7 +5,7 @@ import AudioToolbox
 /// only Logic's (a user's report, 2026-10-31: wideners, sonible and iZotope missing from Imaging).
 enum PluginCategories {
     /// Every category a user can choose, in Logic's words.
-    static let all = ["Amps and Pedals", "Channel Strip", "Compressor", "Limiter", "Multiband", "De-esser", "Transient", "Gate",
+    static let all = ["Amps and Pedals", "Channel Strip", "LoFi", "Compressor", "Limiter", "Multiband", "De-esser", "Transient", "Gate",
                       "Rider", "Expander", "Delay", "Distortion", "EQ", "Filter", "Imaging",
                       "Metering", "Modulation", "Multi Effects", "Pitch", "Reverb", "Utility", "Specialized",
                       "Synth", "Sampler", "Drums", "Keys", "Bass", "Orchestral", "MIDI FX"]
@@ -26,6 +26,19 @@ enum PluginCategories {
         let n = name.lowercased()
         let yes = !n.contains("channel eq") && stripWords.contains { n.contains($0) }
         stripMemo.change { $0[name] = yes }
+        return yes
+    }
+
+    /// Lo-fi effects (BL-169): tape and vinyl wear, retro color. Effects only, so an instrument
+    /// like Retro Synth is not one. Safe from any thread, like the Channel Strip check.
+    private static let lofiWords = ["lofi", "lo-fi", "lo fi", "rc-20", "rc20", "retro color", "retrocolor", "retro fi",
+                                    "mello-fi", "mellofi", "fin-retro", "needlepoint", "cassette", "vinyl", "sketchcassette"]
+    private static let lofiMemo = Locked<[String: Bool]>([:])
+    static func isLoFi(_ name: String) -> Bool {
+        if let m = lofiMemo.read({ $0[name] }) { return m }
+        let n = name.lowercased()
+        let yes = lofiWords.contains { n.contains($0) }
+        lofiMemo.change { $0[name] = yes }
         return yes
     }
 

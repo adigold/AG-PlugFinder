@@ -260,6 +260,7 @@ struct LogicCard: View {
         case "Delay": return "repeat"
         case "Distortion": return "bolt"
         case "Channel Strip": return "slider.horizontal.3"
+        case "LoFi": return "recordingtape"
         case "Dynamics", "Compressor": return "waveform.path.ecg"
         case "Limiter": return "arrow.down.to.line"
         case "Multiband": return "chart.bar"

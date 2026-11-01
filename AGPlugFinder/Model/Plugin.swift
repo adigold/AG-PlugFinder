@@ -91,6 +91,7 @@ struct Plugin: Identifiable, Codable, Hashable {
         // A category chosen before Dynamics was split is split the same way (BL-150).
         if let c = userCategory { return Self.splitDynamics(c, name: name, id: id) }
         if !isLogic, PluginCategories.isChannelStrip(name) { return "Channel Strip" }
+        if !isLogic, slotKind == .audioFX, PluginCategories.isLoFi(name) { return "LoFi" }
         return Self.splitDynamics(baseCategory, name: name, id: id)
     }
 
