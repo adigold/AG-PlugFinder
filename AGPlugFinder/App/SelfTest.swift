@@ -579,6 +579,30 @@ enum SelfTest {
             print("RM safety: all paths wrong -> kept \(PluginScanner.keepInstalled(allGone).count) of \(allGone.count)")
             print("RM done"); fflush(stdout)
         }
+        // --selftest-pluginmanager <dir>: scan every format, list duplicates, picture the tab (BL-144). Moves nothing.
+        if let k = args.firstIndex(of: "--selftest-pluginmanager"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task {
+                let m = PluginManager.shared
+                m.scan()
+                while m.scanning || m.lastScan == nil { try? await Task.sleep(for: .milliseconds(200)) }
+                let byFormat = Dictionary(grouping: m.items, by: \.format).map { "\($0.key.rawValue):\($0.value.count)" }.sorted()
+                let notes = m.notes()
+                print("PM items=\(m.items.count) \(byFormat) receipts=\(m.items.filter { $0.receipt != nil }.count) notes=\(notes.count)")
+                for i in m.items where notes[i.id] != nil { print("PM   \(notes[i.id]!.rawValue): \(i.name) [\(i.format.rawValue), \(i.system ? "system" : "user"), \(i.version)]") }
+                for (pkg, files) in m.leftoverFiles.sorted(by: { $0.key < $1.key }) {
+                    print("PM   leftovers \(pkg): \(files.count)"); for f in files.prefix(4) { print("PM     \(f)") }
+                }
+                // Ticks rows in memory to picture the footer; nothing is moved.
+                if args.contains("--selectall") { m.selected = Set(m.items.map(\.id)); print("PM leftovers for all: \(m.leftovers(for: m.items).count)") }
+                let w = NSWindow(contentRect: NSRect(x: 80, y: 80, width: 780, height: 580), styleMask: [.titled], backing: .buffered, defer: false)
+                w.contentView = NSHostingView(rootView: PluginManagerView())
+                w.makeKeyAndOrderFront(nil)
+                try? await Task.sleep(for: .seconds(1.2))
+                await capture(w, to: dir.appendingPathComponent("pm.png"), scale: 1)
+                print("PM done"); fflush(stdout)
+            }
+        }
         // --selftest-makerurl: where Maker's Website goes for a few plugins (BL-129).
         if args.contains("--selftest-makerurl") {
             Task {

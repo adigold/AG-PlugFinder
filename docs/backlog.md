@@ -7,6 +7,8 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
+- [ ] **BL-144** `P1 · High` **Plugin Manager in Settings:** scan AU, VST, VST3, AAX and CLAP; find duplicates (same plugin twice, old beside new, formats Logic does not use, offered never pre-selected); remove by moving the files into a dated folder on the Desktop and telling the user; uses install receipts like Audio Plugin Uninstaller (Adi wants REA used on that app once it is on the Mac). Adi, 2026-11-01.
+
 - [ ] **BL-135** `P1 · High` **Rename the app to Retrive.me:** new name everywhere users see it. Adi, 2026-11-01.
 - [ ] **BL-136** `P1 · High` **retrive.me website:** a site for the app on the new domain (Cloudflare DNS). Adi, 2026-11-01.
 

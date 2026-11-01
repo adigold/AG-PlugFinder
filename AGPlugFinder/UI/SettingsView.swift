@@ -13,6 +13,8 @@ struct SettingsView: View {
                 .tabItem { Label("Plugin List", systemImage: "list.bullet.rectangle") }
             PillsEditor()
                 .tabItem { Label("Pills", systemImage: "capsule") }
+            PluginManagerView()
+                .tabItem { Label("Plugin Manager", systemImage: "shippingbox") }
             LicensesView(topPadding: 22)
                 .tabItem { Label("My Purchases", systemImage: "creditcard") }
             UpdateSettings()
