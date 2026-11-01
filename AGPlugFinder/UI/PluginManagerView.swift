@@ -23,7 +23,11 @@ struct PluginManagerView: View {
         var search: String; var formats: Set<PluginManager.Format>; var mode: Mode; var scan: Date?
     }
 
-    init(asking: [PluginManager.Item]? = nil) { _asking = State(initialValue: asking) }
+    init(asking: [PluginManager.Item]? = nil, formats: Set<PluginManager.Format> = [], mode: Mode = .duplicates) {
+        _asking = State(initialValue: asking)
+        _formats = State(initialValue: formats)
+        _mode = State(initialValue: mode)
+    }
 
     var body: some View {
         let notes = manager.notes()
@@ -78,6 +82,7 @@ struct PluginManagerView: View {
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
             }
+            summary(shown)
             footer(shown)
         }
         .padding(20)
@@ -179,6 +184,31 @@ struct PluginManagerView: View {
 
     private func toggle(_ i: PluginManager.Item) {
         if manager.selected.contains(i.id) { manager.selected.remove(i.id) } else { manager.selected.insert(i.id) }
+    }
+
+    /// What the filters show and what the chosen plugins take on the disk (BL-159).
+    private func summary(_ shown: [PluginManager.Item]) -> some View {
+        let fmt = { (n: Int64) in ByteCountFormatter.string(fromByteCount: n, countStyle: .file) }
+        let group = (formats.isEmpty ? "All formats" : PluginManager.Format.allCases.filter { formats.contains($0) }.map(\.rawValue).joined(separator: " + "))
+            + (mode == .duplicates ? ", duplicates" : mode == .installers ? ", by installer" : "")
+            + (search.isEmpty ? "" : ", matching “\(search)”")
+        let shownSize = shown.reduce(Int64(0)) { $0 + $1.size }
+        let chosen = manager.items.filter { manager.selected.contains($0.id) }
+        let chosenSize = chosen.reduce(Int64(0)) { $0 + $1.size }
+        return HStack(spacing: 10) {
+            Image(systemName: "internaldrive").foregroundStyle(Theme.faint)
+            Text("\(group): \(shown.count) plugin\(shown.count == 1 ? "" : "s") · \(fmt(shownSize))")
+                .foregroundStyle(Theme.text)
+            Spacer()
+            if !chosen.isEmpty {
+                // Moving keeps the files on this disk: the space comes back when the folder is deleted.
+                Text("\(chosen.count) chosen: frees \(fmt(chosenSize)) once you delete the Desktop folder")
+                    .foregroundStyle(Theme.accent)
+            }
+        }
+        .font(.system(size: Theme.ts(12), weight: .medium)).monospacedDigit()
+        .padding(.horizontal, 12).frame(height: 32)
+        .background(RoundedRectangle(cornerRadius: 10).fill(Theme.surface))
     }
 
     private func footer(_ shown: [PluginManager.Item]) -> some View {

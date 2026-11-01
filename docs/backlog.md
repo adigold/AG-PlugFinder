@@ -36,6 +36,8 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-159** `P2 · Medium` **Sizes for the filter and space saved:** with a filter on (for example VST3) show how many plugins and how much space that group takes, and how much disk space the chosen plugins free. Adi, 2026-11-01. · done 2026-11-01
+- [x] **BL-158** `P1 · High` **No rescan after moving plugins:** after the Plugin Manager moves plugins to the Desktop it takes them off its list at once instead of scanning everything again. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-157** `P1 · High` **Choose what syncs:** sync everything, including theme and text size, view choices and license keys, and let the user pick in Settings which sections sync (favorites, collections, chains, notes, number keys, hidden plugins, pills, My Purchases, license keys, appearance, view). Adi, 2026-11-01. License keys stay per Mac for now: iCloud Keychain needs a keychain entitlement and provisioning profile the app does not have (error -34018). · done 2026-11-01
 - [x] **BL-156** `P1 · High` **Plugin Manager list not laggy after the scan:** ticking a box, searching or switching views with thousands of plugins must react at once; the list is worked out once and kept, not on every click. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-155** `P1 · High` **Plugin Manager fast with thousands of plugins:** with 2,500 files the scan and the list were slow and laggy; read files in parallel, update the scan screen a few times a second instead of per file, draw only the rows on screen, work out duplicates once per scan, and clear Select All and Deselect All buttons. Adi, 2026-11-01. · done 2026-11-01

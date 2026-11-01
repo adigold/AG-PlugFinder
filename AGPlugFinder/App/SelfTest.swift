@@ -638,6 +638,22 @@ enum SelfTest {
                     print("PM one click takes \(String(format: "%.1f", Date().timeIntervalSince(t) * 100))ms"); fflush(stdout)
                     w.orderOut(nil)
                 }
+                if args.contains("--movefast") {
+                    // Moves three made-up plugins from the test folder: the list drops them with no new scan (BL-158).
+                    let three = Array(m.items.filter { $0.url.path.contains("fakeplugs") && $0.format == .vst3 }.prefix(3))
+                    let before = m.items.count
+                    let t = Date()
+                    let r = m.moveToDesktop(three)
+                    print("PM moved \(r.moved) in \(String(format: "%.3f", Date().timeIntervalSince(t)))s, list \(before) -> \(m.items.count), scanning=\(m.scanning), folder=\(r.folder.lastPathComponent)")
+                    try? FileManager.default.removeItem(at: r.folder)
+                    m.selected = Set(m.items.filter { $0.format == .vst3 }.prefix(40).map(\.id))
+                    let w = NSWindow(contentRect: NSRect(x: 80, y: 80, width: 780, height: 580), styleMask: [.titled], backing: .buffered, defer: false)
+                    w.contentView = NSHostingView(rootView: PluginManagerView(formats: [.vst3], mode: .all))
+                    w.makeKeyAndOrderFront(nil)
+                    try? await Task.sleep(for: .seconds(1))
+                    await capture(w, to: dir.appendingPathComponent("vst3.png"), scale: 1)
+                    w.orderOut(nil)
+                }
                 for (pkg, files) in m.leftoverFiles.sorted(by: { $0.key < $1.key }) {
                     print("PM   leftovers \(pkg): \(files.count)"); for f in files.prefix(4) { print("PM     \(f)") }
                 }

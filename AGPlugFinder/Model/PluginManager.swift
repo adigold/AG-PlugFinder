@@ -381,8 +381,19 @@ final class PluginManager {
         let before = PluginStore.shared.plugins.count
         PluginStore.shared.forget(bundles: movedAU)
         let dropped = before - PluginStore.shared.plugins.count
-        scan()
-        PluginWatcher.shared.rescanNow(quietWhenNothingNew: true)
+        // The moved plugins leave this list at once; nothing is scanned again (BL-158).
+        let gone = Set(chosen.filter { !FileManager.default.fileExists(atPath: $0.url.path) }.map(\.id))
+        if !gone.isEmpty {
+            items.removeAll { gone.contains($0.id) }
+            let movedFiles = Set(leftovers.filter { !FileManager.default.fileExists(atPath: $0) })
+            if !movedFiles.isEmpty {
+                leftoverFiles = leftoverFiles.mapValues { $0.filter { !movedFiles.contains($0) } }.filter { !$0.value.isEmpty }
+            }
+            refreshNotes()
+            lastScan = Date()
+        }
+        // The library holds Audio Units only: it looks again only when one of those moved.
+        if !movedAU.isEmpty { PluginWatcher.shared.rescanNow(quietWhenNothingNew: true) }
         if dropped > 0 { Toast.show(dropped == 1 ? "Removed 1 plugin from the library" : "Removed \(dropped) plugins from the library") }
         return (folder, moved, failed, extras)
     }
