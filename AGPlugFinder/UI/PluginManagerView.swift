@@ -334,7 +334,7 @@ struct ScanTicker: View {
             // How many are left (BL-154): done of total, with a bar.
             VStack(spacing: 6) {
                 Text(manager.scanTotal > 0
-                     ? "\(manager.scanDone) of \(manager.scanTotal) \(manager.scanStep.hasPrefix("Looking") ? "plugin files" : "installers")"
+                     ? "\(manager.scanDone) of \(manager.scanTotal) \(manager.scanStep.hasPrefix("Looking") ? "plugin files" : manager.scanStep.hasPrefix("Matching") ? "installers" : "files")"
                      : "Getting ready")
                     .font(.system(size: Theme.ts(12), weight: .medium)).monospacedDigit().foregroundStyle(Theme.muted)
                     .contentTransition(.numericText())
@@ -352,7 +352,7 @@ struct ScanTicker: View {
                         .font(.system(size: Theme.ts(i == 0 ? 13 : 12), weight: i == 0 ? .medium : .regular, design: .monospaced))
                         .foregroundStyle(i == 0 ? Theme.text : Theme.muted)
                         .opacity(1 - Double(i) * 0.1)
-                        .lineLimit(1)
+                        .lineLimit(1).truncationMode(.middle)
                         .transition(.asymmetric(insertion: .move(edge: .top), removal: .opacity))
                 }
             }

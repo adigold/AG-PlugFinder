@@ -224,10 +224,18 @@ final class PluginManager {
                 pkgs.append((pkg, URL(fileURLWithPath: volume).appendingPathComponent(location)))
             }
         }
-        // The file lists, several installers at once.
-        final class Lists: @unchecked Sendable { var text: [String]; var done = 0; let lock = NSLock(); init(_ n: Int) { text = Array(repeating: "", count: n) } }
-        let lists = Lists(pkgs.count)
+        // Each installer's file list, read and gone through several installers at once (BL-160):
+        // which plugins it put here, and the single files it left in a Library folder.
+        final class Found: @unchecked Sendable {
+            var plugins: [[String]]; var extras: [[String]]; var done = 0; let lock = NSLock()
+            init(_ n: Int) { plugins = Array(repeating: [], count: n); extras = Array(repeating: [], count: n) }
+        }
+        let found = Found(pkgs.count)
         let ids = pkgs.map(\.id)
+        let bases = pkgs.map { $0.base.path == "/" ? "" : $0.base.path }
+        let userLibrary = home + "/Library/"
+        let skip = [".component/", ".vst/", ".vst3/", ".aaxplugin/", ".clap/", ".app/", ".framework/", ".bundle/", ".kext/",
+                    "/launchdaemons/", "/launchagents/", "/privilegedhelpertools/", "/extensions/"]
         DispatchQueue.concurrentPerform(iterations: ids.count) { i in
             let p = Process()
             p.executableURL = URL(fileURLWithPath: "/usr/sbin/pkgutil")
@@ -235,37 +243,42 @@ final class PluginManager {
             let pipe = Pipe()
             p.standardOutput = pipe
             p.standardError = FileHandle.nullDevice
-            guard (try? p.run()) != nil else { return }
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            p.waitUntilExit()
-            lists.lock.lock(); lists.text[i] = String(decoding: data, as: UTF8.self); lists.done += 1; let n = lists.done; lists.lock.unlock()
+            var mine: [String] = [], extra: [String] = []
+            if (try? p.run()) != nil {
+                let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                p.waitUntilExit()
+                for line in String(decoding: data, as: UTF8.self).split(separator: "\n") {
+                    let rel = line.hasPrefix("./") ? line.dropFirst(2) : line[...]
+                    let full = bases[i] + "/" + rel
+                    if paths.contains(full) { mine.append(full); continue }
+                    guard full.hasPrefix("/Library/") || full.hasPrefix(userLibrary) else { continue }
+                    let lower = full.lowercased()
+                    if skip.contains(where: lower.contains) { continue }
+                    extra.append(full)
+                }
+            }
+            found.lock.lock(); found.plugins[i] = mine; found.extras[i] = extra; found.done += 1; let n = found.done; found.lock.unlock()
             report("Matching plugins to their installers", ids[i], n, ids.count)
         }
-        for (i, (pkg, base)) in pkgs.enumerated() {
-            var mine = false
-            var extra: [String] = []
-            for line in lists.text[i].split(separator: "\n") {
-                let full = base.appendingPathComponent(String(line)).standardizedFileURL.path
-                if paths.contains(full) { mine = true; if out[full] == nil { out[full] = pkg } }
-                // A leftover is a single file in a Library folder, never part of a plugin or an app.
-                guard full.hasPrefix("/Library/") || full.hasPrefix(home + "/Library/") else { continue }
-                let lower = full.lowercased()
-                guard ![".component/", ".vst/", ".vst3/", ".aaxplugin/", ".clap/", ".app/", ".framework/", ".bundle/", ".kext/"]
-                        .contains(where: lower.contains),
-                      !lower.contains("/launchdaemons/"), !lower.contains("/launchagents/"),
-                      !lower.contains("/privilegedhelpertools/"), !lower.contains("/extensions/") else { continue }
-                owners[full, default: 0] += 1
-                extra.append(full)
-            }
-            if mine { others[pkg] = extra }
+        for i in ids.indices {
+            for f in found.extras[i] { owners[f, default: 0] += 1 }
+            guard !found.plugins[i].isEmpty else { continue }
+            for f in found.plugins[i] where out[f] == nil { out[f] = ids[i] }
+            others[ids[i]] = found.extras[i]
         }
-        // Only files that exist, are plain files and belong to this installer alone.
-        for (pkg, list) in others {
-            others[pkg] = list.filter { f in
-                var dir: ObjCBool = false
-                return owners[f] == 1 && fm.fileExists(atPath: f, isDirectory: &dir) && !dir.boolValue
-            }
+        // Only files that exist, are plain files and belong to this installer alone, checked in
+        // parallel with their own progress (BL-160).
+        let candidates = others.flatMap { pkg, list in list.filter { owners[$0] == 1 }.map { (pkg, $0) } }
+        final class Kept: @unchecked Sendable { var ok: [Bool]; var done = 0; let lock = NSLock(); init(_ n: Int) { ok = Array(repeating: false, count: n) } }
+        let kept = Kept(candidates.count)
+        DispatchQueue.concurrentPerform(iterations: candidates.count) { i in
+            var dir: ObjCBool = false
+            let ok = FileManager.default.fileExists(atPath: candidates[i].1, isDirectory: &dir) && !dir.boolValue
+            kept.lock.lock(); kept.ok[i] = ok; kept.done += 1; let n = kept.done; kept.lock.unlock()
+            report("Checking the files installers left", (candidates[i].1 as NSString).lastPathComponent, n, candidates.count)
         }
+        others = [:]
+        for (i, c) in candidates.enumerated() where kept.ok[i] { others[c.0, default: []].append(c.1) }
         return (out, others.filter { !$0.value.isEmpty })
     }
 
