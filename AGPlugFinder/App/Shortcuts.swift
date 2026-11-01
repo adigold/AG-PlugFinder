@@ -1,3 +1,4 @@
+import SwiftUI
 import AppKit
 import Carbon.HIToolbox
 import Observation
@@ -86,6 +87,16 @@ struct KeyCombo: Codable, Equatable, Hashable {
         if mods & UInt32(shiftKey) != 0 { s += "⇧" }
         if mods & UInt32(cmdKey) != 0 { s += "⌘" }
         return s + key
+    }
+
+    /// The same keys for a menu item.
+    var eventModifiers: SwiftUI.EventModifiers {
+        var m: SwiftUI.EventModifiers = []
+        if mods & UInt32(controlKey) != 0 { m.insert(.control) }
+        if mods & UInt32(optionKey) != 0 { m.insert(.option) }
+        if mods & UInt32(shiftKey) != 0 { m.insert(.shift) }
+        if mods & UInt32(cmdKey) != 0 { m.insert(.command) }
+        return m
     }
 
     static func carbonMods(_ f: NSEvent.ModifierFlags) -> UInt32 {

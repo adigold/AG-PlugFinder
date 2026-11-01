@@ -57,6 +57,10 @@ struct LibraryView: View {
         }
         .onDisappear(perform: removeKeys)
         .onReceive(NotificationCenter.default.publisher(for: .toggleMiniMode)) { _ in toggleMini() }
+        // The menu bar's Window Style (BL-176).
+        .onReceive(NotificationCenter.default.publisher(for: .setWindowMode)) { n in
+            if let m = (n.object as? String).flatMap(WindowMode.init(rawValue:)) { setMode(m) }
+        }
         #if DEBUG
         // Self-test only: switch between full window, sideview and mini (BL-148).
         .onReceive(NotificationCenter.default.publisher(for: .demoWindowMode)) { n in
@@ -617,6 +621,7 @@ struct WindowAccessor: NSViewRepresentable {
 
 extension Notification.Name {
     static let toggleMiniMode = Notification.Name("AGPFToggleMiniMode")
+    static let setWindowMode = Notification.Name("AGPFSetWindowMode")
     static let demoWindowMode = Notification.Name("AGPFDemoWindowMode")
     static let demoQuery = Notification.Name("AGPFDemoQuery")
     static let demoQueryPlain = Notification.Name("AGPFDemoQueryPlain")

@@ -53,36 +53,54 @@ struct MenuBarContent: View {
     var updater = Updater.shared
 
     var body: some View {
-        if let r = updater.available {
-            Button("Update Available: \(r.version)…") {
-                NSApp.activate()
-                openWindow(id: "library")
+        // In order (BL-176): open, window style, account and sharing, help, then the app itself.
+        Section("AG PlugFinder \(updater.currentVersion)") {
+            if let r = updater.available {
+                Button { NSApp.activate(); openWindow(id: "library") } label: {
+                    Label("Update Available: \(r.version)…", systemImage: "arrow.down.circle")
+                }
             }
-            Divider()
+            shortcut(.openLibrary, Button { NSApp.activate(); openWindow(id: "library") } label: {
+                Label("Plugin Library", systemImage: "square.grid.2x2")
+            })
+            shortcut(.quickPicker, Button { PickerPanelController.shared.show() } label: {
+                Label("Quick Picker", systemImage: "magnifyingglass")
+            })
+            Menu {
+                ForEach(WindowMode.allCases) { m in
+                    Button {
+                        NSApp.activate()
+                        openWindow(id: "library")
+                        NotificationCenter.default.post(name: .setWindowMode, object: m.rawValue)
+                    } label: { Label(m == .mini ? "Mini Window" : m.title, systemImage: m.symbol) }
+                }
+            } label: { Label("Window Style", systemImage: "rectangle.split.2x1") }
         }
-        Button("Plugin Library  \(HotKey.display)") {
-            NSApp.activate()
-            openWindow(id: "library")
-        }
-        Button("Quick Picker") { PickerPanelController.shared.show() }
-        Button("Mini Window") {
-            NSApp.activate()
-            openWindow(id: "library")
-            NotificationCenter.default.post(name: .toggleMiniMode, object: nil)
-        }
-        Button(updater.state == .upToDate ? "You're updated (v\(updater.currentVersion))" : "Check for Update…") {
-            Task { await updater.check(userInitiated: true) }
-        }
-        Button("My Purchases…") { LicensesWindow.shared.show() }
-        Button("Share AG PlugFinder…") { ShareWindow.shared.show() }
-        Button("Send Feedback to Goldi…") { FeedbackWindow.shared.show() }
-        Button("Send Error Log to Goldi…") { CrashReports.sendLogs() }
         Divider()
-        Button("Settings…") {
-            NSApp.activate()
-            openSettings()
+        Button { LicensesWindow.shared.show() } label: { Label("My Purchases…", systemImage: "creditcard") }
+        Button { ShareWindow.shared.show() } label: { Label("Share AG PlugFinder…", systemImage: "square.and.arrow.up") }
+        Menu {
+            Button { FeedbackWindow.shared.show() } label: { Label("Send Feedback to Goldi…", systemImage: "bubble.left") }
+            Button { CrashReports.sendLogs() } label: { Label("Send Error Log to Goldi…", systemImage: "ladybug") }
+        } label: { Label("Help", systemImage: "questionmark.circle") }
+        Divider()
+        Button { Task { await updater.check(userInitiated: true) } } label: {
+            Label("Check for Updates…", systemImage: "arrow.triangle.2.circlepath")
         }
-        Button("Quit AG PlugFinder") { NSApp.terminate(nil) }
+        Button { NSApp.activate(); openSettings() } label: { Label("Settings…", systemImage: "gearshape") }
+            .keyboardShortcut(",", modifiers: .command)
+        Button { NSApp.terminate(nil) } label: { Label("Quit AG PlugFinder", systemImage: "power") }
+            .keyboardShortcut("q", modifiers: .command)
+    }
+
+    /// The item's own shortcut on the right, the way Mac menus show them, when it is a single key.
+    @ViewBuilder
+    private func shortcut<V: View>(_ action: ShortcutAction, _ item: V) -> some View {
+        if let combo = Shortcuts.shared.combos[action], combo.key.count == 1, let ch = combo.key.lowercased().first {
+            item.keyboardShortcut(KeyEquivalent(ch), modifiers: combo.eventModifiers)
+        } else {
+            item
+        }
     }
 }
 
