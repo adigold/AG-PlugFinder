@@ -260,8 +260,28 @@ final class PluginWatcher {
     private var token: NSObjectProtocol?
     private var pending: Task<Void, Never>?
 
+    private var folderWatches: [DispatchSourceFileSystemObject] = []
+
+    /// The Audio Units folders themselves: deleting a plugin there by hand does not always make
+    /// macOS announce it (BL-142).
+    private func watchFolders() {
+        let fm = FileManager.default
+        let folders = [fm.homeDirectoryForCurrentUser.appendingPathComponent("Library/Audio/Plug-Ins/Components").path,
+                       "/Library/Audio/Plug-Ins/Components"]
+        for path in folders {
+            let fd = open(path, O_EVTONLY)
+            guard fd >= 0 else { continue }
+            let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: fd, eventMask: [.write, .delete, .rename], queue: .main)
+            source.setEventHandler { MainActor.assumeIsolated { PluginWatcher.shared.changed() } }
+            source.setCancelHandler { close(fd) }
+            source.resume()
+            folderWatches.append(source)
+        }
+    }
+
     func start() {
         guard token == nil else { return }
+        watchFolders()
         token = NotificationCenter.default.addObserver(
             forName: NSNotification.Name(kAudioComponentRegistrationsChangedNotification as String),
             object: nil, queue: .main) { _ in
@@ -285,9 +305,14 @@ final class PluginWatcher {
         let store = PluginStore.shared
         let before = Set(store.plugins.map(\.id))
         store.rescan()
+        let now = Set(store.plugins.map(\.id))
         let added = store.plugins.filter { !before.contains($0.id) }
+        let removed = before.subtracting(now).count
+        if removed > 0 {
+            Toast.show(removed == 1 ? "Removed 1 plugin that is no longer installed" : "Removed \(removed) plugins that are no longer installed")
+        }
         guard !added.isEmpty else {
-            if !quietWhenNothingNew { Toast.show("No new plugins found") }
+            if !quietWhenNothingNew, removed == 0 { Toast.show("No new plugins found") }
             return
         }
         Toast.show(added.count == 1 ? "New plugin found: \(added[0].name)" : "Found \(added.count) new plugins")

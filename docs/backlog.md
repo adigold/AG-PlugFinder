@@ -7,6 +7,8 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
+- [ ] **BL-142** `P1 · Medium` **Rescan removes uninstalled plugins:** plugins the user removed from the Audio Units folder disappear from the app on a scan. Adi, 2026-11-01.
+
 - [ ] **BL-135** `P1 · High` **Rename the app to Retrive.me:** new name everywhere users see it. Adi, 2026-11-01.
 - [ ] **BL-136** `P1 · High` **retrive.me website:** a site for the app on the new domain (Cloudflare DNS). Adi, 2026-11-01.
 

@@ -40,7 +40,15 @@ enum PluginScanner {
                     path: c.componentURL?.path)
             }
         }
-        return Array(result.values)
+        // macOS can keep listing a plugin after its file was deleted (BL-142): drop the ones whose
+        // file is gone. If that would drop most of them, the check itself is wrong, so keep all.
+        return keepInstalled(Array(result.values))
+    }
+
+    /// The plugins whose file is still on disk; all of them when the check would drop most.
+    static func keepInstalled(_ list: [Plugin]) -> [Plugin] {
+        let present = list.filter { p in p.path.map { FileManager.default.fileExists(atPath: $0) } ?? true }
+        return present.count >= list.count / 2 ? present : list
     }
 
     static func guessCategory(name: String, tags: [String], type: OSType) -> String {

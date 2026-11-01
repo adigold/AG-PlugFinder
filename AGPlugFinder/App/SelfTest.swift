@@ -567,6 +567,18 @@ enum SelfTest {
             print("PD old-save sort=\(old.map { "\($0.sort)" } ?? "nil") counts=\(old?.showCounts ?? false) wrap=\(old?.wrap ?? false)")
             print("PD done"); fflush(stdout)
         }
+        // --selftest-removed: the scan keeps real plugins and drops one whose file is gone (BL-142). Nothing saved.
+        if args.contains("--selftest-removed") {
+            let real = PluginScanner.scan()
+            let missingOnDisk = real.filter { p in p.path.map { !FileManager.default.fileExists(atPath: $0) } ?? false }
+            var ghost = real.first { !$0.isLogic }!
+            ghost.id = "aufx-Gone-Test"; ghost.name = "Deleted Plugin"; ghost.path = "/Library/Audio/Plug-Ins/Components/Deleted Plugin.component"
+            let kept = PluginScanner.keepInstalled(real + [ghost])
+            print("RM real=\(real.count) missing-on-disk=\(missingOnDisk.map(\.name)) kept=\(kept.count) ghost-kept=\(kept.contains { $0.id == ghost.id })")
+            let allGone = real.map { p -> Plugin in var q = p; q.path = "/nope/\(p.id)"; return q }
+            print("RM safety: all paths wrong -> kept \(PluginScanner.keepInstalled(allGone).count) of \(allGone.count)")
+            print("RM done"); fflush(stdout)
+        }
         // --selftest-makerurl: where Maker's Website goes for a few plugins (BL-129).
         if args.contains("--selftest-makerurl") {
             Task {
