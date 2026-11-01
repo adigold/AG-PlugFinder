@@ -41,6 +41,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-183** `P2 · Medium` **Match the Mac:** a switch in Appearance that follows macOS light and dark by itself, with one chosen light theme and one chosen dark theme from the app's own themes. Syncs with the other Macs. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-182** `P2 · Medium` **Floating, a fourth window mode:** a see-through search bar with a list under it, like a command bar (Raycast style), floating over Logic. Adi, 2026-11-01, from a reference picture. Category chip, Tab and Shift+Tab step through categories, favorites star, key hints at the bottom. · done 2026-11-01
 - [x] **BL-181** `P2 · Medium` **Favorites are yellow in every theme and come first:** the favorite star is always yellow whatever theme is chosen, and favorites lead the results in every sort and search. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-180** `P2 · Medium` **Hold Option to choose where the plugin goes:** while a plugin is selected, holding Option shows the selected track's effects in order with a line between them; Option with the arrows moves the line, and the plugin is added right there. Uses the existing before and after insert. Logic first. Adi, 2026-11-01. Return adds, letting go of Option cancels, shown where the info panel is. · done 2026-11-01

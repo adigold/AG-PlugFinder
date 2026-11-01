@@ -67,14 +67,49 @@ final class AppearanceSettings {
     var paletteID: String { didSet { save("theme", paletteID); restyleWindows() } }
     /// 0.85 to 1.3; 1 is the size the app was designed at.
     var textScale: Double { didSet { save("textScale", textScale) } }
+    /// Match the Mac (BL-183): the light theme while macOS is light, the dark one while it is dark.
+    var followSystem: Bool { didSet { save("followSystem", followSystem); restyleWindows() } }
+    var lightID: String { didSet { save("themeLight", lightID); restyleWindows() } }
+    var darkID: String { didSet { save("themeDark", darkID); restyleWindows() } }
+    /// Whether macOS is dark right now, kept up to date as it changes.
+    private(set) var systemIsDark = false { didSet { if followSystem, systemIsDark != oldValue { restyleWindows() } } }
+    @ObservationIgnored private var watcher: NSKeyValueObservation?
 
-    var palette: Palette { Palette.all.first { $0.id == paletteID } ?? Palette.all[0] }
+    var palette: Palette {
+        let id = followSystem ? (systemIsDark ? darkID : lightID) : paletteID
+        return Palette.all.first { $0.id == id } ?? Palette.all[0]
+    }
 
     private init() {
         let d = UserDefaults.standard
         paletteID = d.string(forKey: "view.theme") ?? "classic"
         let s = d.double(forKey: "view.textScale")
         textScale = s > 0 ? min(max(s, 0.85), 1.3) : 1
+        followSystem = d.bool(forKey: "view.followSystem")
+        let current = Palette.all.first { $0.id == (d.string(forKey: "view.theme") ?? "classic") } ?? Palette.all[0]
+        lightID = d.string(forKey: "view.themeLight") ?? (current.isDark ? "clean-light" : current.id)
+        darkID = d.string(forKey: "view.themeDark") ?? (current.isDark ? current.id : "classic")
+        DispatchQueue.main.async { [self] in watchSystem() }
+    }
+
+    /// Follows macOS turning light or dark, at sunset with Auto or by hand.
+    private func watchSystem() {
+        guard watcher == nil, let app = NSApp else { return }
+        let read = { app.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua }
+        systemIsDark = read()
+        watcher = app.observe(\.effectiveAppearance, options: [.new]) { [weak self] _, _ in
+            DispatchQueue.main.async { self?.systemIsDark = read() }
+        }
+    }
+
+    #if DEBUG
+    /// For the self test: as if macOS had turned light or dark.
+    func testSystemDark(_ dark: Bool) { systemIsDark = dark }
+    #endif
+
+    /// A theme card picked: with Match the Mac on, it becomes the light or the dark choice.
+    func pick(_ p: Palette) {
+        if followSystem { if p.isDark { darkID = p.id } else { lightID = p.id } } else { paletteID = p.id }
     }
 
     private func save(_ key: String, _ value: Any) {
@@ -108,9 +143,11 @@ struct AppearanceSettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 Text("Theme").font(.system(size: Theme.ts(13), weight: .semibold)).foregroundStyle(Theme.muted)
+                matchRow
                 LazyVGrid(columns: columns, spacing: 14) {
                     ForEach(Palette.all) { p in
-                        ThemeCard(palette: p, chosen: look.paletteID == p.id) { look.paletteID = p.id }
+                        let chosen = look.followSystem ? (p.id == look.lightID || p.id == look.darkID) : look.paletteID == p.id
+                        ThemeCard(palette: p, chosen: chosen) { look.pick(p) }
                     }
                 }
                 Text("Text").font(.system(size: Theme.ts(13), weight: .semibold)).foregroundStyle(Theme.muted)
@@ -138,6 +175,46 @@ struct AppearanceSettingsView: View {
             .padding(24)
         }
         .background(Theme.ground)
+    }
+
+    /// Match the Mac (BL-183): one light and one dark theme, switched by macOS.
+    private var matchRow: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 18) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Match the Mac").font(.system(size: Theme.ts(14), weight: .medium)).foregroundStyle(Theme.text)
+                    Text("Changes between a light and a dark theme by itself, whenever your Mac does.")
+                        .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
+                }
+                Spacer(minLength: 12)
+                Toggle("", isOn: $look.followSystem).toggleStyle(.switch).labelsHidden().tint(Theme.accent)
+            }
+            if look.followSystem {
+                HStack(spacing: 10) {
+                    choice("sun.max", "Light", look.lightID)
+                    choice("moon", "Dark", look.darkID)
+                }
+                Text("Click a light theme below for the day and a dark one for the night.")
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
+            }
+        }
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.surface))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.edge, lineWidth: 1))
+        .animation(.easeOut(duration: 0.18), value: look.followSystem)
+    }
+
+    private func choice(_ symbol: String, _ label: String, _ id: String) -> some View {
+        let p = Palette.all.first { $0.id == id } ?? Palette.all[0]
+        return HStack(spacing: 8) {
+            Image(systemName: symbol).font(.system(size: Theme.ts(12), weight: .semibold)).foregroundStyle(Theme.muted)
+            Text(label).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
+            Circle().fill(Color(hex: p.dots.0)).frame(width: 12, height: 12)
+                .overlay(Circle().strokeBorder(Color(hex: p.edge), lineWidth: 1))
+            Text(p.name).font(.system(size: Theme.ts(13), weight: .semibold)).foregroundStyle(Theme.text)
+        }
+        .padding(.horizontal, 12).frame(height: 32)
+        .background(Capsule().fill(Theme.raised))
     }
 }
 

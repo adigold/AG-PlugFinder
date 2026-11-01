@@ -198,7 +198,8 @@ final class UserLibrary {
                      updatedAt: updatedAt, favorites: Array(store.favorites),
                      hiddenGroups: Array(store.hiddenGroups), hiddenPlugins: Array(store.hiddenPlugins),
                      shownPlugins: Array(store.shownPlugins), pills: pills,
-                     appearance: ["theme": look.paletteID, "textScale": String(look.textScale)],
+                     appearance: ["theme": look.paletteID, "textScale": String(look.textScale),
+                                  "followSystem": look.followSystem ? "1" : "0", "themeLight": look.lightID, "themeDark": look.darkID],
                      view: ViewSettings.shared.syncValues)
     }
 
@@ -247,6 +248,10 @@ final class UserLibrary {
             let look = AppearanceSettings.shared
             if let t = a["theme"], t != look.paletteID, Palette.all.contains(where: { $0.id == t }) { look.paletteID = t }
             if let z = a["textScale"].flatMap(Double.init), abs(z - look.textScale) > 0.001 { look.textScale = min(max(z, 0.85), 1.3) }
+            // Match the Mac and its two themes (BL-183); older copies of the app send none of these.
+            if let f = a["followSystem"].map({ $0 == "1" }), f != look.followSystem { look.followSystem = f }
+            if let t = a["themeLight"], t != look.lightID, Palette.all.contains(where: { $0.id == t }) { look.lightID = t }
+            if let t = a["themeDark"], t != look.darkID, Palette.all.contains(where: { $0.id == t }) { look.darkID = t }
         }
         if only.contains(.view), let v = s.view { ViewSettings.shared.applySync(v) }
     }

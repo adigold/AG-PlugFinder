@@ -637,6 +637,30 @@ enum SelfTest {
                 print("THEMES done"); fflush(stdout)
             }
         }
+        // --selftest-matchmac <dir>: Match the Mac picks the light or dark theme as macOS changes (BL-183).
+        if let k = args.firstIndex(of: "--selftest-matchmac"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task { @MainActor in
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                let look = AppearanceSettings.shared
+                try? await Task.sleep(for: .seconds(1))
+                print("MATCH system now dark=\(NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua)")
+                look.followSystem = true; look.lightID = "nord-light"; look.darkID = "dracula"
+                look.testSystemDark(false)
+                try? await Task.sleep(for: .milliseconds(500))
+                print("MATCH light -> \(look.palette.id)")
+                await shoot(AppearanceSettingsView(), size: NSSize(width: 780, height: 640), to: dir.appendingPathComponent("match-light.png"))
+                look.testSystemDark(true)
+                try? await Task.sleep(for: .milliseconds(500))
+                print("MATCH dark -> \(look.palette.id)")
+                await shoot(AppearanceSettingsView(), size: NSSize(width: 780, height: 640), to: dir.appendingPathComponent("match-dark.png"))
+                look.pick(Palette.all.first { $0.id == "emerald" }!)
+                print("MATCH picked emerald -> dark=\(look.darkID) light=\(look.lightID) theme=\(look.paletteID)")
+                look.followSystem = false
+                print("MATCH off -> \(look.palette.id)")
+                print("MATCH done"); fflush(stdout)
+            }
+        }
         // --selftest-syncrow <dir>: the three sync states as pictures (BL-131). Nothing syncs.
         if let k = args.firstIndex(of: "--selftest-syncrow"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])
