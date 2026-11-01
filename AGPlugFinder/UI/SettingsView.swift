@@ -31,8 +31,8 @@ private func importFromLogic() {
     let f = LogicTags.found()
     let pluginCount = Set(f.categories.values.flatMap { $0 }).count
     guard !f.favorites.isEmpty || !f.categories.isEmpty else {
-        Dialog.show("Nothing to import", message: "Logic has no favorites or categories of your own for the plugins on this Mac.",
-                    choices: [Dialog.Choice(title: "OK", primary: true)])
+        // A note, not a box to click away (BL-197).
+        Toast.show("Nothing to import: Logic has no favorites or categories of your own for the plugins on this Mac.")
         return
     }
     var parts: [String] = []
@@ -85,7 +85,8 @@ struct GeneralSettings: View {
 
             Section("From Logic") {
                 LabeledContent("Logic's favorites and categories") {
-                    Button("Import from Logic…") { importFromLogic() }
+                    // After the click has finished, so the question takes clicks (BL-197).
+                    Button("Import from Logic…") { DispatchQueue.main.async { importFromLogic() } }
                 }
                 Text("Brings in the plugins you starred in Logic's Plug-in Manager and the categories you made there, as collections. Only adds; nothing in Logic changes.")
                     .font(.caption).foregroundStyle(.secondary)

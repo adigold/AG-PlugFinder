@@ -532,9 +532,11 @@ struct PillsEditor: View {
                 .help("One pill for several categories, for example Space = Reverb + Delay")
                 Spacer()
                 QuietPill(title: "Reset to Default", height: 30) {
-                    if Dialog.confirm("Reset the pills?",
-                                      message: "Order, names, colors, pinned and hidden pills go back to the default. Your combined pills stay.",
-                                      ok: "Reset") { Pills.reset() }
+                    DispatchQueue.main.async {
+                        if Dialog.confirm("Reset the pills?",
+                                          message: "Order, names, colors, pinned and hidden pills go back to the default. Your combined pills stay.",
+                                          ok: "Reset") { Pills.reset() }
+                    }
                 }
             }
             .padding(.horizontal, 22).padding(.vertical, 14)

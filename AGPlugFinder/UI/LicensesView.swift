@@ -387,10 +387,12 @@ struct PlanEditor: View {
                 pluginList
                 HStack {
                     Button("Delete \(p.isSubscription ? "Subscription" : "Bundle")") {
-                        if Dialog.confirm("Delete \(p.name)?",
-                                          message: "The plugins in it stay, without this \(p.isSubscription ? "subscription" : "bundle").",
-                                          ok: "Delete", destructive: true) {
-                            lic.deletePlan(id); PlanWindow.close(id)
+                        DispatchQueue.main.async {
+                            if Dialog.confirm("Delete \(p.name)?",
+                                              message: "The plugins in it stay, without this \(p.isSubscription ? "subscription" : "bundle").",
+                                              ok: "Delete", destructive: true) {
+                                lic.deletePlan(id); PlanWindow.close(id)
+                            }
                         }
                     }
                         .buttonStyle(.plain).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.negative)

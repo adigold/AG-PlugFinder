@@ -164,6 +164,16 @@ AG PlugFinder lives in the menu bar and can start when you log in. Its menu open
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.47**
+
+- **Improved:** iCloud sync now carries everything to your other Macs: your plugin screenshots, your own categories, the plugin descriptions you looked up, channel format choices and your shortcuts. A screenshot you clear is cleared on every Mac.
+- **Fixed:** A Mac that just joined iCloud could replace your library on the other Macs before it had received it. Now a new Mac adds both together first, and waits until iCloud has delivered your library before saving anything there. My Purchases is protected the same way.
+- **Fixed:** At Zoom size L, the star and the other controls on the bigger card can be clicked.
+- **Fixed:** Holding Option to place an effect before the first effect on a track now works.
+- **Improved:** Floating shows that you can hold Option to choose the slot.
+- **Improved:** In a narrow window, the top bar makes room so the icons on the right stay visible.
+- **Fixed:** Import from Logic in Settings could show a message whose OK button did nothing.
+
 **0.9.46**
 
 - **New:** Match the Mac. In Settings, Appearance, choose one light theme and one dark theme, and the app changes between them whenever your Mac does.
@@ -181,14 +191,14 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **New:** Hold Option on an effect to choose where it goes on the selected track. The track's effects show in order with a line where yours will land; Option with the arrows moves the line, Return adds it there, and letting go of Option cancels.
 - **Improved:** Favorites are yellow in every theme, and they always come first in the results.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.44)</summary>
+
 **0.9.44**
 
 - **Improved:** The menu bar menu is in order, with icons, your shortcut shown on the right, a Window Style menu for full window, Sideview or mini window, and a Help menu for feedback.
 - **New:** The mini window has a favorites star beside the pin, to show only your favorites.
 - **Improved:** A small "Long press" tip under the Zoom button shows how to pick S, M or L, and goes away once you have chosen a size.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.43)</summary>
 
 **0.9.43**
 
