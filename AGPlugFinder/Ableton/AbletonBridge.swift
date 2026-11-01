@@ -13,6 +13,8 @@ enum Host {
     /// The last of the two that came to the front.
     private static var lastUsed: Host?
     private static var watching = false
+    /// Where plugins go right now, kept up to date as programs open, close and come to the front.
+    private(set) static var now: Host = .logic
 
     static func isAbleton(_ app: NSRunningApplication) -> Bool { app.bundleIdentifier?.hasPrefix(abletonPrefix) == true }
     static func isLogic(_ app: NSRunningApplication) -> Bool { app.bundleIdentifier == logicID }
@@ -27,22 +29,45 @@ enum Host {
         if let front = NSWorkspace.shared.frontmostApplication {
             if isAbleton(front) { lastUsed = .ableton } else if isLogic(front) { lastUsed = .logic }
         }
-        NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didActivateApplicationNotification,
-                                                          object: nil, queue: .main) { n in
-            guard let app = n.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
-            MainActor.assumeIsolated {
-                if isAbleton(app) { lastUsed = .ableton } else if isLogic(app) { lastUsed = .logic }
+        let center = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.didActivateApplicationNotification, NSWorkspace.didLaunchApplicationNotification,
+                     NSWorkspace.didTerminateApplicationNotification] {
+            center.addObserver(forName: name, object: nil, queue: .main) { n in
+                guard let app = n.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+                      isAbleton(app) || isLogic(app) else { return }
+                let activated = n.name == NSWorkspace.didActivateApplicationNotification
+                MainActor.assumeIsolated {
+                    if activated { lastUsed = isAbleton(app) ? .ableton : .logic }
+                    update()
+                }
             }
+        }
+        update()
+    }
+
+    /// Works out where plugins go; the library redraws when it changes.
+    private static func update() {
+        let ableton = abletonRunning, logic = logicRunning
+        let next: Host = ableton && !logic ? .ableton : (ableton && logic ? (lastUsed ?? .logic) : .logic)
+        guard next != now else { return }
+        now = next
+        PluginStore.shared.bumpRevision()
+    }
+
+    /// Whether the library lists this plugin for the program in use: Logic's own plugins only
+    /// for Logic, Ableton's devices only for Ableton, every Audio Unit for both.
+    static func shows(_ p: Plugin) -> Bool {
+        switch p.kind {
+        case .logic: return now == .logic
+        case .ableton: return now == .ableton
+        default: return true
         }
     }
 
     /// Where the next plugin goes. Logic unless only Ableton is open, or Ableton was used last.
     static var current: Host {
         watch()
-        let ableton = abletonRunning, logic = logicRunning
-        if ableton && !logic { return .ableton }
-        if ableton && logic { return lastUsed ?? .logic }
-        return .logic
+        return now
     }
 
     /// Adds a plugin to the selected track of whichever program is in use. Logic goes the way
@@ -122,7 +147,7 @@ final class AbletonBridge: @unchecked Sendable {
         guard await MainActor.run(body: { Host.abletonRunning }) else { return .failed("Ableton Live isn't open.") }
         Self.installScript()
         let request: [String: Any] = ["cmd": "load", "name": plugin.name, "maker": plugin.manufacturer,
-                                      "kind": plugin.source == .logic ? "device" : "au",
+                                      "kind": plugin.source == .ableton ? "device" : "au",
                                       "instrument": plugin.slotKind == .instrument]
         guard let reply = await send(request) else { return .failed(Self.notConnectedHelp) }
         if reply["ok"] as? Bool == true { return .inserted }

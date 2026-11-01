@@ -99,6 +99,8 @@ struct VersionBadge: View {
     var updater = Updater.shared
     /// Which side the versions panel opens on: below in a top bar, above in a footer.
     var arrowEdge: Edge = .bottom
+    /// Self-tests only: open the versions panel at once.
+    var startOpen = false
     @State private var showVersions = false
     @State private var hovering = false
 
@@ -125,6 +127,7 @@ struct VersionBadge: View {
         .onHover { hovering = $0 }
         .help("Versions and updates")
         .popover(isPresented: $showVersions, arrowEdge: arrowEdge) { VersionsPanel() }
+        .onAppear { if startOpen { showVersions = true } }
     }
 
     private var label: String {

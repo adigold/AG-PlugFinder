@@ -160,6 +160,20 @@ enum SelfTest {
                         if m != "full" { await capture(window, to: out.deletingPathExtension().appendingPathExtension("\(m).png")) }
                     }
                     print("MODE back to full: \(window.frame == full)")
+                    // The version button at the very bottom of the screen, its panel opened: the panel
+                    // must sit above the button, inside the screen (BL-163).
+                    if args.contains("--clickversion"), let screen = NSScreen.main {
+                        let w = NSWindow(contentRect: NSRect(x: screen.visibleFrame.midX - 150, y: screen.visibleFrame.minY, width: 300, height: 30),
+                                         styleMask: [.borderless], backing: .buffered, defer: false)
+                        w.contentView = NSHostingView(rootView: VersionBadge(arrowEdge: .top, startOpen: true).frame(width: 300, height: 30))
+                        w.makeKeyAndOrderFront(nil)
+                        try? await Task.sleep(for: .seconds(1.5))
+                        let pop = NSApp.windows.first { $0.isVisible && $0 !== w && $0 !== window && $0.frame.minY >= w.frame.minY - 1 && $0.frame.width > 100 && $0.frame.width < 700 }
+                        if let pop {
+                            print("VERSION button top=\(Int(w.frame.maxY)) panel bottom=\(Int(pop.frame.minY)) top=\(Int(pop.frame.maxY)) screen top=\(Int(screen.visibleFrame.maxY)) above=\(pop.frame.minY >= w.frame.maxY - 2)")
+                        } else { print("VERSION panel not found") }
+                        fflush(stdout)
+                    }
                 }
                 print("WINDOW state \(Updater.shared.state)"); fflush(stdout)
             }

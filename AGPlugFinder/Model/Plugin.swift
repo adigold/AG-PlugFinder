@@ -55,6 +55,7 @@ struct Plugin: Identifiable, Codable, Hashable {
         case .audioUnit: return "Audio Unit"
         case .audioUnitV3: return "Audio Unit v3"
         case .logic: return isLegacy == true ? "Logic (legacy)" : "Logic"
+        case .ableton: return "Ableton"
         }
     }
 
@@ -123,6 +124,8 @@ struct Plugin: Identifiable, Codable, Hashable {
 
 enum PluginSource: String, Codable {
     case audioUnit, audioUnitV3, logic
+    /// Ableton Live's own devices (BL-161).
+    case ableton
 }
 
 enum SlotKind: String {

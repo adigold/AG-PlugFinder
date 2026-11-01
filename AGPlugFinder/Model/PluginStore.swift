@@ -77,7 +77,7 @@ final class PluginStore {
     /// Re-reads the installed Audio Units and merges them with what we already know
     /// (screenshots and looked-up info are kept for plugins whose version did not change).
     func rescan() {
-        let found = PluginScanner.scan() + LogicCatalog.scan()
+        let found = PluginScanner.scan() + LogicCatalog.scan() + AbletonCatalog.scan()
         let old = Dictionary(uniqueKeysWithValues: plugins.map { ($0.id, $0) })
         plugins = found.map { p in
             guard let prev = old[p.id] else { return p }
@@ -225,6 +225,8 @@ final class PluginStore {
     static func groupKey(_ kind: GroupKind, _ value: String) -> String { "\(kind.rawValue):\(value)" }
 
     func isVisible(_ p: Plugin) -> Bool {
+        // Logic's plugins show while Logic is in use, Ableton's devices while Ableton is (BL-161).
+        if !Host.shows(p) { return false }
         if hiddenPlugins.contains(p.id) { return false }
         if shownPlugins.contains(p.id) { return true }
         return !GroupKind.allCases.contains { hiddenGroups.contains(Self.groupKey($0, Self.groupValue(p, $0))) }

@@ -61,6 +61,7 @@
 		C4B88487C336CC6F4720A616 /* FeedbackWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F6759972C4F8A854CE9948F /* FeedbackWindow.swift */; };
 		C531734DE546A332930B0C09 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F227679D76489B61B50D3EF /* DesignSystem.swift */; };
 		D11B1A084B198C0461413B26 /* PickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 972CDC623675D6EAE7C6B741 /* PickerPanel.swift */; };
+		D4AFB703DCD80602B55254ED /* AbletonCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9591272BC900BB49089EB748 /* AbletonCatalog.swift */; };
 		E29AE07D50724A6CC9AB1F9E /* TrackViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196B1A3B9E2A22D37513FD3C /* TrackViews.swift */; };
 		E42EDCC74F30B345DC62DA25 /* PillViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B5AE98AF62E66D61930575 /* PillViews.swift */; };
 		E79202DCA3F084DF43CBA51B /* PluginPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C5E4BA0E97415AA52EF591 /* PluginPreview.swift */; };
@@ -125,6 +126,7 @@
 		8BF177B31F8EB43737223CB1 /* InsertRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsertRunner.swift; sourceTree = "<group>"; };
 		8F4B091409E5CFB764CCC3FE /* Dialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dialog.swift; sourceTree = "<group>"; };
 		925D8B9B25BDB22A89D24468 /* LogicCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicCapture.swift; sourceTree = "<group>"; };
+		9591272BC900BB49089EB748 /* AbletonCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbletonCatalog.swift; sourceTree = "<group>"; };
 		972CDC623675D6EAE7C6B741 /* PickerPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerPanel.swift; sourceTree = "<group>"; };
 		9900B3E0FCA4FFF25D8C0BBE /* SideviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideviewView.swift; sourceTree = "<group>"; };
 		9EEA5CFC97F1DDE421DD06B0 /* UnusedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnusedView.swift; sourceTree = "<group>"; };
@@ -307,6 +309,7 @@
 			isa = PBXGroup;
 			children = (
 				6D4464B062DDF82604F2AB1A /* AbletonBridge.swift */,
+				9591272BC900BB49089EB748 /* AbletonCatalog.swift */,
 				F7CCA50466D2E64FD4A96467 /* AbletonScript.swift */,
 			);
 			path = Ableton;
@@ -387,6 +390,7 @@
 			files = (
 				3BBC1A8A91E10880B239C18D /* AX.swift in Sources */,
 				1E0056BED99110E293747005 /* AbletonBridge.swift in Sources */,
+				D4AFB703DCD80602B55254ED /* AbletonCatalog.swift in Sources */,
 				34CD71CBD4BA2913B08C9538 /* AbletonScript.swift in Sources */,
 				6A189FEC2349289FD418F81D /* AppEntry.swift in Sources */,
 				F04C19DCCE0385AB2F028426 /* Appearance.swift in Sources */,
