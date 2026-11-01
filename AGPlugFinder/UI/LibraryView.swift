@@ -39,12 +39,14 @@ struct LibraryView: View {
             case .mini: miniBody
             case .sideview: SideviewBody(model: model, window: window, mode: mode, pinned: pinned,
                                        onMode: setMode, onPin: togglePin) { insert() }
+            case .floating: FloatingBody(model: model, mode: mode, onMode: setMode) { insert() }
             }
         }
-        .frame(minWidth: mode == .full ? 860 : 300, minHeight: mode == .full ? 540 : (mini ? 150 : 400))
+        .frame(minWidth: mode == .full ? 860 : 300, minHeight: mode == .full ? 540 : (mini ? 150 : (mode == .floating ? 300 : 400)))
         .overlay { UnfavoriteConfirm() }
         .animation(.easeOut(duration: 0.15), value: PluginStore.shared.confirmingUnfavorite)
-        .background(Theme.ground)
+        // Floating is see-through: it draws its own blurred card (BL-182).
+        .background(mode == .floating ? Color.clear : Theme.ground)
         .ignoresSafeArea(.container, edges: .top)
         .preferredColorScheme(Theme.scheme)
         .background(WindowAccessor { w in
@@ -382,6 +384,9 @@ struct LibraryView: View {
         guard let window else { mode = new; return }
         if mode == .full { fullFrame = window.frame }
         mode = new
+        // Only Floating lets the screen show through the window (BL-182).
+        window.isOpaque = new != .floating
+        window.backgroundColor = new == .floating ? .clear : Theme.nsGround
         switch new {
         case .full:
             if let f = fullFrame { window.setFrame(f, display: true, animate: true) }
@@ -396,6 +401,12 @@ struct LibraryView: View {
             let width: CGFloat = 360
             window.setFrame(NSRect(x: area.maxX - width, y: area.minY, width: width, height: area.height),
                             display: true, animate: true)
+        case .floating:
+            // A command bar in the upper middle of the screen.
+            let area = (window.screen ?? NSScreen.main)?.visibleFrame ?? window.frame
+            let size = NSSize(width: 680, height: 480)
+            window.setFrame(NSRect(x: area.midX - size.width / 2, y: area.minY + area.height * 0.6 - size.height / 2,
+                                   width: size.width, height: size.height), display: true, animate: true)
         }
         applyPin()
     }
@@ -468,6 +479,12 @@ struct LibraryView: View {
                 }
             }
             let cmd = event.modifierFlags.contains(.command)
+            // Floating: Tab and Shift+Tab step through the categories (BL-182).
+            if mode == .floating, event.keyCode == 48,
+               event.modifierFlags.intersection([.command, .control, .option]).isEmpty {
+                FloatingBody.stepCategory(model, by: event.modifierFlags.contains(.shift) ? -1 : 1)
+                return nil
+            }
             // Tab in the search: the keyboard moves to the results, so Space previews (BL-127).
             if event.keyCode == 48, mode == .full, window.firstResponder is NSText,
                event.modifierFlags.intersection([.shift, .command, .control, .option]).isEmpty,

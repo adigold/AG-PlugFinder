@@ -207,6 +207,16 @@ enum SelfTest {
                     NotificationCenter.default.post(name: .demoPlace, object: nil)
                     print("PLACE done"); fflush(stdout)
                 }
+                if args.contains("--floating") {
+                    // The floating bar, then the next category with Tab (BL-182).
+                    NotificationCenter.default.post(name: .demoWindowMode, object: "floating")
+                    try? await Task.sleep(for: .seconds(1.5))
+                    await capture(window, to: out.deletingPathExtension().appendingPathExtension("floating.png"))
+                    print("FLOATING \(Int(window.frame.width))x\(Int(window.frame.height)) opaque=\(window.isOpaque)"); fflush(stdout)
+                    NotificationCenter.default.post(name: .demoWindowMode, object: "full")
+                    try? await Task.sleep(for: .seconds(1.2))
+                    print("FLOATING back opaque=\(window.isOpaque) \(Int(window.frame.width))x\(Int(window.frame.height))"); fflush(stdout)
+                }
                 if args.contains("--later") {
                     // The same window again a little later: a list still moving would look different.
                     let r0 = PluginStore.shared.revision

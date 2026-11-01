@@ -3,13 +3,14 @@ import SwiftUI
 
 /// How the library window is shown (BL-148).
 enum WindowMode: String, CaseIterable, Identifiable {
-    case full, sideview, mini
+    case full, sideview, mini, floating
     var id: String { rawValue }
     var title: String {
         switch self {
         case .full: return "Full Window"
         case .sideview: return "Sideview"
         case .mini: return "Mini"
+        case .floating: return "Floating"
         }
     }
     var symbol: String {
@@ -17,6 +18,7 @@ enum WindowMode: String, CaseIterable, Identifiable {
         case .full: return "macwindow"
         case .sideview: return "sidebar.right"
         case .mini: return "rectangle.compress.vertical"
+        case .floating: return "command.square"
         }
     }
 }
@@ -28,7 +30,7 @@ struct ViewModeButton: View {
     @State private var open = false
 
     var body: some View {
-        BarIconButton(systemImage: mode.symbol, help: "Full window, sideview or mini", active: open) { open.toggle() }
+        BarIconButton(systemImage: mode.symbol, help: "Full window, sideview, mini or floating", active: open) { open.toggle() }
             .popover(isPresented: $open, arrowEdge: .bottom) {
                 VStack(spacing: 2) {
                     ForEach(WindowMode.allCases) { m in

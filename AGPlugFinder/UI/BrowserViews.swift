@@ -9,6 +9,8 @@ struct SearchField: View {
     @Bindable var model: PickerModel
     var focusOnAppear = true
     var large = false
+    /// No capsule behind it, for the floating bar (BL-182).
+    var bare = false
     @FocusState private var focused: Bool
 
     var body: some View {
@@ -30,9 +32,9 @@ struct SearchField: View {
                 .help("Clear the search")
             }
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, bare ? 0 : 14)
         .frame(height: large ? 44 : Theme.control)
-        .background(Capsule().fill(Theme.raised))
+        .background(Capsule().fill(bare ? Color.clear : Theme.raised))
         .onAppear { if focusOnAppear { focused = true }; EnglishKeys.apply() }
         .onChange(of: focused) { _, on in if on { EnglishKeys.apply(); model.keysOnPlugins = false } }
         .onChange(of: model.query) { _, q in

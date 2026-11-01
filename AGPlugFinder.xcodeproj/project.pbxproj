@@ -38,6 +38,7 @@
 		55042213A5FBB48BD7609817 /* LogicInserter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE2A7565B4582595AC03716 /* LogicInserter.swift */; };
 		5B342DD47C05CB8E16FE08B5 /* Dialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4B091409E5CFB764CCC3FE /* Dialog.swift */; };
 		5DCD29A96935375138A77B64 /* ShortcutSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55FD3617B4BC576C117D7A0D /* ShortcutSettings.swift */; };
+		5F8625583C211D17CB8FA15C /* FloatingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 386208688ACD0DB9A79F9149 /* FloatingView.swift */; };
 		614EE6DB31B4D355967EE472 /* LogicCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79020B749BE713B285FFCF69 /* LogicCatalog.swift */; };
 		6A189FEC2349289FD418F81D /* AppEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543D77325B5A182229531F62 /* AppEntry.swift */; };
 		7219F4928E487650D9BD675F /* ShareWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73BE9C76C349750CE02E0E1B /* ShareWindow.swift */; };
@@ -107,6 +108,7 @@
 		3489490CA53609C463DF80B1 /* SnapshotProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotProgressView.swift; sourceTree = "<group>"; };
 		356DA54D6AF0A0ECD8B21135 /* LogicScreenshots */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LogicScreenshots; path = Bundled/LogicScreenshots; sourceTree = SOURCE_ROOT; };
 		36742C3F75E620A4C9713D2D /* AGPlugFinder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AGPlugFinder.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		386208688ACD0DB9A79F9149 /* FloatingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingView.swift; sourceTree = "<group>"; };
 		46463EBC97E295A49C3EB7CA /* PluginInfoFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginInfoFetcher.swift; sourceTree = "<group>"; };
 		510649A05002EFFF609F883A /* LogicTrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicTrack.swift; sourceTree = "<group>"; };
 		522F310F8121F51CEEC4502A /* SnapshotQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotQueue.swift; sourceTree = "<group>"; };
@@ -246,6 +248,7 @@
 				8F4B091409E5CFB764CCC3FE /* Dialog.swift */,
 				65D1DB32E57A0017C2D34478 /* FeatureViews.swift */,
 				0F6759972C4F8A854CE9948F /* FeedbackWindow.swift */,
+				386208688ACD0DB9A79F9149 /* FloatingView.swift */,
 				1AED26F1AE92B46F89A94CE6 /* LibraryView.swift */,
 				B5987D3DB7540AEB27720655 /* LicensesView.swift */,
 				597B1DCFC14B2876ADEF60AA /* OnboardingView.swift */,
@@ -411,6 +414,7 @@
 				5B342DD47C05CB8E16FE08B5 /* Dialog.swift in Sources */,
 				B9F5D62FC7F6DB07E854998D /* FeatureViews.swift in Sources */,
 				C4B88487C336CC6F4720A616 /* FeedbackWindow.swift in Sources */,
+				5F8625583C211D17CB8FA15C /* FloatingView.swift in Sources */,
 				0953E7BB62AEE4DEEB066EDE /* HostBadge.swift in Sources */,
 				29635C0C264E29F51E293901 /* HotKey.swift in Sources */,
 				7A24730DB3744E8D9FC7BE9E /* InsertRunner.swift in Sources */,
