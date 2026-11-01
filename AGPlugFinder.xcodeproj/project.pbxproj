@@ -15,6 +15,7 @@
 		17273346968303AADBE29BB4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD381CA2BB6F2AE268D763CD /* Assets.xcassets */; };
 		1D0A7F6722952750D7F6070A /* MenuSelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE407748A6E14EDFA0ED1EC2 /* MenuSelfTest.swift */; };
 		1E0056BED99110E293747005 /* AbletonBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D4464B062DDF82604F2AB1A /* AbletonBridge.swift */; };
+		20D55E6AA341A520A4E4E5F9 /* Locked.swift in Sources */ = {isa = PBXBuildFile; fileRef = F570040051B31B27FD4FC484 /* Locked.swift */; };
 		22C05D51D8B31A9562FB3476 /* SelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19606CDC7F0663446B24FE2 /* SelfTest.swift */; };
 		2626830B5D9848089F58FEAF /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3126DBE9AE17BDEEEA02A558 /* Keychain.swift */; };
 		27361D78B2DAFA838ACB8226 /* SoundSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D47D34C73708761076C4971 /* SoundSearch.swift */; };
@@ -155,6 +156,7 @@
 		EFFB100FD4998C193C7BEA94 /* OnDeviceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceInfo.swift; sourceTree = "<group>"; };
 		F023E1377B6D025990A4AD1D /* UpdateViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateViews.swift; sourceTree = "<group>"; };
 		F05D9E80AB05BBDDB1CAB73B /* PluginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginManager.swift; sourceTree = "<group>"; };
+		F570040051B31B27FD4FC484 /* Locked.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Locked.swift; sourceTree = "<group>"; };
 		F7CCA50466D2E64FD4A96467 /* AbletonScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbletonScript.swift; sourceTree = "<group>"; };
 		FD381CA2BB6F2AE268D763CD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -205,6 +207,7 @@
 			isa = PBXGroup;
 			children = (
 				D4883EC0D9CCD0812BF8CDAF /* Licenses.swift */,
+				F570040051B31B27FD4FC484 /* Locked.swift */,
 				79020B749BE713B285FFCF69 /* LogicCatalog.swift */,
 				59B755CD9FF0D19ABBDBC410 /* Pills.swift */,
 				BB8400D6D1B92CAB96090263 /* PlugDB.swift */,
@@ -416,6 +419,7 @@
 				E8B2D9F7C5B727568779B9F8 /* Licenses.swift in Sources */,
 				445998CA513B09D710F9282C /* LicensesView.swift in Sources */,
 				931ACACD35A71211C23FDE8B /* LocalModel.swift in Sources */,
+				20D55E6AA341A520A4E4E5F9 /* Locked.swift in Sources */,
 				13A90B02B0FBED49ED49B448 /* LogicCapture.swift in Sources */,
 				614EE6DB31B4D355967EE472 /* LogicCatalog.swift in Sources */,
 				55042213A5FBB48BD7609817 /* LogicInserter.swift in Sources */,

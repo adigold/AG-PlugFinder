@@ -90,7 +90,7 @@ struct Plugin: Identifiable, Codable, Hashable {
     var displayCategory: String {
         // A category chosen before Dynamics was split is split the same way (BL-150).
         if let c = userCategory { return Self.splitDynamics(c, name: name, id: id) }
-        if !isLogic, MainActor.assumeIsolated({ PluginCategories.isChannelStrip(name) }) { return "Channel Strip" }
+        if !isLogic, PluginCategories.isChannelStrip(name) { return "Channel Strip" }
         return Self.splitDynamics(baseCategory, name: name, id: id)
     }
 
@@ -103,9 +103,11 @@ struct Plugin: Identifiable, Codable, Hashable {
     }
 
     /// Dynamics shows as one of its eight kinds (BL-121, BL-150).
-    @MainActor private static var kinds: [String: String] = UserDefaults.standard.dictionary(forKey: "plugin.kinds") as? [String: String] ?? [:]
+    /// Safe from any thread: the plugin info lookup asks from the background (BL-168).
+    private static let kinds = Locked<[String: String]>(UserDefaults.standard.dictionary(forKey: "plugin.kinds") as? [String: String] ?? [:])
     @MainActor static func reloadKinds() {
-        kinds = UserDefaults.standard.dictionary(forKey: "plugin.kinds") as? [String: String] ?? [:]
+        let fresh = UserDefaults.standard.dictionary(forKey: "plugin.kinds") as? [String: String] ?? [:]
+        kinds.change { $0 = fresh }
         PluginStore.shared.bumpRevision()
     }
     private static func splitDynamics(_ c: String, name: String, id: String) -> String {
@@ -115,7 +117,7 @@ struct Plugin: Identifiable, Codable, Hashable {
             return ["isolat", "noise", "denois", "hum", "declick"].contains(where: n.contains) ? "Utility" : "Specialized"
         }
         guard c == "Dynamics" else { return c }
-        let kind = MainActor.assumeIsolated { kinds[id] }
+        let kind = kinds.read { $0[id] }
         return PluginCategories.refineDynamics(name: name, kind: kind)
     }
 

@@ -1167,6 +1167,23 @@ enum SelfTest {
             let one = PluginDrag.ids([PluginDrag.payload(["aufx-Chao-NbsA"])])
             print("DRAG three ok=\(back == three) one ok=\(one == ["aufx-Chao-NbsA"]) other text ignored=\(PluginDrag.ids(["hello"]).isEmpty)"); fflush(stdout)
         }
+        // --selftest-bgcategory: every plugin's category asked from background threads, as the
+        // info lookup does; this crashed 0.9.37 (BL-168).
+        if args.contains("--selftest-bgcategory") {
+            Task {
+                try? await Task.sleep(for: .seconds(2))
+                let plugins = PluginStore.shared.plugins + [Plugin(id: "aufx-Test-Test", name: "SSL E-Channel", manufacturer: "Test",
+                    typeName: "Effect", category: "Dynamics", tags: [], version: "1", isV3: false,
+                    componentType: 0, componentSubType: 0, componentManufacturer: 0)]
+                let cats = await Task.detached {
+                    var out: [String] = []
+                    DispatchQueue.concurrentPerform(iterations: 4) { _ in for p in plugins { _ = p.displayCategory } }
+                    for p in plugins.suffix(3) { out.append("\(p.name)=\(p.displayCategory)") }
+                    return out
+                }.value
+                print("BGCAT survived \(plugins.count) plugins x 5 threads: \(cats.joined(separator: ", "))"); fflush(stdout)
+            }
+        }
         // --selftest-icloudkeychain: can this app keep a key in iCloud Keychain? Adds a test item,
         // reads it back and deletes it (BL-157).
         if args.contains("--selftest-icloudkeychain") {

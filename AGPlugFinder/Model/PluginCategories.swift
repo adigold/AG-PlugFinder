@@ -19,12 +19,13 @@ enum PluginCategories {
                                      "ultrachannel", "vision channel", "mixhub", "ssl 4k", "4000 e", "4000 g", "9000 j",
                                      "88rs", "native channel", "british channel", "nls channel", "grand channel",
                                      "vocalstrip", "drumstrip", "guitarstrip", "vocal strip", "camel strip", "hitstrip", "fx strip"]
-    @MainActor private static var stripMemo: [String: Bool] = [:]
-    @MainActor static func isChannelStrip(_ name: String) -> Bool {
-        if let m = stripMemo[name] { return m }
+    /// Safe from any thread: the plugin info lookup asks from the background (BL-168).
+    private static let stripMemo = Locked<[String: Bool]>([:])
+    static func isChannelStrip(_ name: String) -> Bool {
+        if let m = stripMemo.read({ $0[name] }) { return m }
         let n = name.lowercased()
         let yes = !n.contains("channel eq") && stripWords.contains { n.contains($0) }
-        stripMemo[name] = yes
+        stripMemo.change { $0[name] = yes }
         return yes
     }
 
