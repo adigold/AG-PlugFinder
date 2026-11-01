@@ -156,6 +156,13 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.36**
+
+- **New:** Choose what syncs. In Settings, each part of your library has its own switch, so every Mac can keep some things to itself.
+- **New:** Your theme, text size and view choices now sync with your other Macs too.
+- **New:** The Plugin Manager shows how many plugins and how much space your filter covers, and how much space the plugins you chose will free.
+- **Faster:** Plugins you move in the Plugin Manager leave the list at once, with no new scan.
+
 **0.9.35**
 
 - **Improved:** Sidecar is now called Sideview.
@@ -171,15 +178,15 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **Improved:** Plugins you remove in the Plugin Manager leave the library right away.
 - **Improved:** The Effects category is gone. Its plugins moved to Specialized or Utility.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.33)</summary>
+
 **0.9.33**
 
 - **Fixed:** Removing plugins in the Plugin Manager works. It now asks on the same page, shows the name of the folder it creates on your Desktop, and tells you what was moved.
 - **Fixed:** Save as chain finds Logic's plugins even when the track shows their short names, like SilvComp or SpecGate.
 - **Fixed:** Save as chain tells you when a track has only an instrument and no effects to save.
 - **Fixed:** An open chain in the Chains list is no longer cut off.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.32)</summary>
 
 **0.9.32**
 
