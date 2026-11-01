@@ -7,8 +7,6 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
-- [ ] **BL-142** `P1 · Medium` **Rescan removes uninstalled plugins:** plugins the user removed from the Audio Units folder disappear from the app on a scan. Adi, 2026-11-01.
-
 - [ ] **BL-135** `P1 · High` **Rename the app to Retrive.me:** new name everywhere users see it. Adi, 2026-11-01.
 - [ ] **BL-136** `P1 · High` **retrive.me website:** a site for the app on the new domain (Cloudflare DNS). Adi, 2026-11-01.
 
@@ -38,6 +36,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-142** `P1 · Medium` **Rescan removes uninstalled plugins:** plugins the user removed from the Audio Units folder disappear from the app on a scan. Adi, 2026-11-01. Built: a scan drops plugins whose file is gone even if macOS still lists them (never most of the list at once); the Components folders are watched so a manual delete rescans by itself; the app says how many were removed. Example from Adi: Tuned Plugins and Universal Audio rows in Plugin List. · done 2026-11-01
 - [x] **BL-141** `P2 · Low` **Pill defaults:** new users get Show Both, Order Most plugins, Wrap to more rows, Regular, Counts on; Reset to Default restores the same. Choices people already made stay. Adi, 2026-11-01. · done 2026-11-01
 
 - [x] **BL-140** `P2 · Medium` **Channel Strip category:** a Channel Strip pill for channel strip plugins such as R-Channel, SSL channels, G-Channel and bx_console SSL. Adi, 2026-11-01. Built: a Channel Strip pill; strips are recognized by name before any other category (only the user's own choice wins). Checked against the shared database: 40 strips caught, no wrong ones. · done 2026-11-01
