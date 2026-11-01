@@ -7,8 +7,6 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
-- [ ] **BL-128** `P2 · Low` **Rename Licenses to My Purchases:** the top bar button and its window say "My Purchases". Adi, 2026-11-01.
-- [ ] **BL-129** `P1 · Medium` **Maker's Website without DuckDuckGo:** plugins without a found link still open a DuckDuckGo search; every Apple Logic Pro plugin without its own page must open Apple's Logic Pro page. Adi, 2026-11-01.
 - [ ] **BL-122** `P2 · Medium` **New database plugins checked automatically:** when an app adds a plugin to the shared database, the server finds its maker page, exact kind and category with Exa in the background. Needs the Exa key on the server and a server update (Adi to approve). Adi, 2026-11-01.
 
 - [ ] **BL-83** `P2 · Medium` **Admin dashboard for the shared database:** one private page for Adi: how many Macs and versions, pictures in and approved (with a look at each and reject), crash reports and error logs, category votes and agreement, uploads per day. Signed-in only. Adi, 2026-10-31.
@@ -35,6 +33,8 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-128** `P2 · Low` **Rename Licenses to My Purchases:** the top bar button and its window say "My Purchases". Adi, 2026-11-01. · done 2026-11-01
+- [x] **BL-129** `P1 · Medium` **Maker's Website without DuckDuckGo:** plugins without a found link still open a DuckDuckGo search; every Apple Logic Pro plugin without its own page must open Apple's Logic Pro page. Adi, 2026-11-01. Found: the debug test copy (same settings as the real app) replaced the stored links with its own short list on every launch; links now merge per plugin and tests never save them. Fallbacks: Logic and Apple plugins open apple.com/logic-pro, known makers open their home page, search only for unknown makers. · done 2026-11-01
 - [x] **BL-126** `P1 · Medium` **Shift+Tab back to search:** after clicking a plugin, Shift+Tab returns the keyboard to the search field. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-127** `P1 · Medium` **Space preview after searching:** typing a search then pressing Space on the results must open the preview, not type a space. Adi, 2026-11-01. Adi chose: Tab moves from the search to the results, then Space previews (spaces in searches keep working). · done 2026-11-01
 - [x] **BL-125** `P1 · Critical` **Crash on a search with no results:** the library window can crash (layout loop) when a search matches nothing; found in 0.9.23 while testing BL-124, 2026-11-01. Result: only the debug self-test hook triggered it (it set the search inside a window-wide animation right after a resize); real typing and clicks never do. Hook fixed; app code unchanged. · done 2026-11-01

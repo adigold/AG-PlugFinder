@@ -575,7 +575,7 @@ struct LicensesView: View {
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Licenses and subscriptions").font(.system(size: 22, weight: .bold)).foregroundStyle(Theme.text)
+                Text("My Purchases").font(.system(size: 22, weight: .bold)).foregroundStyle(Theme.text)
                 Text(UserLibrary.shared.syncEnabled && Licenses.cloudFile != nil
                      ? "Synced with your other Macs through iCloud Drive. License keys stay in this Mac's Keychain."
                      : "Kept on this Mac only. License keys are stored in your Keychain.")
@@ -785,7 +785,7 @@ struct LicenseMenu: View {
             Button("New Subscription with These…") { if let p = lic.newPlan(.subscription, adding: ids) { PlanWindow.show(p.id) } }
             Button("New Bundle with These…") { if let p = lic.newPlan(.bundle, adding: ids) { PlanWindow.show(p.id) } }
             Divider()
-            Button("Licenses and Subscriptions…") { LicensesWindow.shared.show() }
+            Button("My Purchases…") { LicensesWindow.shared.show() }
         }
     }
 }

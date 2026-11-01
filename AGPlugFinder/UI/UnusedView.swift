@@ -49,7 +49,7 @@ struct UnusedView: View {
                      showHidden ? "Hidden from the library" : "Counted from what you added with AG PlugFinder")
                 tile("Disk space", sizes.isEmpty && !items.isEmpty ? "Measuring…" : ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file),
                      "What uninstalling them would free")
-                tile("You paid", money > 0 ? lic.money(money) : "Not entered", money > 0 ? "From your licenses" : "Add prices in Licenses")
+                tile("You paid", money > 0 ? lic.money(money) : "Not entered", money > 0 ? "From your licenses" : "Add prices in My Purchases")
             }
             HStack(spacing: 6) {
                 ForEach(Span.allCases, id: \.self) { s in Chip(title: s.rawValue, on: span == s && !showHidden) { span = s; showHidden = false; checked = [] } }

@@ -479,6 +479,17 @@ enum SelfTest {
             }
             print("SEARCH done"); fflush(stdout)
         }
+        // --selftest-makerurl: where Maker's Website goes for a few plugins (BL-129).
+        if args.contains("--selftest-makerurl") {
+            Task {
+                try? await Task.sleep(for: .seconds(2))
+                let ps = PluginStore.shared.plugins
+                let picks = [ps.first { $0.isLogic }, ps.first { !$0.isLogic && MakerSites.site(for: $0.manufacturer) != nil },
+                             ps.first { !$0.isLogic && MakerSites.site(for: $0.manufacturer) == nil && PlugDB.productURL($0.id) == nil }]
+                for p in picks.compactMap({ $0 }) { print("URL \(p.manufacturer) / \(p.name) -> \(MakerSites.url(for: p)?.absoluteString ?? "nil")") }
+                print("URL done"); fflush(stdout)
+            }
+        }
         // --selftest-msflip: the window open first, then the mono/stereo switch flipped and the
         // plugin list changed while it is showing, as a user would (BL-124). In memory only.
         if args.contains("--selftest-msflip") {

@@ -181,7 +181,7 @@ struct LibraryView: View {
                 }
                 .popover(isPresented: $showChains, arrowEdge: .bottom) { ChainsPanel { showChains = false } }
                 ViewControls(model: model)
-                BarIconButton(systemImage: "creditcard", help: "Licenses and subscriptions") { LicensesWindow.shared.show() }
+                BarIconButton(systemImage: "creditcard", help: "My Purchases") { LicensesWindow.shared.show() }
                 BarIconButton(systemImage: "ellipsis", help: "Plugins, screenshots and info", active: showActions) {
                     showActions.toggle()
                 }
@@ -463,7 +463,7 @@ struct LibraryActions: View {
             action("chart.bar", "Plugin report", detail: "Most used, unused, installed twice, disk space") {
                 ReportWindow.shared.show()
             }
-            action("creditcard", "Licenses and subscriptions", detail: licenseDetail) {
+            action("creditcard", "My Purchases", detail: licenseDetail) {
                 LicensesWindow.shared.show()
             }
             action("square.and.arrow.up", "Share AG PlugFinder", detail: "X, WhatsApp, Messages, Instagram and more") {

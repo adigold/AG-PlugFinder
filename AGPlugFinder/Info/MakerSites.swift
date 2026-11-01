@@ -29,7 +29,7 @@ enum MakerSites {
         ("zynaptiq", "zynaptiq.com"), ("sonarworks", "sonarworks.com"), ("overloud", "overloud.com"), ("audiothing", "audiothing.net"),
         ("refx", "refx.com"), ("hofa", "hofa-plugins.de"), ("kazrog", "kazrog.com"), ("techivation", "techivation.com"),
         ("audiomodern", "audiomodern.com"), ("ohm force", "ohmforce.com"), ("harrison", "harrisonaudio.com"),
-        ("soundtheory", "soundtheory.com"), ("metric halo", "mhsecure.com"), ("logic pro", "support.apple.com"), ("apple", "support.apple.com"),
+        ("soundtheory", "soundtheory.com"), ("metric halo", "mhsecure.com"),
     ]
 
     static func site(for maker: String) -> String? {
@@ -38,17 +38,20 @@ enum MakerSites {
     }
 
     static func open(_ plugin: Plugin) {
-        // The exact page, found and checked once for everyone (BL-119).
-        if let url = PlugDB.productURL(plugin.id) { NSWorkspace.shared.open(url); return }
-        let name = plugin.isLogic && !plugin.name.hasPrefix("Logic") ? "Logic Pro \(plugin.name)" : plugin.name
-        var q: String
-        if let site = site(for: plugin.manufacturer) {
-            // Straight to the best match on the maker's own site.
-            q = "!ducky site:\(site) \(name)"
-        } else {
-            q = "\(plugin.manufacturer) \(name) plugin"
+        if let url = url(for: plugin) { NSWorkspace.shared.open(url) }
+    }
+
+    /// Where Maker's Website goes (BL-119, BL-129): the plugin's own page when it was found and
+    /// checked; Apple's Logic Pro page for Logic's own plugins; the maker's home page when the
+    /// maker is known; a web search only when nothing else is known.
+    static func url(for plugin: Plugin) -> URL? {
+        if let url = PlugDB.productURL(plugin.id) { return url }
+        if plugin.isLogic || plugin.manufacturer.lowercased().contains("apple") {
+            return URL(string: "https://www.apple.com/logic-pro/")
         }
+        if let site = site(for: plugin.manufacturer) { return URL(string: "https://\(site)") }
+        var q = "\(plugin.manufacturer) \(plugin.name) plugin"
         q = q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)?.replacingOccurrences(of: "+", with: "%2B") ?? q
-        if let url = URL(string: "https://duckduckgo.com/?q=\(q)") { NSWorkspace.shared.open(url) }
+        return URL(string: "https://duckduckgo.com/?q=\(q)")
     }
 }

@@ -112,8 +112,24 @@ enum PlugDB {
             if let u = r["product_url"] as? String, u.hasPrefix("https://") { urls[id] = u }
             if let k = r["kind"] as? String, !k.isEmpty { kinds[id] = k }
         }
-        if !urls.isEmpty { UserDefaults.standard.set(urls, forKey: "plugin.urls") }
-        if !kinds.isEmpty { UserDefaults.standard.set(kinds, forKey: "plugin.kinds"); Plugin.reloadKinds() }
+        // Only the plugins asked about change: a shorter plugin list (a scan still running, a test
+        // copy) never wipes the links and kinds of the others (BL-129).
+        var test = false
+        #if DEBUG
+        test = CommandLine.arguments.contains { $0.hasPrefix("--selftest") }
+        #endif
+        if !test {
+            let asked = Set(ids.prefix(2000))
+            func merged(_ key: String, _ found: [String: String]) -> [String: String] {
+                var all = (UserDefaults.standard.dictionary(forKey: key) as? [String: String]) ?? [:]
+                for id in asked { all[id] = nil }
+                all.merge(found) { _, new in new }
+                return all
+            }
+            UserDefaults.standard.set(merged("plugin.urls", urls), forKey: "plugin.urls")
+            UserDefaults.standard.set(merged("plugin.kinds", kinds), forKey: "plugin.kinds")
+            Plugin.reloadKinds()
+        }
         let seen = pictureRev
         let newer = rows.compactMap { r -> String? in
             guard let id = r["plugin_id"] as? String, let rev = r["picture_rev"] as? Int, rev > (seen[id] ?? 0) else { return nil }

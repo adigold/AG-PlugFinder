@@ -12,7 +12,7 @@ struct SettingsView: View {
             PillsEditor()
                 .tabItem { Label("Pills", systemImage: "capsule") }
             LicensesView(topPadding: 22)
-                .tabItem { Label("Licenses", systemImage: "creditcard") }
+                .tabItem { Label("My Purchases", systemImage: "creditcard") }
             UpdateSettings()
                 .tabItem { Label("Updates", systemImage: "arrow.down.circle") }
         }
