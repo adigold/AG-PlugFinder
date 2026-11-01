@@ -86,11 +86,26 @@ struct Plugin: Identifiable, Codable, Hashable {
     /// Category shown in the UI: the looked-up one wins over our guess.
     var displayCategory: String {
         if let c = userCategory { return c }
+        return Self.splitDynamics(baseCategory, name: name, id: id)
+    }
+
+    private var baseCategory: String {
         if let c = communityCategory { return c }
         if isLogic { return category } // Logic's own menu category
         // A looked-up category counts only when it is one of the app's own (BL-77).
         if let c = details?.category, let known = PluginCategories.normalize(c) { return known }
         return category
+    }
+
+    /// Dynamics shows as Compressor, Limiter or Dynamics (BL-121).
+    @MainActor private static var kinds: [String: String] = UserDefaults.standard.dictionary(forKey: "plugin.kinds") as? [String: String] ?? [:]
+    @MainActor static func reloadKinds() {
+        kinds = UserDefaults.standard.dictionary(forKey: "plugin.kinds") as? [String: String] ?? [:]
+    }
+    private static func splitDynamics(_ c: String, name: String, id: String) -> String {
+        guard c == "Dynamics" else { return c }
+        let kind = MainActor.assumeIsolated { kinds[id] }
+        return PluginCategories.refineDynamics(name: name, kind: kind)
     }
 
     static func makeID(type: UInt32, subType: UInt32, manufacturer: UInt32) -> String {

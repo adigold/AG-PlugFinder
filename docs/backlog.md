@@ -31,6 +31,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
+- [x] **BL-121** `P1 · High` **Dynamics split into Compressor and Limiter pills:** Compressor, Limiter (with maximizers) and Dynamics for gates, de-essers, transient shapers and multiband; the exact kind from the maker's page decides first, then the name. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-118** `P2 · Medium` **Close the info panel:** a button at the top of the info panel hides it; a top bar button and ⌘I bring it back. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-117** `P2 · Medium` **Collections look different from categories:** collections are outlined pills with a small stack icon; categories stay filled. Adi chose this, 2026-11-01. · done 2026-11-01
 - [x] **BL-116** `P2 · Medium` **Themed dialogs instead of system boxes:** the name boxes, questions and confirmations use the app's own dark card, pills and text field; Return confirms, Esc cancels. Adi, 2026-11-01. · done 2026-11-01

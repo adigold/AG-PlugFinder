@@ -113,7 +113,7 @@ enum PlugDB {
             if let k = r["kind"] as? String, !k.isEmpty { kinds[id] = k }
         }
         if !urls.isEmpty { UserDefaults.standard.set(urls, forKey: "plugin.urls") }
-        if !kinds.isEmpty { UserDefaults.standard.set(kinds, forKey: "plugin.kinds") }
+        if !kinds.isEmpty { UserDefaults.standard.set(kinds, forKey: "plugin.kinds"); Plugin.reloadKinds() }
         let seen = pictureRev
         let newer = rows.compactMap { r -> String? in
             guard let id = r["plugin_id"] as? String, let rev = r["picture_rev"] as? Int, rev > (seen[id] ?? 0) else { return nil }

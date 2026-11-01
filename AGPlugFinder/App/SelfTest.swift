@@ -686,6 +686,14 @@ enum SelfTest {
                 say("done")
             }
         }
+        // --selftest-dynamics: how every dynamics plugin is sorted (BL-121).
+        if args.contains("--selftest-dynamics") {
+            for c in ["Compressor", "Limiter", "Dynamics"] {
+                let names = PluginStore.shared.plugins.filter { $0.displayCategory == c }.map(\.name).sorted()
+                print("DYN \(c) (\(names.count)): \(names.joined(separator: ", "))")
+            }
+            fflush(stdout)
+        }
         if let k = args.firstIndex(of: "--selftest-menu-actions"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])
             Task { await menuActions(dir) }

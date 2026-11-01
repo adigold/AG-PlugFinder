@@ -5,7 +5,7 @@ import AudioToolbox
 /// only Logic's (a user's report, 2026-10-31: wideners, sonible and iZotope missing from Imaging).
 enum PluginCategories {
     /// Every category a user can choose, in Logic's words.
-    static let all = ["Amps and Pedals", "Delay", "Distortion", "Dynamics", "EQ", "Filter", "Imaging",
+    static let all = ["Amps and Pedals", "Compressor", "Limiter", "Delay", "Distortion", "Dynamics", "EQ", "Filter", "Imaging",
                       "Metering", "Modulation", "Multi Effects", "Pitch", "Reverb", "Utility", "Effects",
                       "Synth", "Sampler", "Drums", "Keys", "Bass", "Orchestral", "MIDI FX"]
 
@@ -73,6 +73,34 @@ enum PluginCategories {
         ]
         for (category, words) in table where words.contains(where: { t.contains($0) }) { return category }
         return nil
+    }
+
+    /// Dynamics split in three (BL-121): Compressor, Limiter (and maximizers), and Dynamics for
+    /// the rest (gates, de-essers, transient shapers, multiband). The exact kind from the maker's
+    /// page decides first, then the name.
+    static func refineDynamics(name: String, kind: String?) -> String {
+        switch kind {
+        case "Compressor": return "Compressor"
+        case "Limiter", "Maximizer": return "Limiter"
+        case "Gate", "Expander", "De-esser", "Transient Shaper", "Multiband Dynamics": return "Dynamics"
+        default: break
+        }
+        let n = name.lowercased()
+        func has(_ list: [String]) -> Bool { list.contains { n.range(of: $0, options: .regularExpression) != nil } }
+        if has(["multipressor", "multiband", "multi-band", #"\bmb\b"#, "pro-mb", "c4 ", #"\bc6\b"#, "linmb", "gate", "de-?ess", "esser",
+                "transient", "expander", "envelope", "ducker", "smack", "punch", "kickstart", "lfotool", "volume shap", "rider"]) {
+            return "Dynamics"
+        }
+        if n.contains("compress") { return "Compressor" }
+        if has(["limit", "maximi", "pro-l", #"\bl[1-4]\b"#, #"\bl2\b"#, "loudener", "fastermaster", "clipper", #"clip\b"#, "inflator", "weiss ds"]) {
+            return "Limiter"
+        }
+        if has(["comp", "1176", "la-?2a", "opto", "dbx", #"\bvsc"#, "dyna-mu", "vari-?mu", "fairchild", "glue", "pro-c", #"\bc[1-3]\b"#,
+                #"(^|[^0-9])76\b"#, "kotelnikov", "rvox", "renaissance axx", "mc2000", "distressor", "api-2500", "bus comp", #"\bfet\b"#,
+                #"\bvca\b"#, "smart:comp", "silika", "leveler", "leveller", "dynassist", "autobus", #"\bott\b"#]) {
+            return "Compressor"
+        }
+        return "Dynamics"
     }
 
     static func guess(name: String, tags: [String], type: OSType) -> String {
