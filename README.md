@@ -162,6 +162,12 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.38**
+
+- **New:** Pictures of Ableton Live's own devices, from Amp to Wavetable.
+- **New:** A small badge at the bottom left shows whether plugins go to Logic Pro or Ableton Live, and whether it is open.
+- **Improved:** After adding to Ableton you get a message naming the track, or telling you what to turn on in Live when a plugin is missing.
+
 **0.9.37**
 
 - **New:** Ableton Live. AG PlugFinder now adds plugins and Ableton's own devices to the selected track in Live. It follows the program you are using: Logic's plugins while you work in Logic, Ableton's devices while you work in Live. Turn it on once in Live's Settings, Link, Tempo & MIDI, by choosing AGPlugFinder as a Control Surface.
@@ -175,15 +181,15 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **New:** The Plugin Manager shows how many plugins and how much space your filter covers, and how much space the plugins you chose will free.
 - **Faster:** Plugins you move in the Plugin Manager leave the list at once, with no new scan.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.35)</summary>
+
 **0.9.35**
 
 - **Improved:** Sidecar is now called Sideview.
 - **Improved:** The Plugin Manager scan shows how many plugin files and installers are left, with a progress bar.
 - **Faster:** The Plugin Manager stays quick with thousands of plugins. Ticking, searching and scrolling react at once.
 - **New:** Select All and Deselect All buttons in the Plugin Manager.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.34)</summary>
 
 **0.9.34**
 
