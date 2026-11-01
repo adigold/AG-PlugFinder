@@ -29,7 +29,7 @@ enum MakerSites {
         ("zynaptiq", "zynaptiq.com"), ("sonarworks", "sonarworks.com"), ("overloud", "overloud.com"), ("audiothing", "audiothing.net"),
         ("refx", "refx.com"), ("hofa", "hofa-plugins.de"), ("kazrog", "kazrog.com"), ("techivation", "techivation.com"),
         ("audiomodern", "audiomodern.com"), ("ohm force", "ohmforce.com"), ("harrison", "harrisonaudio.com"),
-        ("soundtheory", "soundtheory.com"), ("metric halo", "mhsecure.com"), ("apple", "support.apple.com"),
+        ("soundtheory", "soundtheory.com"), ("metric halo", "mhsecure.com"), ("logic pro", "support.apple.com"), ("apple", "support.apple.com"),
     ]
 
     static func site(for maker: String) -> String? {
@@ -38,7 +38,7 @@ enum MakerSites {
     }
 
     static func open(_ plugin: Plugin) {
-        let name = plugin.isLogic ? "Logic Pro \(plugin.name)" : plugin.name
+        let name = plugin.isLogic && !plugin.name.hasPrefix("Logic") ? "Logic Pro \(plugin.name)" : plugin.name
         var q: String
         if let site = site(for: plugin.manufacturer) {
             // Straight to the best match on the maker's own site.

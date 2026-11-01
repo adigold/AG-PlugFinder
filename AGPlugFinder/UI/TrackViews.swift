@@ -206,12 +206,9 @@ struct TrackPanel: View {
     }
 
     private func clearEffects() {
-        let alert = NSAlert()
-        alert.messageText = "Remove every effect from \(state.track ?? "this track")?"
-        alert.informativeText = "\(state.effects.count) effects come off the track. You can undo it in Logic with Edit > Undo."
-        alert.addButton(withTitle: "Remove")
-        alert.addButton(withTitle: "Cancel")
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        guard Dialog.confirm("Remove every effect from \(state.track ?? "this track")?",
+                             message: "\(state.effects.count) effects come off the track. You can undo it in Logic with Edit > Undo.",
+                             ok: "Remove", destructive: true) else { return }
         state.run {
             if let n = await LogicTrack.shared.clearEffects() {
                 Toast.show("Removed \(n) effect\(n == 1 ? "" : "s")")

@@ -621,6 +621,9 @@ struct PluginDetailView: View {
                               activeTint: Theme.accent) {
                     store.favoriteTapped(plugin.id)
                 }
+                BarIconButton(systemImage: "sidebar.right", help: "Hide the info panel (⌘I). The button at the top brings it back.") {
+                    ViewSettings.shared.showInfoPane = false
+                }
             }
             if let message = model.message {
                 HStack(alignment: .top, spacing: 10) {
@@ -1305,25 +1308,20 @@ struct CategoryMenu: View {
         // Offer it to everyone: other users' apps can then sort these plugins the same way.
         let d = UserDefaults.standard
         if d.bool(forKey: "share.categories.always") { PlugDB.shareCategory(plugins, category); return }
-        let alert = NSAlert()
         let what = plugins.count == 1 ? plugins[0].name : "these \(plugins.count) plugins"
-        alert.messageText = "Move \(what) to \(category) for everyone, or only on this Mac?"
-        alert.informativeText = "Everyone: other AG PlugFinder users will see \(plugins.count == 1 ? "it" : "them") in \(category) too, once other users agree. Only the plugin names and the category are sent.\n\nOnly This Mac: the change stays with you."
-        alert.addButton(withTitle: "Everyone")
-        alert.addButton(withTitle: "Only This Mac")
-        alert.addButton(withTitle: "Cancel")
-        alert.showsSuppressionButton = true
-        alert.suppressionButton?.title = "Always choose Everyone without asking"
-        let answer = alert.runModal()
-        if answer == .alertThirdButtonReturn {
+        let answer = Dialog.show("Move \(what) to \(category) for everyone, or only on this Mac?",
+            message: "Everyone: other AG PlugFinder users will see \(plugins.count == 1 ? "it" : "them") in \(category) too, once other users agree. Only the plugin names and the category are sent.\n\nOnly This Mac: the change stays with you.",
+            checkbox: "Always choose Everyone without asking",
+            choices: [.init(title: "Cancel", cancel: true), .init(title: "Only This Mac"), .init(title: "Everyone", primary: true)])
+        if answer.index == 0 {
             // Cancel: the category goes back to what it was.
             for (id, old) in before { store.update(id) { $0.userCategory = old } }
             Toast.show("Category not changed")
             return
         }
-        if answer == .alertFirstButtonReturn {
+        if answer.index == 2 {
             PlugDB.shareCategory(plugins, category)
-            if alert.suppressionButton?.state == .on { d.set(true, forKey: "share.categories.always") }
+            if answer.checked { d.set(true, forKey: "share.categories.always") }
             Toast.show("Moved for everyone. Thank you!")
         }
     }

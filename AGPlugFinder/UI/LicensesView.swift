@@ -354,7 +354,6 @@ struct PlanEditor: View {
     let id: String
     var close: () -> Void
     var lic = Licenses.shared
-    @State private var confirmDelete = false
 
     private var plan: Binding<LicensePlan> {
         Binding(get: { lic.plan(id) ?? LicensePlan(name: "", kind: .subscription) },
@@ -387,7 +386,13 @@ struct PlanEditor: View {
                 }
                 pluginList
                 HStack {
-                    Button("Delete \(p.isSubscription ? "Subscription" : "Bundle")") { confirmDelete = true }
+                    Button("Delete \(p.isSubscription ? "Subscription" : "Bundle")") {
+                        if Dialog.confirm("Delete \(p.name)?",
+                                          message: "The plugins in it stay, without this \(p.isSubscription ? "subscription" : "bundle").",
+                                          ok: "Delete", destructive: true) {
+                            lic.deletePlan(id); PlanWindow.close(id)
+                        }
+                    }
                         .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Theme.negative)
                     Spacer()
                     PrimaryPill(title: "Done") { close() }
@@ -398,12 +403,6 @@ struct PlanEditor: View {
         .frame(minWidth: 480, minHeight: 480)
         .background(Theme.ground)
         .preferredColorScheme(.dark)
-        .alert("Delete \(p.name)?", isPresented: $confirmDelete) {
-            Button("Delete", role: .destructive) { lic.deletePlan(id); PlanWindow.close(id) }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("The plugins in it stay, without this \(p.isSubscription ? "subscription" : "bundle").")
-        }
     }
 
     /// Plugins follow their plan's kind.

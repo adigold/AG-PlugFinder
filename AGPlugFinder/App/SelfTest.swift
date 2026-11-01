@@ -661,6 +661,26 @@ enum SelfTest {
                     say("remove from \(c.name): \(before) -> \(lib.collections.first { $0.id == c.id }?.pluginIDs.count ?? -1)")
                     lib.collections = savedCols
                 }
+                // Most used order (BL-115).
+                var u = PillPrefs(); u.sort = .used; lib.pills = u
+                say("most used: " + Pills.categoryPills().prefix(5).map { "\($0.title)=\($0.uses)" }.joined(separator: ", "))
+                lib.pills = saved
+                try? await Task.sleep(for: .seconds(0.5))
+                await capture(w, to: dir.appendingPathComponent("13-collections-outlined.png"), scale: 1)
+                // The themed dialogs (BL-116), drawn without opening a live window.
+                let st = Dialog.State(); st.text = "Dynamics"
+                await shoot(DialogCard(title: "Name for the Dynamics pill", message: nil, field: ("Dynamics", "Dynamics"), multiline: false,
+                                       checkbox: nil, choices: [.init(title: "Cancel", cancel: true), .init(title: "OK", primary: true)],
+                                       state: st) { _ in }, size: NSSize(width: 400, height: 190), to: dir.appendingPathComponent("14-dialog-name.png"))
+                await shoot(DialogCard(title: "Move Tape Delay to Delay for everyone, or only on this Mac?",
+                                       message: "Everyone: other AG PlugFinder users will see it in Delay too, once other users agree. Only the plugin names and the category are sent.\n\nOnly This Mac: the change stays with you.",
+                                       field: nil, multiline: false, checkbox: "Always choose Everyone without asking",
+                                       choices: [.init(title: "Cancel", cancel: true), .init(title: "Only This Mac"), .init(title: "Everyone", primary: true)],
+                                       state: Dialog.State()) { _ in }, size: NSSize(width: 400, height: 280), to: dir.appendingPathComponent("15-dialog-question.png"))
+                await shoot(DialogCard(title: "Remove every effect from Lead Vocal?", message: "4 effects come off the track. You can undo it in Logic with Edit > Undo.",
+                                       field: nil, multiline: false, checkbox: nil,
+                                       choices: [.init(title: "Cancel", cancel: true), .init(title: "Remove", primary: true, destructive: true)],
+                                       state: Dialog.State()) { _ in }, size: NSSize(width: 400, height: 160), to: dir.appendingPathComponent("16-dialog-destructive.png"))
                 lib.pills = saved
                 ViewSettings.shared.chipRow = savedRow
                 say("done")

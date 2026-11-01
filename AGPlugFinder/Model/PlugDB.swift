@@ -139,14 +139,11 @@ enum PlugDB {
         let mine = PluginStore.shared.plugins.filter { $0.userCategory != nil }
         guard !mine.isEmpty else { d.set(true, forKey: "share.categories.offered"); return }
         NSApp.activate()
-        let alert = NSAlert()
-        alert.messageText = "Share your \(mine.count) category change\(mine.count == 1 ? "" : "s") with everyone?"
-        alert.informativeText = "Other AG PlugFinder users will then see these plugins in the categories you chose. Only the plugin names and the categories are sent."
-        alert.addButton(withTitle: "Everyone")
-        alert.addButton(withTitle: "Only This Mac")
-        let answer = alert.runModal()
+        let answer = Dialog.show("Share your \(mine.count) category change\(mine.count == 1 ? "" : "s") with everyone?",
+            message: "Other AG PlugFinder users will then see these plugins in the categories you chose. Only the plugin names and the categories are sent.",
+            choices: [.init(title: "Only This Mac", cancel: true), .init(title: "Everyone", primary: true)])
         d.set(true, forKey: "share.categories.offered")
-        guard answer == .alertFirstButtonReturn else { return }
+        guard answer.index == 1 else { return }
         for (category, group) in Dictionary(grouping: mine, by: { $0.userCategory! }) { shareCategory(group, category) }
         Toast.show("Shared \(mine.count) category change\(mine.count == 1 ? "" : "s"). Thank you!")
     }

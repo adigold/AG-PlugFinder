@@ -62,15 +62,18 @@ struct LibraryView: View {
             if mini { toggleMini() }
             showTrack = true
         }
-        .alert("Look up \(fetcher.missingCount()) plugins?", isPresented: $confirmLookup) {
-            Button("Look Up") { fetcher.start() }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            let n = fetcher.missingCount()
-            let cost = Double(n) * fetcher.model.estimatedCostPerPlugin
-            Text("This uses your Anthropic API key with \(fetcher.model.title) and web search. " +
-                 "Estimated cost about $\(String(format: "%.2f", cost)) (\(n) plugins). " +
-                 "Each plugin is looked up once and saved.")
+        .onChange(of: confirmLookup) { _, on in
+            guard on else { return }
+            confirmLookup = false
+            DispatchQueue.main.async {
+                let n = fetcher.missingCount()
+                let cost = Double(n) * fetcher.model.estimatedCostPerPlugin
+                if Dialog.confirm("Look up \(n) plugins?",
+                                  message: "This uses your Anthropic API key with \(fetcher.model.title) and web search. " +
+                                      "Estimated cost about $\(String(format: "%.2f", cost)) (\(n) plugins). " +
+                                      "Each plugin is looked up once and saved.",
+                                  ok: "Look Up") { fetcher.start() }
+            }
         }
     }
 
@@ -88,6 +91,7 @@ struct LibraryView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 if view.showInfoPane {
                     Rectangle().fill(Theme.edge).frame(width: 1)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
                     Group {
                         if let p = model.selected {
                             PluginDetailView(plugin: p, model: model) { insert() }
@@ -96,8 +100,10 @@ struct LibraryView: View {
                         }
                     }
                     .frame(width: 340)
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
                 }
             }
+            .animation(.spring(duration: 0.28, bounce: 0.08), value: view.showInfoPane)
             if !view.showInfoPane, let message = model.message {
                 HStack(spacing: 10) {
                     Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Theme.warning)
@@ -163,6 +169,8 @@ struct LibraryView: View {
                               help: pinned ? "Stop keeping this window on top" : "Keep this window above Logic",
                               active: pinned) { togglePin() }
                 BarIconButton(systemImage: "rectangle.compress.vertical", help: "Mini window") { toggleMini() }
+                BarIconButton(systemImage: "sidebar.right", help: view.showInfoPane ? "Hide the info panel (⌘I)" : "Show the info panel (⌘I)",
+                              active: view.showInfoPane) { toggleInfo() }
                 Rectangle().fill(Theme.raised).frame(width: 1, height: 18).padding(.horizontal, 6)
                 BarIconButton(systemImage: "questionmark.bubble", help: "Send feedback to Goldi") { FeedbackWindow.shared.show() }
                 VersionBadge()
@@ -249,6 +257,9 @@ struct LibraryView: View {
 
     private func insert() { model.insertSelected() }
 
+    /// Opens or closes the info panel on the right (BL-118).
+    private func toggleInfo() { view.showInfoPane.toggle() }
+
     private func togglePin() {
         pinned.toggle()
         UserDefaults.standard.set(pinned, forKey: "library.pinned")
@@ -331,6 +342,7 @@ struct LibraryView: View {
                 if let n = Int(chars), (1...PluginSort.allCases.count).contains(n) { model.cycleSort(to: n - 1); return nil }
                 if chars == "d", let p = model.selected { store.favoriteTapped(p.id); return nil }
                 if chars == "f" { ViewSettings.shared.favoritesOnly.toggle(); model.selection = 0; return nil }
+                if chars == "i" { toggleInfo(); return nil }
             }
             return event
         }

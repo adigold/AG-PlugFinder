@@ -30,6 +30,10 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
+- [x] **BL-118** `P2 · Medium` **Close the info panel:** a button at the top of the info panel hides it; a top bar button and ⌘I bring it back. Adi, 2026-11-01. · done 2026-11-01
+- [x] **BL-117** `P2 · Medium` **Collections look different from categories:** collections are outlined pills with a small stack icon; categories stay filled. Adi chose this, 2026-11-01. · done 2026-11-01
+- [x] **BL-116** `P2 · Medium` **Themed dialogs instead of system boxes:** the name boxes, questions and confirmations use the app's own dark card, pills and text field; Return confirms, Esc cancels. Adi, 2026-11-01. · done 2026-11-01
+- [x] **BL-115** `P2 · Medium` **Most used pill order:** a fourth Order choice; the pills whose plugins you add to Logic most come first. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-114** `P2 · Medium` **Maker's website button:** in the info panel next to Find on the Web, opens the plugin's page on the maker's site (a web search when the maker is unknown). Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-113** `P1 · High` **Remove selected from a collection:** inside a collection, with several plugins selected, the bar and the right-click menu offer Remove from <collection>. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-112** `P2 · Medium` **Pill colors from a color map, Esc closes Edit Pills:** the color circle opens eight quick colors and a color map to click or drag on; the empty circle now takes the click; Esc closes the Edit Pills window. Adi, 2026-11-01. · done 2026-11-01

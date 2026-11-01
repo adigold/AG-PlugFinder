@@ -12,11 +12,12 @@ struct PillGroup: Codable, Identifiable, Hashable {
 /// Keys: "col:<collection id>", "cat:<category>", "grp:<group id>".
 struct PillPrefs: Codable, Equatable {
     enum Sort: String, Codable, CaseIterable, Identifiable {
-        case count, name, custom
+        case count, used, name, custom
         var id: String { rawValue }
         var title: String {
             switch self {
             case .count: return "Most plugins"
+            case .used: return "Most used"
             case .name: return "A to Z"
             case .custom: return "My order"
             }
@@ -61,6 +62,8 @@ struct Pill: Identifiable, Hashable {
     let title: String
     let original: String
     let count: Int
+    /// Times its plugins were added to Logic, for the Most used order (BL-115).
+    var uses = 0
     let color: String?
     let pinned: Bool
     let hidden: Bool
@@ -83,6 +86,15 @@ enum Pills {
             .mapValues(\.count).filter { !$0.key.isEmpty }
     }
 
+    /// Times plugins of each category were added to Logic.
+    static func categoryUses() -> [String: Int] {
+        let store = PluginStore.shared
+        let use = UserLibrary.shared.useCount
+        var m: [String: Int] = [:]
+        for p in store.plugins where store.isVisible(p) { m[p.displayCategory, default: 0] += use[p.id] ?? 0 }
+        return m
+    }
+
     /// The real categories a category or combined pill stands for.
     static func categories(for key: String) -> [String] {
         if key.hasPrefix("cat:") { return [String(key.dropFirst(4))] }
@@ -95,6 +107,7 @@ enum Pills {
         let list = UserLibrary.shared.collections.map { c -> Pill in
             let key = "col:" + c.id
             return Pill(key: key, kind: .collection, title: c.name, original: c.name, count: c.pluginIDs.count,
+                        uses: c.pluginIDs.reduce(0) { $0 + (UserLibrary.shared.useCount[$1] ?? 0) },
                         color: p.colors[key], pinned: p.pinned.contains(key), hidden: p.hidden.contains(key))
         }
         return sorted(list.filter { includeHidden || !$0.hidden }, keepOrder: true)
@@ -104,17 +117,19 @@ enum Pills {
     static func categoryPills(includeHidden: Bool = false) -> [Pill] {
         let p = prefs
         let counts = categoryCounts()
+        let used = categoryUses()
         let grouped = Set(p.groups.flatMap(\.categories))
         var list = p.groups.map { g -> Pill in
             let key = "grp:" + g.id
             return Pill(key: key, kind: .group, title: g.name, original: g.name,
                         count: g.categories.reduce(0) { $0 + (counts[$1] ?? 0) },
+                        uses: g.categories.reduce(0) { $0 + (used[$1] ?? 0) },
                         color: p.colors[key], pinned: p.pinned.contains(key), hidden: p.hidden.contains(key))
         }
         list += counts.keys.filter { !grouped.contains($0) }.map { c in
             let key = "cat:" + c
             return Pill(key: key, kind: .category, title: p.names[key] ?? c, original: c, count: counts[c] ?? 0,
-                        color: p.colors[key], pinned: p.pinned.contains(key), hidden: p.hidden.contains(key))
+                        uses: used[c] ?? 0, color: p.colors[key], pinned: p.pinned.contains(key), hidden: p.hidden.contains(key))
         }
         return sorted(list.filter { includeHidden || !$0.hidden })
     }
@@ -125,6 +140,8 @@ enum Pills {
         case .count:
             if keepOrder { return list }
             return list.sorted { $0.count == $1.count ? $0.title.localizedCompare($1.title) == .orderedAscending : $0.count > $1.count }
+        case .used:
+            return list.sorted { $0.uses == $1.uses ? ($0.count == $1.count ? $0.title.localizedCompare($1.title) == .orderedAscending : $0.count > $1.count) : $0.uses > $1.uses }
         case .name:
             return list.sorted { $0.title.localizedCompare($1.title) == .orderedAscending }
         case .custom:
@@ -238,6 +255,6 @@ enum Pills {
     static func width(_ pill: Pill, prefs p: PillPrefs) -> CGFloat {
         let t = text(pill, showCounts: p.showCounts) as NSString
         let w = t.size(withAttributes: [.font: font(compact: p.compact)]).width
-        return ceil(w) + (p.compact ? 18 : 22) + (pill.color != nil ? 11 : 0) + 8
+        return ceil(w) + (p.compact ? 18 : 22) + (pill.color != nil ? 11 : 0) + (pill.kind == .collection ? 15 : 0) + 8
     }
 }

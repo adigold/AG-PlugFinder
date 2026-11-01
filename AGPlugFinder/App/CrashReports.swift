@@ -54,16 +54,10 @@ enum CrashReports {
 
     private static func ask(title: String, message: String, crash: URL?) {
         NSApp.activate()
-        let alert = NSAlert()
-        alert.messageText = title
-        alert.informativeText = message
-        let note = NSTextField(frame: NSRect(x: 0, y: 0, width: 300, height: 48))
-        note.placeholderString = "What were you doing? (optional)"
-        alert.accessoryView = note
-        alert.addButton(withTitle: "Send to Goldi")
-        alert.addButton(withTitle: "Not Now")
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
-        let text = note.stringValue
+        let answer = Dialog.show(title, message: message, field: ("What were you doing? (optional)", ""), multiline: true,
+                                 choices: [.init(title: "Not Now", cancel: true), .init(title: "Send to Goldi", primary: true)])
+        guard answer.index == 1 else { return }
+        let text = answer.text
         Task {
             let ok = await send(crash: crash, note: text)
             Toast.show(ok ? "Sent to Goldi. Thank you!" : "Couldn't send it. Check the internet connection and try again.", warning: !ok)

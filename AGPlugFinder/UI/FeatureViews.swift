@@ -6,18 +6,7 @@ import SwiftUI
 @MainActor
 enum NamePrompt {
     static func ask(_ title: String, placeholder: String, initial: String = "") -> String? {
-        let alert = NSAlert()
-        alert.messageText = title
-        alert.addButton(withTitle: "OK")
-        alert.addButton(withTitle: "Cancel")
-        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 260, height: 24))
-        field.placeholderString = placeholder
-        field.stringValue = initial
-        alert.accessoryView = field
-        alert.window.initialFirstResponder = field
-        guard alert.runModal() == .alertFirstButtonReturn else { return nil }
-        let name = field.stringValue.trimmingCharacters(in: .whitespaces)
-        return name.isEmpty ? nil : name
+        Dialog.ask(title, placeholder: placeholder, initial: initial)
     }
 }
 

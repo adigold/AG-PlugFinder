@@ -194,7 +194,8 @@ struct PillRow: View {
     @ViewBuilder private func chip(_ p: Pill, _ prefs: PillPrefs) -> some View {
         let on = p.kind == .collection ? model.collectionID == String(p.key.dropFirst(4)) : model.pills.contains(p.key)
         PillChip(title: p.title, count: p.kind == .collection || prefs.showCounts ? p.count : nil,
-                 color: Pills.color(p.color), on: on, compact: prefs.compact) { tap(p) }
+                 color: Pills.color(p.color), on: on, compact: prefs.compact,
+                 collection: p.kind == .collection) { tap(p) }
             .help(p.kind == .group ? Pills.categories(for: p.key).joined(separator: ", ")
                   : p.kind == .category ? "⌘-click to add more categories" : "")
             .overlay(Capsule().strokeBorder(Theme.accent, lineWidth: 2).opacity(dropOn == p.key ? 1 : 0))
@@ -278,11 +279,17 @@ struct PillChip: View {
     let color: Color?
     let on: Bool
     var compact = false
+    /// Collections are outlined with a stack icon; categories are filled (BL-117).
+    var collection = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 5) {
+                if collection {
+                    Image(systemName: "rectangle.stack").font(.system(size: compact ? 9 : 10, weight: .semibold))
+                        .opacity(on ? 1 : 0.7)
+                }
                 if let color { Circle().fill(color).frame(width: 6, height: 6) }
                 Text(title).font(.system(size: compact ? 11 : 12, weight: on ? .semibold : .regular)).lineLimit(1)
                 if let count {
@@ -291,7 +298,8 @@ struct PillChip: View {
             }
             .padding(.horizontal, compact ? 9 : 11).frame(height: compact ? 24 : 28)
             .foregroundStyle(on ? Color.black : Theme.text)
-            .background(Capsule().fill(on ? Color.white : Theme.raised))
+            .background(Capsule().fill(on ? Color.white : (collection ? Color.clear : Theme.raised)))
+            .overlay(Capsule().strokeBorder(Color.white.opacity(collection && !on ? 0.28 : 0), lineWidth: 1.2))
             .contentShape(Capsule())
         }
         .buttonStyle(PressScale())
@@ -375,7 +383,12 @@ struct MorePills: View {
                         let on = p.kind == .collection ? model.collectionID == String(p.key.dropFirst(4)) : model.pills.contains(p.key)
                         Button { choose(p) } label: {
                             HStack(spacing: 9) {
-                                Circle().fill(Pills.color(p.color) ?? Theme.raised).frame(width: 7, height: 7)
+                                if p.kind == .collection {
+                                    Image(systemName: "rectangle.stack").font(.system(size: 10, weight: .semibold))
+                                        .foregroundStyle(Pills.color(p.color) ?? Theme.muted)
+                                } else {
+                                    Circle().fill(Pills.color(p.color) ?? Theme.raised).frame(width: 7, height: 7)
+                                }
                                 Text(p.title).font(.system(size: 13, weight: on ? .semibold : .regular))
                                     .foregroundStyle(Theme.text)
                                 Spacer(minLength: 8)
@@ -465,7 +478,6 @@ struct PillsEditor: View {
     var library = UserLibrary.shared
     var view = ViewSettings.shared
     @State private var groupSheet: GroupDraft?
-    @State private var confirmReset = false
 
     struct GroupDraft: Identifiable {
         var id: String { groupID ?? "new" }
@@ -507,7 +519,11 @@ struct PillsEditor: View {
                 }
                 .help("One pill for several categories, for example Space = Reverb + Delay")
                 Spacer()
-                QuietPill(title: "Reset to Default", height: 30) { confirmReset = true }
+                QuietPill(title: "Reset to Default", height: 30) {
+                    if Dialog.confirm("Reset the pills?",
+                                      message: "Order, names, colors, pinned and hidden pills go back to the default. Your combined pills stay.",
+                                      ok: "Reset") { Pills.reset() }
+                }
             }
             .padding(.horizontal, 22).padding(.vertical, 14)
             .overlay(alignment: .top) { Rectangle().fill(Theme.rule).frame(height: 1) }
@@ -515,12 +531,6 @@ struct PillsEditor: View {
         .background(Theme.ground)
         .preferredColorScheme(.dark)
         .sheet(item: $groupSheet) { d in CombinedPillSheet(draft: d) { groupSheet = nil } }
-        .alert("Reset the pills?", isPresented: $confirmReset) {
-            Button("Reset") { Pills.reset() }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Order, names, colors, pinned and hidden pills go back to the default. Your combined pills stay.")
-        }
         .onReceive(NotificationCenter.default.publisher(for: .editCombinedPill)) { n in
             if let id = n.userInfo?["group"] as? String, let g = library.pills.groups.first(where: { $0.id == id }) {
                 groupSheet = GroupDraft(groupID: id, name: g.name, categories: Set(g.categories))
@@ -612,6 +622,9 @@ struct PillEditRow: View {
             .buttonStyle(.plain)
             .help("Color")
             .popover(isPresented: $showColors, arrowEdge: .bottom) { palette }
+            if pill.kind == .collection {
+                Image(systemName: "rectangle.stack").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.faint)
+            }
             VStack(alignment: .leading, spacing: 1) {
                 Text(pill.title).font(.system(size: 13, weight: .medium))
                     .foregroundStyle(pill.hidden ? Theme.faint : Theme.text)
