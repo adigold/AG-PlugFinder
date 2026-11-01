@@ -752,8 +752,12 @@ enum SelfTest {
                     guard let panel = NSApp.windows.first(where: { $0 is DialogPanel && $0.isVisible }) else { print("DCLICK no panel"); return }
                     let h = panel.frame.height, w = panel.frame.width
                     print("DCLICK panel \(panel.frame) key=\(panel.isKeyWindow)")
-                    // Cancel sits left of OK at the bottom right.
-                    let pt = NSPoint(x: w - 22 - 54 - 8 - 38, y: 22 + 16)
+                    // Type a name so OK shows, then click OK where the dialog says it is (BL-199).
+                    Dialog.lastState?.text = "Clicked by mouse"
+                    RunLoop.current.run(until: Date().addingTimeInterval(0.4))
+                    let ok = Dialog.lastState?.buttonFrames[1] ?? .zero
+                    let pt = NSPoint(x: ok.midX, y: h - ok.midY)
+                    print("DCLICK ok frame \(ok) w=\(w)")
                     if let hit = panel.contentView?.hitTest(pt) { print("DCLICK hit \(type(of: hit)) at \(pt) h=\(h)") }
                     for t in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
                         if let e = NSEvent.mouseEvent(with: t, location: pt, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,

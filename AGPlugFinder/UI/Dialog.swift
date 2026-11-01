@@ -13,6 +13,11 @@ enum Dialog {
         var destructive = false
     }
 
+    #if DEBUG
+    /// For the self test: the open dialog's state, with where its buttons are.
+    static var lastState: State?
+    #endif
+
     struct Answer {
         let index: Int
         let text: String
@@ -23,6 +28,8 @@ enum Dialog {
     final class State {
         var text = ""
         var checked = false
+        /// Where each button is, top-left based in the card (BL-199).
+        @ObservationIgnored var buttonFrames: [Int: CGRect] = [:]
     }
 
     /// Shows the card and returns which button was pressed, the text typed and the checkbox.
@@ -31,6 +38,9 @@ enum Dialog {
                      multiline: Bool = false, checkbox: String? = nil, requireText: Bool = false, choices: [Choice]) -> Answer {
         let parent = NSApp.keyWindow ?? NSApp.mainWindow
         let state = State()
+        #if DEBUG
+        lastState = state
+        #endif
         state.text = field?.initial ?? ""
         let panel = DialogPanel(contentRect: .zero, styleMask: [.borderless], backing: .buffered, defer: false)
         panel.isOpaque = false
@@ -47,6 +57,15 @@ enum Dialog {
         panel.onReturn = { debugLog("return"); if !needsText || hasText() { picked = primary } }
         panel.onEscape = { debugLog("escape"); picked = cancel }
         panel.multiline = multiline
+        // Clicks on the buttons are answered here, not left to the button itself: the dialog
+        // opens while the click that opened it is still being handled, and then the buttons
+        // could miss the mouse while Return still worked (BL-199).
+        panel.buttonAt = { p in state.buttonFrames.first { $0.value.contains(p) }?.key }
+        panel.onButton = { i in
+            debugLog("click \(i)")
+            if choices[i].primary, needsText, !hasText() { return }
+            picked = i
+        }
         let host = FirstClickHost(rootView: DialogCard(title: title, message: message, field: field, multiline: multiline,
                                                       checkbox: checkbox, choices: choices, state: state, requireText: requireText) { i in
             debugLog("button \(i)")
@@ -126,6 +145,9 @@ final class DialogPanel: NSPanel {
     var onReturn: () -> Void = {}
     var onEscape: () -> Void = {}
     var multiline = false
+    var buttonAt: (CGPoint) -> Int? = { _ in nil }
+    var onButton: (Int) -> Void = { _ in }
+    private var downOn: Int?
     /// A button only counts when the mouse went down on this card first (BL-188): a stray
     /// release, for example from the click that opened it, pressed Cancel by itself.
     private var pressedHere = false
@@ -133,10 +155,22 @@ final class DialogPanel: NSPanel {
     override var canBecomeMain: Bool { true }
 
     override func sendEvent(_ event: NSEvent) {
-        if event.type == .leftMouseDown { pressedHere = true }
-        if event.type == .leftMouseUp {
-            guard pressedHere else { return }
-            pressedHere = false
+        if event.type == .leftMouseDown || event.type == .leftMouseUp, let content = contentView {
+            let p = event.locationInWindow
+            let top = CGPoint(x: p.x, y: content.bounds.height - p.y)
+            if event.type == .leftMouseDown {
+                pressedHere = true
+                downOn = buttonAt(top)
+                if downOn != nil { return }
+            } else {
+                guard pressedHere else { return }
+                pressedHere = false
+                if let d = downOn {
+                    downOn = nil
+                    if buttonAt(top) == d { onButton(d) }
+                    return
+                }
+            }
         }
         if event.type == .keyDown {
             if event.keyCode == 53 { onEscape(); return }
@@ -207,6 +241,12 @@ struct DialogCard: View {
                     // OK appears once something is typed (BL-190).
                     if !(c.primary && requireText && field != nil && state.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) {
                         DialogButton(choice: c) { choose(i) }
+                            .background(GeometryReader { g in
+                                Color.clear
+                                    .onAppear { state.buttonFrames[i] = g.frame(in: .global) }
+                                    .onChange(of: g.frame(in: .global)) { _, f in state.buttonFrames[i] = f }
+                                    .onDisappear { state.buttonFrames[i] = nil }
+                            })
                             .transition(.opacity.combined(with: .scale(scale: 0.9)))
                     }
                 }
