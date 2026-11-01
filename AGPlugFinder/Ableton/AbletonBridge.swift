@@ -164,9 +164,19 @@ final class AbletonBridge: @unchecked Sendable {
         let request: [String: Any] = ["cmd": "load", "name": plugin.name, "maker": plugin.manufacturer,
                                       "kind": plugin.source == .ableton ? "device" : "au",
                                       "instrument": plugin.slotKind == .instrument]
-        guard let reply = await send(request) else { return .failed(Self.notConnectedHelp) }
-        if reply["ok"] as? Bool == true { return .inserted }
-        return .failed(reply["error"] as? String ?? "Ableton Live could not add \(plugin.name).")
+        guard let reply = await send(request) else {
+            await MainActor.run { Toast.show("Ableton Live isn't connected yet. Turn on AGPlugFinder in Live's Control Surfaces.", warning: true) }
+            return .failed(Self.notConnectedHelp)
+        }
+        // A message either way, since Live itself shows nothing (BL-161).
+        if reply["ok"] as? Bool == true {
+            let track = reply["track"] as? String
+            await MainActor.run { Toast.show("Added \(plugin.name) to Ableton" + (track.map { ", track \($0)" } ?? "")) }
+            return .inserted
+        }
+        let problem = reply["error"] as? String ?? "Ableton Live could not add \(plugin.name)."
+        await MainActor.run { Toast.show(problem, warning: true) }
+        return .failed(problem)
     }
 
     static let notConnectedHelp = "Ableton Live needs the AG PlugFinder add-on turned on once: in Live, open Settings, " +

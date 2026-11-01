@@ -13,7 +13,7 @@ import Live
 from _Framework.ControlSurface import ControlSurface
 
 PORT = 47391
-VERSION = 1
+VERSION = 2
 
 
 def _norm(text):
@@ -118,7 +118,9 @@ class AGPlugFinder(ControlSurface):
     def _load(self, msg):
         item = self._find(msg)
         if item is None:
-            return {"ok": False, "error": "%s is not in Live's browser. Check that its plugin format is turned on in Live's Plug-Ins settings." % msg.get("name", "That plugin")}
+            if msg.get("kind") == "device":
+                return {"ok": False, "error": "%s is not in this version of Live." % msg.get("name", "That device")}
+            return {"ok": False, "error": "%s is not in Live yet. In Live's Settings, Plug-Ins, turn on Use Audio Units v2 and let Live scan." % msg.get("name", "That plugin")}
         song = self.song()
         Live.Application.get_application().browser.load_item(item)
         return {"ok": True, "track": song.view.selected_track.name}
