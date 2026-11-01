@@ -162,6 +162,11 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.42**
+
+- **New:** Zoom. Turn it on under the picture size slider and the plugin you select shows bigger, following you as you move with the arrow keys.
+- **Improved:** The LoFi category now gathers every lo-fi effect, from Abbey Road Vinyl and SketchCassette to Super VHS and Bad Tape.
+
 **0.9.41**
 
 - **New:** LoFi category. RC-20 Retro Color, Retro Fi, Lofi Space, Tape MELLO-FI, UFX-LOFI and other lo-fi effects have their own pill.
@@ -170,12 +175,12 @@ Everything each version brought, newest first. The same notes appear in the app'
 
 - **Fixed:** The app could close right after the first scan, while looking up plugin information. It now finishes the setup without stopping.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.39)</summary>
+
 **0.9.39**
 
 - **Fixed:** Dragging several chosen plugins onto a collection adds all of them, not only the one you dragged.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.38)</summary>
 
 **0.9.38**
 
