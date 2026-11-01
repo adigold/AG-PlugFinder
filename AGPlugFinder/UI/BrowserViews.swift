@@ -687,6 +687,11 @@ struct PluginDetailView: View {
                 .foregroundStyle(Theme.text)
                 .lineLimit(2)
             MonoStereoVersions(plugin: plugin, model: model)
+            // Logic remembers plugins that crashed it (BL-139).
+            if !plugin.isLogic, case let n = LogicTags.crashes(plugin.id), n > 0 {
+                Label("Logic recorded \(n) crash\(n == 1 ? "" : "es") with this plugin", systemImage: "exclamationmark.triangle.fill")
+                    .font(.system(size: Theme.ts(12), weight: .medium)).foregroundStyle(Theme.warning)
+            }
             Text("\(plugin.manufacturer) · \(plugin.displayCategory) · \(plugin.typeGroup)")
                 .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint)
             if let kind = plugin.details?.kind, !kind.isEmpty {

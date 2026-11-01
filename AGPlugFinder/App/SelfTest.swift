@@ -544,6 +544,21 @@ enum SelfTest {
                 print("SYNCROW done"); fflush(stdout)
             }
         }
+        // --selftest-logictags <dir>: what Import from Logic would bring in, and the crash note (BL-139). Read only.
+        if let k = args.firstIndex(of: "--selftest-logictags"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task {
+                try? await Task.sleep(for: .seconds(2))
+                let all = LogicTags.entries()
+                let f = LogicTags.found()
+                print("LT entries=\(all.count) favorites=\(f.favorites.count) categories=\(f.categories.keys.sorted()) crashes=\(all.filter { $0.value.crashes > 0 }.map { "\($0.key):\($0.value.crashes)" })")
+                if let p = PluginStore.shared.plugins.first(where: { LogicTags.crashes($0.id) > 0 }) {
+                    await shoot(PluginDetailView(plugin: p, model: PickerModel()) {}, size: NSSize(width: 340, height: 560),
+                                to: dir.appendingPathComponent("crash-note.png"))
+                }
+                print("LT done"); fflush(stdout)
+            }
+        }
         // --selftest-makerurl: where Maker's Website goes for a few plugins (BL-129).
         if args.contains("--selftest-makerurl") {
             Task {

@@ -23,6 +23,29 @@ struct SettingsView: View {
     }
 }
 
+/// Import from Logic (BL-139): shows what it found, and adds it only on OK.
+@MainActor
+private func importFromLogic() {
+    let f = LogicTags.found()
+    let pluginCount = Set(f.categories.values.flatMap { $0 }).count
+    guard !f.favorites.isEmpty || !f.categories.isEmpty else {
+        Dialog.show("Nothing to import", message: "Logic has no favorites or categories of your own for the plugins on this Mac.",
+                    choices: [Dialog.Choice(title: "OK", primary: true)])
+        return
+    }
+    var parts: [String] = []
+    if !f.favorites.isEmpty { parts.append("\(f.favorites.count) favorite\(f.favorites.count == 1 ? "" : "s")") }
+    if !f.categories.isEmpty {
+        parts.append("\(f.categories.count) categor\(f.categories.count == 1 ? "y" : "ies") with \(pluginCount) plugin\(pluginCount == 1 ? "" : "s")")
+    }
+    let names = f.categories.keys.sorted().prefix(6).joined(separator: ", ") + (f.categories.count > 6 ? "…" : "")
+    guard Dialog.confirm("Import from Logic?",
+                         message: "Found \(parts.joined(separator: " and ")).\(f.categories.isEmpty ? "" : " Categories: \(names).") Favorites are added to yours and each category becomes a collection.",
+                         ok: "Import") else { return }
+    let r = LogicTags.importIntoLibrary(f)
+    Toast.show("Imported from Logic: \(r.favorites) new favorite\(r.favorites == 1 ? "" : "s"), \(r.collections) new collection\(r.collections == 1 ? "" : "s").")
+}
+
 struct GeneralSettings: View {
     @State private var apiKey = ""
     @State private var keySaved = Keychain.read() != nil
@@ -49,6 +72,14 @@ struct GeneralSettings: View {
                     .font(.caption).foregroundStyle(.secondary)
                 Toggle("Preview with the Space bar", isOn: Bindable(ViewSettings.shared).spacePreview)
                 Text("Click a plugin and press Space to see it large, with what it does. Arrows move to the next one, Space or Esc closes it. After typing a search, press Tab to move to the results; Shift+Tab goes back to the search.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section("From Logic") {
+                LabeledContent("Logic's favorites and categories") {
+                    Button("Import from Logic…") { importFromLogic() }
+                }
+                Text("Brings in the plugins you starred in Logic's Plug-in Manager and the categories you made there, as collections. Only adds; nothing in Logic changes.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 

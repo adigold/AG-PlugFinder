@@ -54,6 +54,7 @@
 		B4343ECFDF6C445F008BB50D /* PluginScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F96300B45F6AC9AB4D9D915 /* PluginScanner.swift */; };
 		B9F5D62FC7F6DB07E854998D /* FeatureViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D1DB32E57A0017C2D34478 /* FeatureViews.swift */; };
 		BBBBCD96B562310ED1BA33DC /* PluginListEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD1C34D4EFF0692962BAAE7 /* PluginListEditor.swift */; };
+		BE2CC1AEA242489F493AE453 /* LogicTags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D6E0430F963F109AD1CB30B /* LogicTags.swift */; };
 		C4B88487C336CC6F4720A616 /* FeedbackWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F6759972C4F8A854CE9948F /* FeedbackWindow.swift */; };
 		C531734DE546A332930B0C09 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F227679D76489B61B50D3EF /* DesignSystem.swift */; };
 		D11B1A084B198C0461413B26 /* PickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 972CDC623675D6EAE7C6B741 /* PickerPanel.swift */; };
@@ -86,6 +87,7 @@
 		196B1A3B9E2A22D37513FD3C /* TrackViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackViews.swift; sourceTree = "<group>"; };
 		1AE2A7565B4582595AC03716 /* LogicInserter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicInserter.swift; sourceTree = "<group>"; };
 		1AED26F1AE92B46F89A94CE6 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		1D6E0430F963F109AD1CB30B /* LogicTags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicTags.swift; sourceTree = "<group>"; };
 		1F96300B45F6AC9AB4D9D915 /* PluginScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginScanner.swift; sourceTree = "<group>"; };
 		22B5AE98AF62E66D61930575 /* PillViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillViews.swift; sourceTree = "<group>"; };
 		23FC6C5138045E623B2A0134 /* Migration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Migration.swift; sourceTree = "<group>"; };
@@ -271,6 +273,7 @@
 				8BF177B31F8EB43737223CB1 /* InsertRunner.swift */,
 				925D8B9B25BDB22A89D24468 /* LogicCapture.swift */,
 				1AE2A7565B4582595AC03716 /* LogicInserter.swift */,
+				1D6E0430F963F109AD1CB30B /* LogicTags.swift */,
 				510649A05002EFFF609F883A /* LogicTrack.swift */,
 				BAEE35F63AB0E34FFC94CEBE /* PointerSlot.swift */,
 			);
@@ -379,6 +382,7 @@
 				13A90B02B0FBED49ED49B448 /* LogicCapture.swift in Sources */,
 				614EE6DB31B4D355967EE472 /* LogicCatalog.swift in Sources */,
 				55042213A5FBB48BD7609817 /* LogicInserter.swift in Sources */,
+				BE2CC1AEA242489F493AE453 /* LogicTags.swift in Sources */,
 				798772CCE9D7FB6C1CC04281 /* LogicTrack.swift in Sources */,
 				90FC54F0EF2213DE7ED7F526 /* MakerSites.swift in Sources */,
 				1D0A7F6722952750D7F6070A /* MenuSelfTest.swift in Sources */,
