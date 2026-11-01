@@ -22,6 +22,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 ## Now
+- [~] **BL-189** `P2 · Medium` **Edit the top bar icons:** right-click the icons at the top right to show or hide each one and drag them into your own order. Synced with the other Macs. Adi, 2026-11-01.
 - [~] **BL-100** `P2 · Medium` **Wish list and price alerts:** add plugins you want (name, maker, store link, target price); the app checks the store page's price and tells you when it drops or reaches your target; wish list total next to the collection value. Adi, 2026-10-31.
 - [ ] **BL-101** `P2 · Medium` **Project plugin report:** for the open Logic project, which plugins it uses, on which tracks, and which are missing on this Mac; export a list for a collaborator. Adi, 2026-10-31.
 - [ ] **BL-102** `P2 · Medium` **Plugin presets:** the user's saved Logic settings for each plugin, shown in its info panel; insert a plugin with a chosen setting loaded, from the picker or a number key; synced. Adi, 2026-10-31.
@@ -41,6 +42,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-188** `P1 · High` **Dialog Cancel pressed by itself:** a stray mouse release reached the dialog and counted as a click on Cancel, so New collection and other dialogs could close on their own. Buttons now only count when the press started on the dialog. Adi, 2026-11-01. The buttons also answer the first click. · done 2026-11-01
 - [x] **BL-187** `P2 · Medium` **Hold Option in every window mode:** choosing where on the track an effect goes now works in Mini, Floating and Sideview too, drawn over the window. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-186** `P2 · Medium` **Esc in Floating goes back to All:** clears the search and the category chip every time. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-185** `P2 · Medium` **Slim line when the pills are hidden:** with no pills showing, the picture size slider and Zoom sit side by side on one slim line instead of a tall empty row. Adi, 2026-11-01. · done 2026-11-01

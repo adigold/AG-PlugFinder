@@ -44,7 +44,7 @@ enum Dialog {
         panel.onReturn = { debugLog("return"); picked = primary }
         panel.onEscape = { debugLog("escape"); picked = cancel }
         panel.multiline = multiline
-        let host = NSHostingView(rootView: DialogCard(title: title, message: message, field: field, multiline: multiline,
+        let host = FirstClickHost(rootView: DialogCard(title: title, message: message, field: field, multiline: multiline,
                                                       checkbox: checkbox, choices: choices, state: state) { i in
             debugLog("button \(i)")
             picked = i
@@ -105,15 +105,28 @@ private func debugLog(_ s: String) {
     #endif
 }
 
+/// The dialog's buttons answer the first click, even before the card has the keyboard (BL-188).
+final class FirstClickHost<Content: View>: NSHostingView<Content> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+}
+
 /// A borderless panel that can take the keyboard; Return and Esc answer the dialog.
 final class DialogPanel: NSPanel {
     var onReturn: () -> Void = {}
     var onEscape: () -> Void = {}
     var multiline = false
+    /// A button only counts when the mouse went down on this card first (BL-188): a stray
+    /// release, for example from the click that opened it, pressed Cancel by itself.
+    private var pressedHere = false
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
 
     override func sendEvent(_ event: NSEvent) {
+        if event.type == .leftMouseDown { pressedHere = true }
+        if event.type == .leftMouseUp {
+            guard pressedHere else { return }
+            pressedHere = false
+        }
         if event.type == .keyDown {
             if event.keyCode == 53 { onEscape(); return }
             if event.keyCode == 36 || event.keyCode == 76,

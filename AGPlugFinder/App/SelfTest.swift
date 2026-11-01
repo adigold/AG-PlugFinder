@@ -689,6 +689,31 @@ enum SelfTest {
                 print("START done"); fflush(stdout)
             }
         }
+        // --selftest-dialogclick: a real click on the dialog's Cancel button (BL-188).
+        if args.contains("--selftest-dialogclick") {
+            Task { @MainActor in
+                LibraryWindow.show()
+                try? await Task.sleep(for: .seconds(2))
+                // A timer, since the dialog's own loop holds the main queue (Dialog.show).
+                let t = Timer(timeInterval: 2.5, repeats: false) { _ in
+                    print("DCLICK still open after 2.5s: \(NSApp.windows.contains { $0 is DialogPanel && $0.isVisible })")
+                    guard let panel = NSApp.windows.first(where: { $0 is DialogPanel && $0.isVisible }) else { print("DCLICK no panel"); return }
+                    let h = panel.frame.height, w = panel.frame.width
+                    print("DCLICK panel \(panel.frame) key=\(panel.isKeyWindow)")
+                    // Cancel sits left of OK at the bottom right.
+                    let pt = NSPoint(x: w - 22 - 54 - 8 - 38, y: 22 + 16)
+                    if let hit = panel.contentView?.hitTest(pt) { print("DCLICK hit \(type(of: hit)) at \(pt) h=\(h)") }
+                    for t in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+                        if let e = NSEvent.mouseEvent(with: t, location: pt, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                                      windowNumber: panel.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1) { panel.sendEvent(e) }
+                    }
+                    print("DCLICK clicked"); fflush(stdout)
+                }
+                RunLoop.main.add(t, forMode: .default)
+                let answer = NamePrompt.ask("New collection", placeholder: "For example Mix bus")
+                print("DCLICK answer \(answer ?? "cancelled")"); fflush(stdout)
+            }
+        }
         // --selftest-matchmac <dir>: Match the Mac picks the light or dark theme as macOS changes (BL-183).
         if let k = args.firstIndex(of: "--selftest-matchmac"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])
