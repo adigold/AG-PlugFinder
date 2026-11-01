@@ -149,6 +149,11 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.31**
+
+- **Improved:** Plugins you remove from your Mac disappear from the app by themselves, and the app tells you how many were removed.
+- **Improved:** The Fix Failed Screenshots button can be hidden with its x. It comes back only if more screenshots fail.
+
 **0.9.30**
 
 - **Improved:** New pill defaults. Collections and categories show together, ordered by most plugins, with counts, and wrap onto more rows when there are many. Reset to Default in Edit Pills brings back this look. Settings you already chose stay as they are.
@@ -159,12 +164,12 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **New:** Import from Logic, in Settings. Brings in the plugins you starred in Logic's Plug-in Manager and the categories you made there, as collections. Nothing in Logic changes.
 - **New:** The info panel tells you when Logic recorded crashes with a plugin.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.28)</summary>
+
 **0.9.28**
 
 - **Improved:** Clicking a category or collection slides your plugins back to the top, so you always start at the first one.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.27)</summary>
 
 **0.9.27**
 
