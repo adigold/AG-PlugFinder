@@ -72,6 +72,8 @@ final class ViewSettings {
     var showInfoPane: Bool { didSet { save("showInfoPane", showInfoPane) } }
     var favoritesOnly: Bool { didSet { save("favoritesOnly", favoritesOnly) } }
     var chipRow: ChipRow { didSet { save("chipRow", chipRow.rawValue) } }
+    /// Space opens a large preview of the selected plugin (BL-106).
+    var spacePreview: Bool { didSet { save("spacePreview", spacePreview) } }
 
     private init() {
         let d = UserDefaults.standard
@@ -84,6 +86,7 @@ final class ViewSettings {
         showInfoPane = d.object(forKey: "view.showInfoPane") as? Bool ?? true
         favoritesOnly = d.bool(forKey: "view.favoritesOnly")
         chipRow = ChipRow(rawValue: d.string(forKey: "view.chipRow") ?? "") ?? .categories
+        spacePreview = d.object(forKey: "view.spacePreview") as? Bool ?? true
     }
 
     private func save(_ key: String, _ value: Any) {

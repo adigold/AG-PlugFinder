@@ -10,6 +10,11 @@ final class PickerModel {
         didSet { UserDefaults.standard.set(sort.rawValue, forKey: "sort"); selection = 0 }
     }
     var selection = 0
+    /// The keyboard is on the plugins, not the search (BL-106): Space previews, typing a letter
+    /// goes back to the search.
+    var keysOnPlugins = false
+    /// The large Space bar preview is open.
+    var previewing = false
     var columns = 4
     /// The collection chip that is on (BL-29); nil shows everything.
     var collectionID: String? { didSet { if collectionID != oldValue { selection = 0 } } }

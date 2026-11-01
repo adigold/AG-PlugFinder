@@ -39,6 +39,9 @@ struct GeneralSettings: View {
                     ForEach(ViewSettings.ChipRow.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
+                Toggle("Preview with the Space bar", isOn: Bindable(ViewSettings.shared).spacePreview)
+                Text("Click a plugin and press Space to see it large, with what it does. Arrows move to the next one, Space or Esc closes it.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
 
             Section("Sync") {

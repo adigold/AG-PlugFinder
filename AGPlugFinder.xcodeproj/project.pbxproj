@@ -54,6 +54,7 @@
 		C531734DE546A332930B0C09 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F227679D76489B61B50D3EF /* DesignSystem.swift */; };
 		D11B1A084B198C0461413B26 /* PickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 972CDC623675D6EAE7C6B741 /* PickerPanel.swift */; };
 		E29AE07D50724A6CC9AB1F9E /* TrackViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196B1A3B9E2A22D37513FD3C /* TrackViews.swift */; };
+		E79202DCA3F084DF43CBA51B /* PluginPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C5E4BA0E97415AA52EF591 /* PluginPreview.swift */; };
 		E80952E50B926A41F630F61F /* BrowserViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0BC245023DFE7ED68CE6AA /* BrowserViews.swift */; };
 		E854273C1E3933DE20D03BA7 /* PickerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B603335B7ED50468B310DE /* PickerModel.swift */; };
 		E8B2D9F7C5B727568779B9F8 /* Licenses.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4883EC0D9CCD0812BF8CDAF /* Licenses.swift */; };
@@ -73,6 +74,7 @@
 		0F6759972C4F8A854CE9948F /* FeedbackWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackWindow.swift; sourceTree = "<group>"; };
 		11AFBF5BCA998F73C82D5114 /* PluginCategories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginCategories.swift; sourceTree = "<group>"; };
 		1211458E32500BCFB817B799 /* UserLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserLibrary.swift; sourceTree = "<group>"; };
+		14C5E4BA0E97415AA52EF591 /* PluginPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginPreview.swift; sourceTree = "<group>"; };
 		196B1A3B9E2A22D37513FD3C /* TrackViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackViews.swift; sourceTree = "<group>"; };
 		1AE2A7565B4582595AC03716 /* LogicInserter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicInserter.swift; sourceTree = "<group>"; };
 		1AED26F1AE92B46F89A94CE6 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
@@ -212,6 +214,7 @@
 				972CDC623675D6EAE7C6B741 /* PickerPanel.swift */,
 				5404214EB311D626E97267AD /* PickerView.swift */,
 				DDD1C34D4EFF0692962BAAE7 /* PluginListEditor.swift */,
+				14C5E4BA0E97415AA52EF591 /* PluginPreview.swift */,
 				2AFB8804982519104A3E9C10 /* SettingsView.swift */,
 				73BE9C76C349750CE02E0E1B /* ShareWindow.swift */,
 				55FD3617B4BC576C117D7A0D /* ShortcutSettings.swift */,
@@ -370,6 +373,7 @@
 				0475C34975ACC0546A86129F /* PluginInfoFetcher.swift in Sources */,
 				BBBBCD96B562310ED1BA33DC /* PluginListEditor.swift in Sources */,
 				2B1238F5A1C0E4FEA95749AF /* PluginPack.swift in Sources */,
+				E79202DCA3F084DF43CBA51B /* PluginPreview.swift in Sources */,
 				B4343ECFDF6C445F008BB50D /* PluginScanner.swift in Sources */,
 				2E95C518E15D9AE1CE0BD68C /* PluginStore.swift in Sources */,
 				509183AB719247230E945953 /* PointerSlot.swift in Sources */,

@@ -111,6 +111,18 @@ struct LibraryView: View {
             }
         }
         .overlay { if model.slotChoices != nil { chooserOverlay } }
+        .overlay {
+            if model.previewing, let p = model.selected {
+                PluginPreview(plugin: p, model: model, onInsert: { model.previewing = false; insert() })
+                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
+            }
+        }
+        .animation(.spring(duration: 0.26, bounce: 0.12), value: model.previewing)
+        .onChange(of: model.keysOnPlugins) { _, on in
+            // The search lets go of the keyboard, so Space reaches the plugins.
+            if on, window?.firstResponder is NSText { window?.makeFirstResponder(nil) }
+        }
+        .onChange(of: model.selected?.id) { _, id in if id == nil { model.previewing = false } }
     }
 
     private var topBar: some View {
@@ -279,11 +291,12 @@ struct LibraryView: View {
                 }
             }
             let cmd = event.modifierFlags.contains(.command)
+            if let handled = previewKeys(event, window: window) { return handled ? nil : event }
             switch event.keyCode {
-            case 125: model.move(model.columns); return nil       // Down
-            case 126: model.move(-model.columns); return nil      // Up
-            case 123: model.move(-1); return nil                  // Left
-            case 124: model.move(1); return nil                   // Right
+            case 125: model.move(model.columns); onPlugins(); return nil       // Down
+            case 126: model.move(-model.columns); onPlugins(); return nil      // Up
+            case 123: model.move(-1); onPlugins(); return nil                  // Left
+            case 124: model.move(1); onPlugins(); return nil                   // Right
             case 36, 76: insert(); return nil                     // Return
             case 53:                                               // Esc
                 if model.replaceTarget != nil { model.replaceTarget = nil; return nil }
@@ -299,6 +312,43 @@ struct LibraryView: View {
             }
             return event
         }
+    }
+
+    /// Arrows choose a plugin, so the keyboard moves to the plugins (BL-106).
+    private func onPlugins() {
+        if !mini, model.selected != nil { model.keysOnPlugins = true }
+    }
+
+    /// Space bar preview keys (BL-106). nil: not handled here; true: used; false: pass it on.
+    private func previewKeys(_ event: NSEvent, window: NSWindow) -> Bool? {
+        let mods = event.modifierFlags.intersection([.command, .control, .option])
+        if model.previewing {
+            switch event.keyCode {
+            case 49, 53: model.previewing = false; return true            // Space, Esc
+            case 36, 76: model.previewing = false; insert(); return true  // Return
+            case 123, 124, 125, 126: return nil                           // arrows browse
+            default: break
+            }
+            if !mods.isEmpty { return false }
+            model.previewing = false
+        }
+        // Only while the keyboard is on the plugins, never while typing in a text field.
+        guard !mini, model.keysOnPlugins, !(window.firstResponder is NSText), mods.isEmpty else { return nil }
+        if event.keyCode == 49 {
+            guard view.spacePreview, model.selected != nil, model.slotChoices == nil else { return nil }
+            model.previewing = true
+            return true
+        }
+        if event.keyCode == 51 {                                          // Delete: back to the search
+            NotificationCenter.default.post(name: .typeInSearch, object: model, userInfo: ["chars": "\u{7F}"])
+            return true
+        }
+        if let chars = event.characters, !chars.isEmpty,
+           chars.unicodeScalars.allSatisfy({ CharacterSet.alphanumerics.union(.punctuationCharacters).union(.symbols).contains($0) }) {
+            NotificationCenter.default.post(name: .typeInSearch, object: model, userInfo: ["chars": chars])
+            return true
+        }
+        return nil
     }
 
     private func removeKeys() {

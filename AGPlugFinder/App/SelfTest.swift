@@ -479,6 +479,41 @@ enum SelfTest {
             }
             print("SEARCH done"); fflush(stdout)
         }
+        // --selftest-preview <dir>: arrows move the keyboard to the plugins, Space opens the
+        // preview, Right moves on, Space closes, a letter goes back to the search (BL-106).
+        if let k = args.firstIndex(of: "--selftest-preview"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task {
+                LibraryWindow.show()
+                try? await Task.sleep(for: .seconds(1.5))
+                guard let lib = LibraryWindow.window else { print("PREVIEW no window"); return }
+                lib.setFrame(NSRect(x: 60, y: 60, width: 1320, height: 820), display: true)
+                NotificationCenter.default.post(name: .demoQuery, object: "")
+                NotificationCenter.default.post(name: .demoSelect, object: args.dropFirst(k + 2).first ?? "ChromaVerb")
+                try? await Task.sleep(for: .seconds(1))
+                @MainActor func key(_ code: UInt16, _ chars: String) async {
+                    for type in [NSEvent.EventType.keyDown, .keyUp] {
+                        if let e = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [], timestamp: 0,
+                                                    windowNumber: lib.windowNumber, context: nil, characters: chars,
+                                                    charactersIgnoringModifiers: chars, isARepeat: false, keyCode: code) {
+                            NSApp.postEvent(e, atStart: false)
+                        }
+                    }
+                    try? await Task.sleep(for: .milliseconds(700))
+                }
+                @MainActor func shot(_ name: String) async {
+                    await capture(lib, to: dir.appendingPathComponent(name + ".png"), scale: 1)
+                    print("PREVIEW \(name) responder=\(lib.firstResponder.map { String(describing: type(of: $0)) } ?? "nil")")
+                    fflush(stdout)
+                }
+                await key(124, "\u{F703}"); await key(123, "\u{F702}")   // Right, Left
+                await key(49, " "); await shot("1-open")
+                await key(124, "\u{F703}"); await shot("2-next")
+                await key(49, " "); await shot("3-closed")
+                await key(0, "a"); await shot("4-typed")
+                print("PREVIEW done"); fflush(stdout)
+            }
+        }
         if let k = args.firstIndex(of: "--selftest-menu-actions"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])
             Task { await menuActions(dir) }

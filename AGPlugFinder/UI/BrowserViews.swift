@@ -34,7 +34,7 @@ struct SearchField: View {
         .frame(height: large ? 44 : Theme.control)
         .background(Capsule().fill(Theme.raised))
         .onAppear { if focusOnAppear { focused = true }; EnglishKeys.apply() }
-        .onChange(of: focused) { _, on in if on { EnglishKeys.apply() } }
+        .onChange(of: focused) { _, on in if on { EnglishKeys.apply(); model.keysOnPlugins = false } }
         .onChange(of: model.query) { _, q in
             focused = true
             // Typed with a Hebrew keyboard: read the keys as the English letters they sit on.
@@ -42,6 +42,19 @@ struct SearchField: View {
             if english != q { model.query = english }
         }
         .onReceive(NotificationCenter.default.publisher(for: .focusSearch)) { _ in focused = true }
+        .onReceive(NotificationCenter.default.publisher(for: .typeInSearch)) { n in
+            // A letter typed while the keyboard was on the plugins (BL-106): back to the search,
+            // with the letter added at the end.
+            guard (n.object as? PickerModel) === model, let chars = n.userInfo?["chars"] as? String else { return }
+            focused = false
+            DispatchQueue.main.async {
+                focused = true
+                if chars == "\u{7F}" { if !model.query.isEmpty { model.query.removeLast() } } else { model.query += chars }
+                DispatchQueue.main.async {
+                    (NSApp.keyWindow?.firstResponder as? NSTextView)?.moveToEndOfDocument(nil)
+                }
+            }
+        }
     }
 }
 
@@ -529,6 +542,7 @@ struct PluginGrid: View {
                         model.picked = []
                         model.selection = i
                     }
+                    model.keysOnPlugins = true
                 }
                 .contextMenu {
                     if model.picked.count > 1, model.picked.contains(plugin.id) {
@@ -844,6 +858,7 @@ struct PluginContextMenu: View {
 
 extension Notification.Name {
     static let focusSearch = Notification.Name("AGPFFocusSearch")
+    static let typeInSearch = Notification.Name("AGPFTypeInSearch")
 }
 
 /// What a dragged plugin carries: its id, marked so other dropped text is ignored.
