@@ -533,6 +533,9 @@ struct PluginGrid: View {
                             .allowsHitTesting(false)
                     }
                 }
+                .onHover { inside in
+                    if inside { model.hoverID = plugin.id } else if model.hoverID == plugin.id { model.hoverID = nil }
+                }
                 // One tap handler: selects on the first click with no wait, and the second click
                 // of a double-click inserts. Two separate tap gestures made every single click
                 // wait out the double-click time before selecting.

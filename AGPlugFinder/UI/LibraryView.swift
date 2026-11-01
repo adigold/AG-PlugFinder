@@ -9,6 +9,7 @@ struct LibraryView: View {
     @State private var confirmLookup = false
     @State private var window: NSWindow?
     @State private var keyMonitor: Any?
+    @State private var mouseMonitor: Any?
     @State private var pinned = UserDefaults.standard.bool(forKey: "library.pinned")
     @State private var mini = false
     @State private var fullFrame: NSRect?
@@ -278,6 +279,19 @@ struct LibraryView: View {
 
     private func installKeys() {
         guard keyMonitor == nil else { return }
+        // A click selects the plugin when the button goes down, not when it comes up (BL-108).
+        // The event carries on, so double-click, drag, ⌘ and ⇧ clicks work as before.
+        mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
+            guard let window, event.window === window, event.clickCount == 1, !mini,
+                  event.modifierFlags.intersection([.command, .shift, .control, .option]).isEmpty,
+                  !model.previewing, model.slotChoices == nil, store.confirmingUnfavorite == nil,
+                  let id = model.hoverID, !model.picked.contains(id),
+                  let i = model.results.firstIndex(where: { $0.id == id }) else { return event }
+            model.picked = []
+            if model.selection != i { model.selection = i }
+            model.keysOnPlugins = true
+            return event
+        }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             guard let window, event.window === window else { return event }
             if model.slotChoices != nil {
@@ -353,7 +367,9 @@ struct LibraryView: View {
 
     private func removeKeys() {
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
+        if let mouseMonitor { NSEvent.removeMonitor(mouseMonitor) }
         keyMonitor = nil
+        mouseMonitor = nil
     }
 }
 

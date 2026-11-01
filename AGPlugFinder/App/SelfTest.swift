@@ -510,7 +510,15 @@ enum SelfTest {
                 // double-click time.
                 if args.contains("--click") {
                     let at = NSPoint(x: 300, y: lib.frame.height - 170)
-                    for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+                    // --press: only the button going down, after the pointer moves over the tile.
+                    let press = args.contains("--press")
+                    let types: [NSEvent.EventType] = press ? [.mouseMoved, .leftMouseDown] : [.leftMouseDown, .leftMouseUp]
+                    if press {
+                        let screen = lib.convertPoint(toScreen: at)
+                        CGWarpMouseCursorPosition(CGPoint(x: screen.x, y: (NSScreen.screens.first?.frame.maxY ?? 0) - screen.y))
+                        try? await Task.sleep(for: .milliseconds(300))
+                    }
+                    for type in types {
                         if let e = NSEvent.mouseEvent(with: type, location: at, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
                                                       windowNumber: lib.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1) {
                             NSApp.postEvent(e, atStart: false)
@@ -518,6 +526,11 @@ enum SelfTest {
                     }
                     try? await Task.sleep(for: .milliseconds(40))
                     await shot("0-click-40ms")
+                    if press, let up = NSEvent.mouseEvent(with: .leftMouseUp, location: at, modifierFlags: [],
+                                                         timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: lib.windowNumber,
+                                                         context: nil, eventNumber: 0, clickCount: 1, pressure: 0) {
+                        NSApp.postEvent(up, atStart: false)
+                    }
                     try? await Task.sleep(for: .milliseconds(900))
                 }
                 await key(124, "\u{F703}"); await key(123, "\u{F702}")   // Right, Left
