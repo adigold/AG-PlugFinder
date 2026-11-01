@@ -138,10 +138,10 @@ enum SelfTest {
         if let k = args.firstIndex(of: "--selftest-window"), k + 1 < args.count {
             let out = URL(fileURLWithPath: args[k + 1])
             Task {
-                if args.contains("--sidecar") { UserLibrary.shared.readOnly = true; LibraryWindow.show() }
+                if args.contains("--sideview") { UserLibrary.shared.readOnly = true; LibraryWindow.show() }
                 else { await Updater.shared.check(userInitiated: true) }
-                try? await Task.sleep(for: .milliseconds(args.contains("--sidecar") ? 3000 : 1500))
-                guard let window = (args.contains("--sidecar") ? LibraryWindow.window : nil)
+                try? await Task.sleep(for: .milliseconds(args.contains("--sideview") ? 3000 : 1500))
+                guard let window = (args.contains("--sideview") ? LibraryWindow.window : nil)
                         ?? NSApp.windows.first(where: { !($0 is PickerPanel) && $0.isVisible && $0.frame.width > 500 })
                 else { print("WINDOW none"); fflush(stdout); return }
                 await capture(window, to: out)
@@ -151,9 +151,9 @@ enum SelfTest {
                     await capture(window, to: out.deletingPathExtension().appendingPathExtension("mini.png"))
                     print("MINI \(Int(window.frame.width))x\(Int(window.frame.height))")
                 }
-                if args.contains("--sidecar") {
+                if args.contains("--sideview") {
                     let full = window.frame
-                    for m in ["sidecar", "mini", "sidecar", "full"] {
+                    for m in ["sideview", "mini", "sideview", "full"] {
                         NotificationCenter.default.post(name: .demoWindowMode, object: m)
                         try? await Task.sleep(for: .milliseconds(1400))
                         print("MODE \(m) \(Int(window.frame.width))x\(Int(window.frame.height)) level=\(window.level.rawValue)"); fflush(stdout)

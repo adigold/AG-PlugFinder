@@ -20,7 +20,7 @@ struct CollectionBar: View {
     var view = ViewSettings.shared
     /// The library window shows the picture size slider at the right of this row (BL-48).
     var showSizeSlider = false
-    /// The sidecar keeps its pills on one row that scrolls sideways (BL-148).
+    /// The sideview keeps its pills on one row that scrolls sideways (BL-148).
     var scrolls = false
 
     var body: some View {

@@ -4,7 +4,7 @@ import SwiftUI
 /// The main window. Its own 52px top bar holds the mark and name on the left, the search in the
 /// middle and the tools on the right. Arrow keys browse, Return inserts, Esc clears the search.
 /// The pin keeps it above Logic; mini mode shrinks it to the search and two result rows, and the
-/// sidecar is a tall narrow panel at the side of the screen (BL-148).
+/// sideview is a tall narrow panel at the side of the screen (BL-148).
 struct LibraryView: View {
     @AppStorage("fixFailed.dismissedAt") private var fixFailedDismissedAt = 0
     @State private var model = PickerModel()
@@ -32,7 +32,7 @@ struct LibraryView: View {
             switch mode {
             case .full: fullBody
             case .mini: miniBody
-            case .sidecar: SidecarBody(model: model, window: window, mode: mode, pinned: pinned,
+            case .sideview: SideviewBody(model: model, window: window, mode: mode, pinned: pinned,
                                        onMode: setMode, onPin: togglePin) { insert() }
             }
         }
@@ -58,7 +58,7 @@ struct LibraryView: View {
         .onDisappear(perform: removeKeys)
         .onReceive(NotificationCenter.default.publisher(for: .toggleMiniMode)) { _ in toggleMini() }
         #if DEBUG
-        // Self-test only: switch between full window, sidecar and mini (BL-148).
+        // Self-test only: switch between full window, sideview and mini (BL-148).
         .onReceive(NotificationCenter.default.publisher(for: .demoWindowMode)) { n in
             if let m = (n.object as? String).flatMap(WindowMode.init(rawValue:)) { setMode(m) }
         }
@@ -337,7 +337,7 @@ struct LibraryView: View {
     /// The shortcut and menu item switch between the full window and mini.
     private func toggleMini() { setMode(mini ? .full : .mini) }
 
-    /// Full window, sidecar or mini (BL-148). The full window's place is kept to come back to.
+    /// Full window, sideview or mini (BL-148). The full window's place is kept to come back to.
     private func setMode(_ new: WindowMode) {
         guard new != mode else { return }
         guard let window else { mode = new; return }
@@ -351,7 +351,7 @@ struct LibraryView: View {
             let from = fullFrame ?? window.frame
             window.setFrame(NSRect(origin: NSPoint(x: from.maxX - size.width, y: from.maxY - size.height), size: size),
                             display: true, animate: true)
-        case .sidecar:
+        case .sideview:
             // The full height of the screen the window is on, against its right edge.
             let area = (window.screen ?? NSScreen.main)?.visibleFrame ?? window.frame
             let width: CGFloat = 360

@@ -3,19 +3,19 @@ import SwiftUI
 
 /// How the library window is shown (BL-148).
 enum WindowMode: String, CaseIterable, Identifiable {
-    case full, sidecar, mini
+    case full, sideview, mini
     var id: String { rawValue }
     var title: String {
         switch self {
         case .full: return "Full Window"
-        case .sidecar: return "Sidecar"
+        case .sideview: return "Sideview"
         case .mini: return "Mini"
         }
     }
     var symbol: String {
         switch self {
         case .full: return "macwindow"
-        case .sidecar: return "sidebar.right"
+        case .sideview: return "sidebar.right"
         case .mini: return "rectangle.compress.vertical"
         }
     }
@@ -28,7 +28,7 @@ struct ViewModeButton: View {
     @State private var open = false
 
     var body: some View {
-        BarIconButton(systemImage: mode.symbol, help: "Full window, sidecar or mini", active: open) { open.toggle() }
+        BarIconButton(systemImage: mode.symbol, help: "Full window, sideview or mini", active: open) { open.toggle() }
             .popover(isPresented: $open, arrowEdge: .bottom) {
                 VStack(spacing: 2) {
                     ForEach(WindowMode.allCases) { m in
@@ -72,10 +72,10 @@ struct ViewModeButton: View {
     }
 }
 
-/// The sidecar (BL-148): a tall narrow panel at the side of the screen. With nothing typed and
+/// The sideview (BL-148): a tall narrow panel at the side of the screen. With nothing typed and
 /// no pill on, every category is a row of pictures that scrolls sideways; a search or a pill
 /// shows the plain list. A click selects, a double-click adds the plugin to Logic.
-struct SidecarBody: View {
+struct SideviewBody: View {
     @Bindable var model: PickerModel
     var window: NSWindow?
     let mode: WindowMode
