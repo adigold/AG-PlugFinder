@@ -7,8 +7,6 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Inbox
 
-- [ ] **BL-140** `P2 · Medium` **Channel Strip category:** a Channel Strip pill for channel strip plugins such as R-Channel, SSL channels, G-Channel and bx_console SSL. Adi, 2026-11-01.
-
 - [ ] **BL-135** `P1 · High` **Rename the app to Retrive.me:** new name everywhere users see it. Adi, 2026-11-01.
 - [ ] **BL-136** `P1 · High` **retrive.me website:** a site for the app on the new domain (Cloudflare DNS). Adi, 2026-11-01.
 
@@ -38,6 +36,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-140** `P2 · Medium` **Channel Strip category:** a Channel Strip pill for channel strip plugins such as R-Channel, SSL channels, G-Channel and bx_console SSL. Adi, 2026-11-01. Built: a Channel Strip pill; strips are recognized by name before any other category (only the user's own choice wins). Checked against the shared database: 40 strips caught, no wrong ones. · done 2026-11-01
 - [x] **BL-139** `P2 · Medium` **Logic's categories and favorites:** read the categories and favorites the user set in Logic's Plug-in Manager (read-only, from Logic's files) and show them in the app. Adi, 2026-11-01. Built: Settings > From Logic > Import from Logic shows what it found and adds it on OK (favorites; categories become collections); the info panel shows crashes Logic recorded. Read only. Not yet seen with real custom categories or favorites (none on this Mac): check on the other Mac. · done 2026-11-01
 - [x] **BL-138** `P2 · Low` **Scroll to the top on a category click:** clicking a category or collection pill slides the plugin grid smoothly back to the top. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-137** `P1 · Medium` **Fix Failed Screenshots button:** when some plugins show "Screenshot failed", a button at the top of the library checks the shared database again for those plugins, downloads the pictures it has, and tells the user how many were fixed. Adi, 2026-11-01. Verified: builds with the latest work, the button shows only for visible failed plugins (light and dark), a fixed plugin counts as done; on this Mac its 1 failed plugin is hidden and not in the database yet. · done 2026-11-01

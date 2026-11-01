@@ -259,6 +259,7 @@ struct LogicCard: View {
         case "Amps and Pedals": return "guitars"
         case "Delay": return "repeat"
         case "Distortion": return "bolt"
+        case "Channel Strip": return "slider.horizontal.3"
         case "Dynamics": return "waveform.path.ecg"
         case "EQ": return "slider.vertical.3"
         case "Filter": return "line.3.horizontal.decrease"

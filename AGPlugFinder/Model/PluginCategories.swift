@@ -5,9 +5,27 @@ import AudioToolbox
 /// only Logic's (a user's report, 2026-10-31: wideners, sonible and iZotope missing from Imaging).
 enum PluginCategories {
     /// Every category a user can choose, in Logic's words.
-    static let all = ["Amps and Pedals", "Compressor", "Limiter", "Delay", "Distortion", "Dynamics", "EQ", "Filter", "Imaging",
+    static let all = ["Amps and Pedals", "Channel Strip", "Compressor", "Limiter", "Delay", "Distortion", "Dynamics", "EQ", "Filter", "Imaging",
                       "Metering", "Modulation", "Multi Effects", "Pitch", "Reverb", "Utility", "Effects",
                       "Synth", "Sampler", "Drums", "Keys", "Bass", "Orchestral", "MIDI FX"]
+
+    /// Channel strips (BL-140): R-Channel, SSL E and G Channel, SSL 4K, bx_console, Console 1 and
+    /// the like. Checked before any other source, so a strip never hides under Multi Effects or EQ.
+    /// Logic's Channel EQ is not a strip.
+    private static let stripWords = ["channel strip", "channelstrip", "r-channel", "rchannel", "r channel",
+                                     "e-channel", "g-channel", "echannel", "gchannel", "e channel", "g channel",
+                                     "bx_console", "bx_ssl", "brit channel", "britchannel", "console 1", "omni channel",
+                                     "ultrachannel", "vision channel", "mixhub", "ssl 4k", "4000 e", "4000 g", "9000 j",
+                                     "88rs", "native channel", "british channel", "nls channel", "grand channel",
+                                     "vocalstrip", "drumstrip", "guitarstrip", "vocal strip", "camel strip", "hitstrip", "fx strip"]
+    @MainActor private static var stripMemo: [String: Bool] = [:]
+    @MainActor static func isChannelStrip(_ name: String) -> Bool {
+        if let m = stripMemo[name] { return m }
+        let n = name.lowercased()
+        let yes = !n.contains("channel eq") && stripWords.contains { n.contains($0) }
+        stripMemo[name] = yes
+        return yes
+    }
 
     /// Words in a plugin's name, most telling first. Matched against the lowercased name.
     private static let effectWords: [(String, [String])] = [

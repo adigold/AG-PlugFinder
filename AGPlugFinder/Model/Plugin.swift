@@ -86,6 +86,7 @@ struct Plugin: Identifiable, Codable, Hashable {
     /// Category shown in the UI: the looked-up one wins over our guess.
     var displayCategory: String {
         if let c = userCategory { return c }
+        if !isLogic, MainActor.assumeIsolated({ PluginCategories.isChannelStrip(name) }) { return "Channel Strip" }
         return Self.splitDynamics(baseCategory, name: name, id: id)
     }
 
