@@ -581,6 +581,49 @@ enum SelfTest {
                     }
                     try? await Task.sleep(for: .milliseconds(900))
                 }
+                // --typed-space: type a search with the keys, then (--click-first) click the first
+                // result, then Space: the preview must open (BL-127).
+                if args.contains("--typed-space") {
+                    NotificationCenter.default.post(name: .focusSearch, object: nil)
+                    try? await Task.sleep(for: .milliseconds(400))
+                    for (c, code) in [("c", UInt16(8)), ("h", 4), ("r", 15), ("o", 31), ("m", 46)] { await key(code, c) }
+                    print("TYPED responder=\(lib.firstResponder.map { String(describing: type(of: $0)) } ?? "nil")"); fflush(stdout)
+                    if args.contains("--click-first") {
+                        let at = NSPoint(x: 100, y: lib.frame.height - 230)
+                        let screen = lib.convertPoint(toScreen: at)
+                        CGWarpMouseCursorPosition(CGPoint(x: screen.x, y: (NSScreen.screens.first?.frame.maxY ?? 0) - screen.y))
+                        try? await Task.sleep(for: .milliseconds(300))
+                        for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+                            if let e = NSEvent.mouseEvent(with: type, location: at, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                                          windowNumber: lib.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1) {
+                                NSApp.postEvent(e, atStart: false)
+                            }
+                            try? await Task.sleep(for: .milliseconds(90))
+                        }
+                        try? await Task.sleep(for: .milliseconds(400))
+                    }
+                    if args.contains("--tab") {
+                        await key(48, "\t")
+                        print("TAB responder=\(lib.firstResponder.map { String(describing: type(of: $0)) } ?? "nil")"); fflush(stdout)
+                    }
+                    if args.contains("--shift-tab") {
+                        for type in [NSEvent.EventType.keyDown, .keyUp] {
+                            if let e = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [.shift], timestamp: 0,
+                                                        windowNumber: lib.windowNumber, context: nil, characters: "\u{19}",
+                                                        charactersIgnoringModifiers: "\t", isARepeat: false, keyCode: 48) {
+                                NSApp.postEvent(e, atStart: false)
+                            }
+                        }
+                        try? await Task.sleep(for: .milliseconds(500))
+                        print("SHIFTTAB responder=\(lib.firstResponder.map { String(describing: type(of: $0)) } ?? "nil")"); fflush(stdout)
+                        await shot("shift-tab")
+                    } else {
+                        await key(49, " ")
+                        await shot("typed-space")
+                    }
+                    print("PREVIEW done typed"); fflush(stdout)
+                    return
+                }
                 await key(124, "\u{F703}"); await key(123, "\u{F702}")   // Right, Left
                 // --after-preview: open the preview, close it with the pointer over another plugin,
                 // then one click there must select it.

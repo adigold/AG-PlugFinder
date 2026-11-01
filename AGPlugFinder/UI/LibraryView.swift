@@ -345,6 +345,13 @@ struct LibraryView: View {
                 }
             }
             let cmd = event.modifierFlags.contains(.command)
+            // Tab in the search: the keyboard moves to the results, so Space previews (BL-127).
+            if event.keyCode == 48, !mini, window.firstResponder is NSText,
+               event.modifierFlags.intersection([.shift, .command, .control, .option]).isEmpty,
+               model.selected != nil {
+                model.keysOnPlugins = true
+                return nil
+            }
             if let handled = previewKeys(event, window: window) { return handled ? nil : event }
             switch event.keyCode {
             case 125: model.move(model.columns); onPlugins(); return nil       // Down
@@ -393,6 +400,11 @@ struct LibraryView: View {
         if event.keyCode == 49 {
             guard view.spacePreview, model.selected != nil, model.slotChoices == nil else { return nil }
             model.previewing = true
+            return true
+        }
+        if event.keyCode == 48, event.modifierFlags.contains(.shift) {    // Shift+Tab: back to the search (BL-126)
+            model.keysOnPlugins = false
+            NotificationCenter.default.post(name: .focusSearch, object: nil)
             return true
         }
         if event.keyCode == 51 {                                          // Delete: back to the search

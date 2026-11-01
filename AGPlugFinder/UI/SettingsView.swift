@@ -45,7 +45,7 @@ struct GeneralSettings: View {
                 Text("For example API-550A (m) and (s) show once. Logic gets the mono version on a mono track and the stereo version on a stereo track. Right-click a plugin to choose one yourself.")
                     .font(.caption).foregroundStyle(.secondary)
                 Toggle("Preview with the Space bar", isOn: Bindable(ViewSettings.shared).spacePreview)
-                Text("Click a plugin and press Space to see it large, with what it does. Arrows move to the next one, Space or Esc closes it.")
+                Text("Click a plugin and press Space to see it large, with what it does. Arrows move to the next one, Space or Esc closes it. After typing a search, press Tab to move to the results; Shift+Tab goes back to the search.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
