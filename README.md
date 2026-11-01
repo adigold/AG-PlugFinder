@@ -164,6 +164,11 @@ AG PlugFinder lives in the menu bar and can start when you log in. Its menu open
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.49**
+
+- **New:** A Behavior tab in Settings. Turn on "Hide the window and go back to Logic" and the window steps away after you add a plugin, in every view. With Ableton Live in use, it goes back to Live.
+- **Improved:** The settings for what shows before you type, Space bar preview and mono and stereo as one plugin now live together in Behavior.
+
 **0.9.48**
 
 - **Fixed:** The OK and Cancel buttons in dialogs, like New collection, now always answer a mouse click, not only the keyboard.
@@ -179,6 +184,9 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **Improved:** In a narrow window, the top bar makes room so the icons on the right stay visible.
 - **Fixed:** Import from Logic in Settings could show a message whose OK button did nothing.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.46)</summary>
+
 **0.9.46**
 
 - **New:** Match the Mac. In Settings, Appearance, choose one light theme and one dark theme, and the app changes between them whenever your Mac does.
@@ -189,9 +197,6 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **Improved:** With the pills hidden, the picture size slider and Zoom share one slim line, leaving more room for your plugins.
 - **Improved:** The plugin count now sits at the bottom right of the window.
 - **Fixed:** Dialogs could close by themselves as if Cancel had been clicked. Name dialogs now show OK only once something is typed, and Esc always closes them.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.45)</summary>
 
 **0.9.45**
 
