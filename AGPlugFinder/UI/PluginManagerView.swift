@@ -14,12 +14,19 @@ struct PluginManagerView: View {
     /// nothing can get stuck behind the Settings window (Adi's report, 2026-11-01).
     @State private var asking: [PluginManager.Item]?
     @State private var done: (folder: URL, moved: Int, failed: [String], extras: Int)?
+    /// The list as filtered and sorted, worked out only when the search, a filter, the view or
+    /// the scan changes, never on a click (BL-156).
+    @State private var shown: [PluginManager.Item] = []
+    @State private var groups: [(String, [PluginManager.Item])] = []
+
+    private struct Filter: Hashable {
+        var search: String; var formats: Set<PluginManager.Format>; var mode: Mode; var scan: Date?
+    }
 
     init(asking: [PluginManager.Item]? = nil) { _asking = State(initialValue: asking) }
 
     var body: some View {
         let notes = manager.notes()
-        let shown = visible(notes)
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Plugin Manager").font(.system(size: Theme.ts(22), weight: .bold)).foregroundStyle(Theme.text)
@@ -59,7 +66,7 @@ struct PluginManagerView: View {
                     // Only the rows on screen are drawn, so thousands of plugins scroll smoothly (BL-155).
                     LazyVStack(spacing: 0) {
                         if mode == .installers {
-                            ForEach(groupsByInstaller(shown), id: \.0) { pkg, list in
+                            ForEach(groups, id: \.0) { pkg, list in
                                 installerRow(pkg, list)
                                 ForEach(list) { row($0, note: notes[$0.id]) }
                             }
@@ -78,18 +85,24 @@ struct PluginManagerView: View {
         .background(Theme.ground)
         .overlay { if asking != nil || done != nil { card } }
         .onAppear { if manager.lastScan == nil { manager.scan() } }
+        .onChange(of: Filter(search: search, formats: formats, mode: mode, scan: manager.lastScan), initial: true) { _, _ in
+            shown = visible(manager.notes())
+            groups = mode == .installers ? groupsByInstaller(shown) : []
+        }
     }
 
     private func visible(_ notes: [String: PluginManager.Note]) -> [PluginManager.Item] {
         // Duplicates shows each whole group, so the copy that stays is right beside the others.
         let flagged = Set(manager.items.filter { notes[$0.id] != nil }.map(\.key))
-        return manager.items.filter { i in
+        let list = manager.items.filter { i in
             (formats.isEmpty || formats.contains(i.format))
                 && (search.isEmpty || i.name.localizedCaseInsensitiveContains(search) || (i.receipt ?? "").localizedCaseInsensitiveContains(search))
                 && (mode != .duplicates || flagged.contains(i.key))
                 && (mode != .installers || i.receipt != nil)
         }
-        .sorted { $0.key == $1.key ? $0.format.rawValue < $1.format.rawValue : $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        // The scan keeps plugins in name order; only Duplicates needs each group's copies together.
+        guard mode == .duplicates else { return list }
+        return list.sorted { $0.key == $1.key ? $0.format.rawValue < $1.format.rawValue : $0.key < $1.key }
     }
 
     private func groupsByInstaller(_ list: [PluginManager.Item]) -> [(String, [PluginManager.Item])] {

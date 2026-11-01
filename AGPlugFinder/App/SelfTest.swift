@@ -628,6 +628,14 @@ enum SelfTest {
                     t = Date()
                     m.selected.removeAll(); w.displayIfNeeded()
                     print("PM deselect redraw took \(String(format: "%.3f", Date().timeIntervalSince(t)))s"); fflush(stdout)
+                    // Ten single clicks on checkboxes, as a user ticks plugins one by one.
+                    t = Date()
+                    for i in m.items.prefix(10) {
+                        m.selected.insert(i.id)
+                        w.contentView?.needsLayout = true; w.contentView?.layoutSubtreeIfNeeded(); w.displayIfNeeded()
+                        try? await Task.sleep(for: .milliseconds(1))
+                    }
+                    print("PM one click takes \(String(format: "%.1f", Date().timeIntervalSince(t) * 100))ms"); fflush(stdout)
                     w.orderOut(nil)
                 }
                 for (pkg, files) in m.leftoverFiles.sorted(by: { $0.key < $1.key }) {

@@ -34,8 +34,17 @@ final class PluginManager {
         let system: Bool          // in /Library (needs the Mac's password to move)
         var receipt: String?      // the installer that put it there, when macOS kept a record
         var id: String { url.path }
-        /// The same plugin in any format, version or folder.
-        var key: String { PluginManager.matchKey(name) }
+        /// The same plugin in any format, version or folder. Worked out once, when the file is
+        /// read: the list compares it thousands of times (BL-156).
+        let key: String
+
+        init(url: URL, format: Format, name: String, version: String, bundleID: String, size: Int64,
+             installed: Date?, system: Bool, receipt: String?) {
+            self.url = url; self.format = format; self.name = name; self.version = version
+            self.bundleID = bundleID; self.size = size; self.installed = installed; self.system = system
+            self.receipt = receipt
+            self.key = PluginManager.matchKey(name)
+        }
     }
 
     enum Note: String { case twice = "Installed twice", older = "Older version", notLogic = "Not used by Logic" }
