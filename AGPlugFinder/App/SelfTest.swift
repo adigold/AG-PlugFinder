@@ -260,6 +260,17 @@ enum SelfTest {
                     v.topOrder = order; v.topHidden = hidden
                     print("TOPBAR done"); fflush(stdout)
                 }
+                if args.contains("--narrow") {
+                    // The smallest full window, and a middle size (BL-192).
+                    let f = window.frame
+                    for w in [860.0, 1000.0] {
+                        window.setFrame(NSRect(x: f.minX, y: f.minY, width: w, height: f.height), display: true)
+                        try? await Task.sleep(for: .seconds(1))
+                        await capture(window, to: out.deletingPathExtension().appendingPathExtension("narrow\(Int(w)).png"))
+                    }
+                    window.setFrame(f, display: true)
+                    print("NARROW done"); fflush(stdout)
+                }
                 if args.contains("--later") {
                     // The same window again a little later: a list still moving would look different.
                     let r0 = PluginStore.shared.revision

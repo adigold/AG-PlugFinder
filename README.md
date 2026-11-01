@@ -164,6 +164,17 @@ AG PlugFinder lives in the menu bar and can start when you log in. Its menu open
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.46**
+
+- **New:** Match the Mac. In Settings, Appearance, choose one light theme and one dark theme, and the app changes between them whenever your Mac does.
+- **New:** Choose what the library shows before you type: all plugins, the ones you use most, your favorites, the ones you have never used, or nothing until you start typing.
+- **New:** Right-click the icons at the top right to hide the ones you don't need and drag them into your own order.
+- **Improved:** Hold Option to choose where an effect goes now works in every view: Mini, Floating and Sideview.
+- **Improved:** In Floating, Esc always takes you back to All.
+- **Improved:** With the pills hidden, the picture size slider and Zoom share one slim line, leaving more room for your plugins.
+- **Improved:** The plugin count now sits at the bottom right of the window.
+- **Fixed:** Dialogs could close by themselves as if Cancel had been clicked. Name dialogs now show OK only once something is typed, and Esc always closes them.
+
 **0.9.45**
 
 - **New:** Floating, a fourth way to show the window. A see-through search bar with a list under it floats over Logic; Tab moves through the categories, the arrows move through the plugins and Return adds one.
@@ -176,14 +187,14 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **New:** The mini window has a favorites star beside the pin, to show only your favorites.
 - **Improved:** A small "Long press" tip under the Zoom button shows how to pick S, M or L, and goes away once you have chosen a size.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.43)</summary>
+
 **0.9.43**
 
 - **Improved:** Zoom is rebuilt. The selected plugin now sits in front of every other card and its picture really gets bigger, and the card moves to the middle of the list as you go with the arrow keys.
 - **New:** Hold the Zoom button to choose a size, S, M or L.
 - **Improved:** Zoom steps aside while you pick several plugins, and comes back when one is left.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.42)</summary>
 
 **0.9.42**
 
