@@ -74,6 +74,8 @@ final class ViewSettings {
     var chipRow: ChipRow { didSet { save("chipRow", chipRow.rawValue) } }
     /// Space opens a large preview of the selected plugin (BL-106).
     var spacePreview: Bool { didSet { save("spacePreview", spacePreview) } }
+    /// Mono and stereo versions of a plugin shown as one (BL-124).
+    var joinMonoStereo: Bool { didSet { save("joinMonoStereo", joinMonoStereo) } }
 
     private init() {
         let d = UserDefaults.standard
@@ -87,6 +89,7 @@ final class ViewSettings {
         favoritesOnly = d.bool(forKey: "view.favoritesOnly")
         chipRow = ChipRow(rawValue: d.string(forKey: "view.chipRow") ?? "") ?? .categories
         spacePreview = d.object(forKey: "view.spacePreview") as? Bool ?? true
+        joinMonoStereo = d.object(forKey: "view.joinMonoStereo") as? Bool ?? true
     }
 
     private func save(_ key: String, _ value: Any) {

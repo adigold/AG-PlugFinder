@@ -84,7 +84,7 @@ final class PickerModel {
     private struct ResultsKey: Equatable {
         let query: String, sort: PluginSort, collectionID: String?, pills: Set<String>, slot: String?
         let suggestion: [String]?, favoritesOnly: Bool, store: Int, collections: [UserLibrary.Collection]
-        let groups: [PillGroup], uses: Int
+        let groups: [PillGroup], uses: Int, joined: Bool
     }
     @ObservationIgnored private var memo: (key: ResultsKey, list: [Plugin])?
 
@@ -98,7 +98,8 @@ final class PickerModel {
                              slot: pointerTarget.map { "\($0.kind)" }, suggestion: suggestion?.ids,
                              favoritesOnly: ViewSettings.shared.favoritesOnly, store: store.revision,
                              collections: lib.collections, groups: lib.pills.groups,
-                             uses: sort == .mostUsed || !query.isEmpty ? lib.useCount.values.reduce(0, +) : 0)
+                             uses: sort == .mostUsed || !query.isEmpty ? lib.useCount.values.reduce(0, +) : 0,
+                             joined: ViewSettings.shared.joinMonoStereo)
         if let memo, memo.key == key { return memo.list }
         let list = computeResults()
         memo = (key, list)
@@ -181,8 +182,8 @@ final class PickerModel {
     }
 
     /// Places the selected plugin in Logic. `onHide`/`onShow` let the popup step out of the way.
-    func insertSelected(replacing slot: Int? = nil, onHide: () -> Void = {}, onShow: @escaping () -> Void = {}) {
-        guard let plugin = selected, !isBusy else { return }
+    func insertSelected(replacing slot: Int? = nil, version: Plugin? = nil, onHide: () -> Void = {}, onShow: @escaping () -> Void = {}) {
+        guard let plugin = version ?? selected, !isBusy else { return }
         if let target = replaceTarget, slot == nil {
             replace(target, with: plugin, onHide: onHide, onShow: onShow)
             return

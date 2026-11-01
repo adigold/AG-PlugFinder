@@ -20,6 +20,7 @@
 		2B1238F5A1C0E4FEA95749AF /* PluginPack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D71657EEC5ED1CB8747992C3 /* PluginPack.swift */; };
 		2CDDD895CD2750912DB73AFC /* WhatsNewWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C0948383AEB9D0BE90BBA8 /* WhatsNewWindow.swift */; };
 		2E95C518E15D9AE1CE0BD68C /* PluginStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FD7E657F3026F318121A9D6 /* PluginStore.swift */; };
+		31932E5C9809A842A6A001B1 /* PluginVariants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDC110B970E49E7DE95773C /* PluginVariants.swift */; };
 		3BBC1A8A91E10880B239C18D /* AX.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFBFF2C38A98C6768DF05100 /* AX.swift */; };
 		3C4BCBCC68DB9EFD408B3897 /* ChannelFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 579F9663660564DC0E89E2CB /* ChannelFormat.swift */; };
 		445998CA513B09D710F9282C /* LicensesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5987D3DB7540AEB27720655 /* LicensesView.swift */; };
@@ -74,6 +75,7 @@
 		0135B483A0FBDF4DAD8DCC91 /* CrashReports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReports.swift; sourceTree = "<group>"; };
 		04543FB792952D69782A9314 /* Shortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shortcuts.swift; sourceTree = "<group>"; };
 		0A06B5A571B3FD73B01B759C /* HotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKey.swift; sourceTree = "<group>"; };
+		0BDC110B970E49E7DE95773C /* PluginVariants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginVariants.swift; sourceTree = "<group>"; };
 		0D47D34C73708761076C4971 /* SoundSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundSearch.swift; sourceTree = "<group>"; };
 		0F6759972C4F8A854CE9948F /* FeedbackWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackWindow.swift; sourceTree = "<group>"; };
 		11AFBF5BCA998F73C82D5114 /* PluginCategories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginCategories.swift; sourceTree = "<group>"; };
@@ -191,6 +193,7 @@
 				D71657EEC5ED1CB8747992C3 /* PluginPack.swift */,
 				1F96300B45F6AC9AB4D9D915 /* PluginScanner.swift */,
 				5FD7E657F3026F318121A9D6 /* PluginStore.swift */,
+				0BDC110B970E49E7DE95773C /* PluginVariants.swift */,
 				0D47D34C73708761076C4971 /* SoundSearch.swift */,
 				1211458E32500BCFB817B799 /* UserLibrary.swift */,
 			);
@@ -392,6 +395,7 @@
 				E79202DCA3F084DF43CBA51B /* PluginPreview.swift in Sources */,
 				B4343ECFDF6C445F008BB50D /* PluginScanner.swift in Sources */,
 				2E95C518E15D9AE1CE0BD68C /* PluginStore.swift in Sources */,
+				31932E5C9809A842A6A001B1 /* PluginVariants.swift in Sources */,
 				509183AB719247230E945953 /* PointerSlot.swift in Sources */,
 				22C05D51D8B31A9562FB3476 /* SelfTest.swift in Sources */,
 				B1E65F4E61D464E5340D09D2 /* SettingsView.swift in Sources */,

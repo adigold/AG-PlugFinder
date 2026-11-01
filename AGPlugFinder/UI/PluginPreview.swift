@@ -87,7 +87,7 @@ struct PluginPreview: View {
 
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(plugin.name)
+            Text(PluginVariants.title(plugin))
                 .font(.system(size: 26, weight: .semibold)).foregroundStyle(Theme.text)
                 .lineLimit(3).fixedSize(horizontal: false, vertical: true)
             Text("\(plugin.manufacturer) · \(plugin.displayCategory) · \(plugin.typeGroup)")

@@ -479,6 +479,54 @@ enum SelfTest {
             }
             print("SEARCH done"); fflush(stdout)
         }
+        // --selftest-msflip: the window open first, then the mono/stereo switch flipped and the
+        // plugin list changed while it is showing, as a user would (BL-124). In memory only.
+        if args.contains("--selftest-msflip") {
+            Task {
+                func say(_ s: String) { print("FLIP " + s); fflush(stdout) }
+                UserLibrary.shared.readOnly = true
+                let start = ViewSettings.shared.joinMonoStereo
+                LibraryWindow.show()
+                try? await Task.sleep(for: .seconds(2))
+                guard let w = LibraryWindow.window else { say("no window"); return }
+                say("window open")
+                if let q = args.firstIndex(of: "--emptyq").map({ _ in "zzzzqq" }) {
+                    // A search that finds nothing, typed (no animation) or animated like the old test.
+                    if args.contains("--resize-first") { w.setFrame(NSRect(x: 60, y: 60, width: 1320, height: 700), display: true) }
+                    NotificationCenter.default.post(name: args.contains("--anim") ? .demoQuery : .demoQueryPlain, object: q)
+                    try? await Task.sleep(for: .seconds(2))
+                    say("empty search shown")
+                    for width in stride(from: 860, through: 1500, by: 80) {
+                        w.setFrame(NSRect(x: 60, y: 60, width: width, height: 760), display: true)
+                        try? await Task.sleep(for: .milliseconds(60))
+                    }
+                    say("done")
+                    return
+                }
+                for i in 0..<6 {
+                    ViewSettings.shared.joinMonoStereo.toggle()
+                    try? await Task.sleep(for: .milliseconds(400))
+                    say("flip \(i) joined=\(ViewSettings.shared.joinMonoStereo)")
+                }
+                if !args.contains("--nofakes"), let base = PluginStore.shared.plugins.first(where: { !$0.isLogic }) {
+                    func fake(_ name: String, _ id: String) -> Plugin { var p = base; p.name = name; p.manufacturer = "Waves"; p.id = id; return p }
+                    PluginStore.shared.debugUsePlugins(PluginStore.shared.plugins + [fake("API-550A (m)", "t-m"), fake("API-550A (s)", "t-s")])
+                    try? await Task.sleep(for: .milliseconds(600))
+                    say("fakes added")
+                    NotificationCenter.default.post(name: .demoQuery, object: "550")
+                    NotificationCenter.default.post(name: .demoSelect, object: "API-550A (s)")
+                    try? await Task.sleep(for: .milliseconds(600))
+                    say("selected joined plugin")
+                }
+                for width in stride(from: 860, through: 1500, by: 80) {
+                    w.setFrame(NSRect(x: 60, y: 60, width: width, height: 760), display: true)
+                    try? await Task.sleep(for: .milliseconds(60))
+                }
+                say("resized")
+                ViewSettings.shared.joinMonoStereo = start
+                say("done")
+            }
+        }
         // --selftest-preview <dir>: arrows move the keyboard to the plugins, Space opens the
         // preview, Right moves on, Space closes, a letter goes back to the search (BL-106).
         if let k = args.firstIndex(of: "--selftest-preview"), k + 1 < args.count {
@@ -766,6 +814,58 @@ enum SelfTest {
                 print("PERF typing 4 letters \(ms(t)) (with 40 ms of waiting)")
                 NotificationCenter.default.post(name: .demoQuery, object: "")
                 print("PERF done"); fflush(stdout)
+            }
+        }
+        // --selftest-monostereo <dir>: mono and stereo versions shown as one (BL-124). In memory only.
+        if let k = args.firstIndex(of: "--selftest-monostereo"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task {
+                let store = PluginStore.shared
+                UserLibrary.shared.readOnly = true
+                guard let base = store.plugins.first(where: { !$0.isLogic }) ?? store.plugins.first else { return }
+                func fake(_ name: String, _ maker: String, _ id: String) -> Plugin {
+                    var p = base; p.name = name; p.manufacturer = maker; p.id = id; p.userCategory = "EQ"; return p
+                }
+                let fakes = [fake("API-550A (m)", "Waves", "t-550m"), fake("API-550A (s)", "Waves", "t-550s"),
+                             fake("API-550A (m->s)", "Waves", "t-550ms"), fake("SSL Fusion Stereo Image", "SSL", "t-ssl"),
+                             fake("bx_dynEQ V2 Mono", "Plugin Alliance", "t-bxm"), fake("bx_dynEQ V2 Stereo", "Plugin Alliance", "t-bxs")]
+                if !args.contains("--nofakes") { store.debugUsePlugins(store.plugins + fakes) }
+                func say(_ s: String) { print("MS " + s); fflush(stdout) }
+                let m = PickerModel(); m.query = "550"
+                say("joined on, search 550: " + m.results.map { "\($0.name) as \(PluginVariants.title($0))" }.joined(separator: ", "))
+                m.query = "ssl fusion"; say("stereo image: " + m.results.map(\.name).joined(separator: ", "))
+                m.query = "dyneq"; say("bx: " + m.results.map { "\($0.name) as \(PluginVariants.title($0))" }.joined(separator: ", "))
+                let s = fakes[1], mono = fakes[0]
+                say("mono track formats [Mono, Mono→Stereo] on (s) → \(PluginVariants.better(for: s, formats: ["Mono", "Mono→Stereo"])?.name ?? "keep")")
+                say("mono track formats [Mono→Stereo] on (s) → \(PluginVariants.better(for: s, formats: ["Mono→Stereo"])?.name ?? "keep")")
+                say("stereo track formats [Stereo, Dual Mono] on (s) → \(PluginVariants.better(for: s, formats: ["Stereo", "Dual Mono"])?.name ?? "keep")")
+                say("stereo track formats [Dual Mono] on (m) → \(PluginVariants.better(for: mono, formats: ["Dual Mono"])?.name ?? "keep")")
+                if !args.contains("--notoggle") {
+                    ViewSettings.shared.joinMonoStereo = false
+                    m.query = "550"; say("joined off, search 550: " + m.results.map(\.name).joined(separator: ", "))
+                    ViewSettings.shared.joinMonoStereo = !args.contains("--off")
+                }
+                if args.contains("--wait") { try? await Task.sleep(for: .seconds(1)) }
+                LibraryWindow.show()
+                try? await Task.sleep(for: .seconds(1.5))
+                if let w = LibraryWindow.window {
+                    w.setFrame(NSRect(x: 60, y: 60, width: 1320, height: 700), display: true)
+                    let q = args.firstIndex(of: "--q").map { args[$0 + 1] } ?? "550"
+                    NotificationCenter.default.post(name: .demoQuery, object: q)
+                    if !args.contains("--noselect") { NotificationCenter.default.post(name: .demoSelect, object: "API-550A (s)") }
+                    try? await Task.sleep(for: .seconds(1))
+                    if !args.contains("--nocap") { await capture(w, to: dir.appendingPathComponent("monostereo.png"), scale: 1) }
+                    // Resize across many widths and heights: the window must never get stuck re-laying out.
+                    for width in stride(from: 860, through: 1500, by: 40) {
+                        for height in [560, 700, 900] {
+                            w.setFrame(NSRect(x: 60, y: 60, width: width, height: height), display: true)
+                            try? await Task.sleep(for: .milliseconds(30))
+                        }
+                    }
+                    say("resized 51 times, wrap \(UserLibrary.shared.pills.wrap)")
+                    NotificationCenter.default.post(name: .demoQuery, object: "")
+                }
+                say("done")
             }
         }
         if let k = args.firstIndex(of: "--selftest-menu-actions"), k + 1 < args.count {

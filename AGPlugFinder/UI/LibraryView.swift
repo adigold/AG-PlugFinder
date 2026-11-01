@@ -52,7 +52,12 @@ struct LibraryView: View {
         #if DEBUG
         // Self-test only: type a search or select a plugin, for the README pictures.
         .onReceive(NotificationCenter.default.publisher(for: .demoQuery)) { n in
-            withAnimation { model.query = n.object as? String ?? "" }
+            // No window-wide animation: one right after a resize made SwiftUI resize the test
+            // window in a loop until macOS stopped it (2026-11-01). The grid still animates.
+            model.query = n.object as? String ?? ""
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .demoQueryPlain)) { n in
+            model.query = n.object as? String ?? ""
         }
         .onReceive(NotificationCenter.default.publisher(for: .demoSelect)) { n in
             if let name = n.object as? String, let p = store.plugins.first(where: { $0.name == name }) { model.reveal(p.id) }
@@ -530,5 +535,7 @@ struct WindowAccessor: NSViewRepresentable {
 extension Notification.Name {
     static let toggleMiniMode = Notification.Name("AGPFToggleMiniMode")
     static let demoQuery = Notification.Name("AGPFDemoQuery")
+    static let demoQueryPlain = Notification.Name("AGPFDemoQueryPlain")
     static let demoSelect = Notification.Name("AGPFDemoSelect")
 }
+

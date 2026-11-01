@@ -242,6 +242,7 @@ final class PluginStore {
         let words = query.lowercased().split(separator: " ").map(String.init)
         let pool = plugins.filter {
             isVisible($0) && (!favoritesOnly || favorites.contains($0.id)) && (ids?.contains($0.id) ?? true)
+                && PluginVariants.isShown($0)
         }
         var list = words.isEmpty ? pool : pool.filter { p in
             let hay = hay(p).name

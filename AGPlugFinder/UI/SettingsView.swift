@@ -41,6 +41,9 @@ struct GeneralSettings: View {
                     ForEach(ViewSettings.ChipRow.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
+                Toggle("Show mono and stereo versions as one plugin", isOn: Bindable(ViewSettings.shared).joinMonoStereo)
+                Text("For example API-550A (m) and (s) show once. Logic gets the mono version on a mono track and the stereo version on a stereo track. Right-click a plugin to choose one yourself.")
+                    .font(.caption).foregroundStyle(.secondary)
                 Toggle("Preview with the Space bar", isOn: Bindable(ViewSettings.shared).spacePreview)
                 Text("Click a plugin and press Space to see it large, with what it does. Arrows move to the next one, Space or Esc closes it.")
                     .font(.caption).foregroundStyle(.secondary)

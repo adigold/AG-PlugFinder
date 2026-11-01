@@ -6,6 +6,10 @@ Layout (2026-10-13): `- [ ]` open in **Inbox**, `- [~]` in progress in **Now**, 
 After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--start BL-n` when work begins, `--done BL-n` when it is finished, `--drop BL-n "why"` to drop it.
 
 ## Inbox
+
+- [ ] **BL-125** `P1 · Critical` **Crash on a search with no results:** the library window can crash (layout loop) when a search matches nothing; found in 0.9.23 while testing BL-124, 2026-11-01. Result: only the debug self-test hook triggered it (it set the search inside a window-wide animation right after a resize); real typing and clicks never do. Hook fixed; app code unchanged.
+- [ ] **BL-126** `P1 · Medium` **Shift+Tab back to search:** after clicking a plugin, Shift+Tab returns the keyboard to the search field. Adi, 2026-11-01.
+- [ ] **BL-127** `P1 · Medium` **Space preview after searching:** typing a search then pressing Space on the results must open the preview, not type a space. Adi, 2026-11-01.
 - [ ] **BL-124** `P1 · High` **One tile for mono and stereo versions:** a Settings switch, on by default, shows "(m)" and "(s)" versions as one plugin; adding it to Logic loads the mono version on a mono track and the stereo version on a stereo track. Adi, 2026-11-01.
 - [ ] **BL-122** `P2 · Medium` **New database plugins checked automatically:** when an app adds a plugin to the shared database, the server finds its maker page, exact kind and category with Exa in the background. Needs the Exa key on the server and a server update (Adi to approve). Adi, 2026-11-01.
 

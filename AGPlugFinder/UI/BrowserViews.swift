@@ -306,10 +306,13 @@ struct PluginTile: View {
                 HStack(alignment: .bottom, spacing: 4) {
                     VStack(alignment: .leading, spacing: 3) {
                         if view.showName {
-                            Text(plugin.name)
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(Theme.text)
-                                .lineLimit(1)
+                            HStack(spacing: 5) {
+                                Text(PluginVariants.title(plugin))
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(Theme.text)
+                                    .lineLimit(1)
+                                MonoStereoMark(plugin: plugin)
+                            }
                         }
                         if view.showDetails {
                             Text("\(plugin.manufacturer) · \(plugin.displayCategory)")
@@ -356,10 +359,11 @@ struct PluginRow: View {
                        height: compact ? 40 : view.tileWidth * 0.34)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    Text(plugin.name)
+                    Text(PluginVariants.title(plugin))
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(Theme.text)
                         .lineLimit(1)
+                    MonoStereoMark(plugin: plugin)
                     if store.favorites.contains(plugin.id) {
                         Image(systemName: "star.fill").font(.system(size: 9)).foregroundStyle(Theme.accent)
                     }
@@ -561,7 +565,8 @@ struct PluginGrid: View {
                     if model.picked.count > 1, model.picked.contains(plugin.id) {
                         PickedMenu(model: model)
                     } else {
-                        PluginContextMenu(plugin: plugin, select: { model.selection = i }, insert: onActivate)
+                        PluginContextMenu(plugin: plugin, select: { model.selection = i }, insert: onActivate,
+                                          insertVersion: { v in model.selection = i; model.insertSelected(version: v) })
                     }
                 }
                 // Drag onto a collection chip to add it there (BL-60).
@@ -661,10 +666,11 @@ struct PluginDetailView: View {
 
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(plugin.name)
+            Text(PluginVariants.title(plugin))
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(Theme.text)
                 .lineLimit(2)
+            MonoStereoVersions(plugin: plugin, model: model)
             Text("\(plugin.manufacturer) · \(plugin.displayCategory) · \(plugin.typeGroup)")
                 .font(.system(size: 13)).foregroundStyle(Theme.faint)
             if let kind = plugin.details?.kind, !kind.isEmpty {
@@ -807,10 +813,17 @@ struct PluginContextMenu: View {
     let plugin: Plugin
     var select: () -> Void
     var insert: () -> Void
+    var insertVersion: ((Plugin) -> Void)? = nil
     var store = PluginStore.shared
 
     var body: some View {
         Button(plugin.slotKind == .instrument ? "Load as Instrument" : "Insert in Logic") { select(); insert() }
+        // A joined plugin: choose the version yourself (BL-124).
+        if let insertVersion, PluginVariants.enabled, PluginVariants.versions(of: plugin).count > 1 {
+            ForEach(PluginVariants.versions(of: plugin), id: \.id) { v in
+                Button("Insert \(PluginVariants.roleTitle(v)) Version") { insertVersion(v) }
+            }
+        }
         Button(store.favorites.contains(plugin.id) ? "Remove from Favorites" : "Add to Favorites") {
             store.favoriteTapped(plugin.id)
         }
@@ -1401,6 +1414,44 @@ struct PictureActions: View {
 }
 
 final class FrameBox { var map: [String: CGRect] = [:] }
+
+/// A small M/S mark on a plugin shown for its mono and stereo versions together (BL-124).
+struct MonoStereoMark: View {
+    let plugin: Plugin
+    var body: some View {
+        if PluginVariants.enabled, PluginVariants.versions(of: plugin).count > 1 {
+            Text("M/S").font(.system(size: 9, weight: .bold)).foregroundStyle(Theme.muted)
+                .padding(.horizontal, 5).frame(height: 15)
+                .background(Capsule().strokeBorder(Theme.faint.opacity(0.6), lineWidth: 1))
+                .help("Mono and stereo versions together. Logic gets the one that fits the track.")
+                .fixedSize()
+        }
+    }
+}
+
+/// In the info panel: the versions it stands for, each one insertable on its own.
+struct MonoStereoVersions: View {
+    let plugin: Plugin
+    @Bindable var model: PickerModel
+    var body: some View {
+        let versions = PluginVariants.versions(of: plugin)
+        if PluginVariants.enabled, versions.count > 1 {
+            HStack(spacing: 6) {
+                Text("Fits the track:").font(.system(size: 12)).foregroundStyle(Theme.faint)
+                ForEach(versions, id: \.id) { v in
+                    Button { model.insertSelected(version: v) } label: {
+                        Text(PluginVariants.roleTitle(v)).font(.system(size: 11, weight: .medium))
+                            .padding(.horizontal, 9).frame(height: 22)
+                            .foregroundStyle(Theme.text)
+                            .background(Capsule().fill(Theme.raised))
+                    }
+                    .buttonStyle(PressScale())
+                    .help("Insert \(v.name) in Logic")
+                }
+            }
+        }
+    }
+}
 
 /// Where each plugin card sits in the grid, for the selection box (BL-97).
 struct TileFrames: PreferenceKey {

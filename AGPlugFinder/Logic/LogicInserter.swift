@@ -493,10 +493,20 @@ final class LogicInserter {
 
     /// Presses the item. When Logic offers the plugin in several formats (Mono, Stereo,
     /// Mono→Stereo …) the format follows the Channel format setting or the plugin's own (BL-69).
-    func pick(_ item: AXNode, app: AXNode, for plugin: Plugin? = nil) async -> Bool {
+    func pick(_ item: AXNode, app: AXNode, for plugin: Plugin? = nil, swapped: Bool = false) async -> Bool {
         if let formats = await submenu(of: item, pressIfNeeded: false) {
             let items = menuItems(formats).filter(\.isEnabled)
             let titles = items.map(\.title)
+            // Mono and stereo versions shown as one (BL-124): Logic lists only the formats that fit
+            // the track, so the list tells mono from stereo. Take the other version from the same menu.
+            if !swapped, let plugin, let other = PluginVariants.better(for: plugin, formats: titles),
+               let parent: AXUIElement = item.attr(kAXParentAttribute),
+               let otherItem = menuItems(AXNode(el: parent)).first(where: {
+                   $0.isEnabled && $0.title.localizedCaseInsensitiveCompare(other.name) == .orderedSame
+               }) {
+                log("  mono/stereo: formats \(titles.joined(separator: " | ")) → using \(other.name)")
+                return await pick(otherItem, app: app, for: other, swapped: true)
+            }
             let wanted = ChannelFormats.shared.choice(for: plugin?.id)
             log("  formats: \(titles.joined(separator: " | ")) · \(wanted.rawValue)")
             if wanted == .ask {
