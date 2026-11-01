@@ -10,7 +10,9 @@ type Found = { maker: string; name: string; ids: string[]; current?: string; url
 const apply = process.argv.includes("--apply");
 const found = JSON.parse(fs.readFileSync("reports/urls-all.json", "utf8")) as Found[];
 const withUrl = found.filter((f) => f.url && !f.note);
-const changes = withUrl.filter((f) => f.category && f.category !== f.current);
+const VAGUE = new Set(["Effect", "Effects", "Instrument", "Music Effect", "Generator", "MIDI Effect", ""]);
+// Never from a real category to plain "Effects".
+const changes = withUrl.filter((f) => f.category && f.category !== f.current && !(f.category === "Effects" && !VAGUE.has(f.current ?? "")));
 console.log(`${found.length} products: ${withUrl.length} with a page, ${changes.length} with a new category`);
 console.log(`plugins touched: links ${withUrl.reduce((n, f) => n + f.ids.length, 0)}, categories ${changes.reduce((n, f) => n + f.ids.length, 0)}`);
 if (!apply) { console.log("dry run, nothing written"); process.exit(0); }

@@ -399,7 +399,9 @@ struct PluginGrid: View {
     var view = ViewSettings.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     // Selection box (BL-97): drag on empty space to pick every plugin it touches.
-    @State private var frames: [String: CGRect] = [:]
+    /// Where each tile is, for the selection box. Kept outside SwiftUI's state: tiles report
+    /// their place while scrolling, and that must not redraw the whole grid (BL-123).
+    @State private var frames = FrameBox()
     @State private var band: CGRect?
     @State private var bandBase: Set<String> = []
 
@@ -436,7 +438,7 @@ struct PluginGrid: View {
                                value: results.map(\.id))
                     .frame(minHeight: geo.size.height, alignment: .top)
                     .coordinateSpace(.named(Self.space))
-                    .onPreferenceChange(TileFrames.self) { frames = $0 }
+                    .onPreferenceChange(TileFrames.self) { frames.map = $0 }
                     .background {
                         Color.clear.contentShape(Rectangle())
                             .onTapGesture { model.picked = [] }
@@ -483,7 +485,7 @@ struct PluginGrid: View {
                 let r = CGRect(x: min(v.startLocation.x, v.location.x), y: min(v.startLocation.y, v.location.y),
                                width: abs(v.location.x - v.startLocation.x), height: abs(v.location.y - v.startLocation.y))
                 band = r
-                let hits = Set(frames.filter { $0.value.intersects(r) }.map(\.key))
+                let hits = Set(frames.map.filter { $0.value.intersects(r) }.map(\.key))
                 let next = bandBase.union(hits)
                 if next != model.picked { model.picked = next }
             }
@@ -1397,6 +1399,8 @@ struct PictureActions: View {
         .help(title)
     }
 }
+
+final class FrameBox { var map: [String: CGRect] = [:] }
 
 /// Where each plugin card sits in the grid, for the selection box (BL-97).
 struct TileFrames: PreferenceKey {

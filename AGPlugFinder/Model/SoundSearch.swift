@@ -84,7 +84,8 @@ enum SoundSearch {
     /// count, so a plain name search stays a name search.
     static func score(_ p: Plugin, words: [String]) -> Int {
         guard words.contains(where: { vocabulary[$0] != nil || vocabulary[String($0.dropLast())] != nil }) else { return 0 }
-        let hay = PluginStore.nameHay(p) + " " + PluginStore.descriptionHay(p)
+        let h = PluginStore.shared.hay(p)
+        let hay = h.name + " " + h.description
         var matched = 0, direct = 0
         for w in words {
             if hay.contains(w) { matched += 1; direct += 1; continue }

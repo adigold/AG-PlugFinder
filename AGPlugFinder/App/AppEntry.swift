@@ -204,6 +204,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 // Only new or updated plugins get a screenshot; the rest load from the cache.
                 SnapshotQueue.shared.start()
             }
+            PluginStore.shared.warmIndex()
             PluginWatcher.shared.start()
             Licenses.shared.refresh()
             // Categories other users chose for their plugins (BL-104), then, once, the offer to

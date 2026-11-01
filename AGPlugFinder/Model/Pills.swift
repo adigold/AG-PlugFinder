@@ -79,21 +79,29 @@ enum Pills {
 
     static let colorNames = ["red", "orange", "yellow", "green", "teal", "blue", "purple", "pink"]
 
-    /// Visible plugins per category.
-    static func categoryCounts() -> [String: Int] {
+    /// Visible plugins per category, and how often each was used; worked out once per change (BL-123).
+    private static var countsMemo: (rev: Int, uses: Int, counts: [String: Int], used: [String: Int])?
+    private static func tally() -> (counts: [String: Int], used: [String: Int]) {
         let store = PluginStore.shared
-        return Dictionary(grouping: store.plugins.filter(store.isVisible), by: \.displayCategory)
-            .mapValues(\.count).filter { !$0.key.isEmpty }
+        _ = store.plugins; _ = store.hiddenGroups; _ = store.hiddenPlugins; _ = store.shownPlugins
+        let use = UserLibrary.shared.useCount
+        let total = use.values.reduce(0, +)
+        if let m = countsMemo, m.rev == store.revision, m.uses == total { return (m.counts, m.used) }
+        var counts: [String: Int] = [:], used: [String: Int] = [:]
+        for p in store.plugins where store.isVisible(p) {
+            let c = p.displayCategory
+            guard !c.isEmpty else { continue }
+            counts[c, default: 0] += 1
+            used[c, default: 0] += use[p.id] ?? 0
+        }
+        countsMemo = (store.revision, total, counts, used)
+        return (counts, used)
     }
 
+    static func categoryCounts() -> [String: Int] { tally().counts }
+
     /// Times plugins of each category were added to Logic.
-    static func categoryUses() -> [String: Int] {
-        let store = PluginStore.shared
-        let use = UserLibrary.shared.useCount
-        var m: [String: Int] = [:]
-        for p in store.plugins where store.isVisible(p) { m[p.displayCategory, default: 0] += use[p.id] ?? 0 }
-        return m
-    }
+    static func categoryUses() -> [String: Int] { tally().used }
 
     /// The real categories a category or combined pill stands for.
     static func categories(for key: String) -> [String] {

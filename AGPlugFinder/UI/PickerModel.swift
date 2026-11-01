@@ -70,14 +70,45 @@ final class PickerModel {
         let soundWords = SoundSearch.words(query)
         guard !soundWords.isEmpty else { return nil }
         let any = results.contains { p in
-            let name = PluginStore.nameHay(p), desc = PluginStore.descriptionHay(p)
+            let (name, desc) = PluginStore.shared.hay(p)
             return !words.allSatisfy { name.contains($0) } && !words.allSatisfy { desc.contains($0) }
                 && SoundSearch.score(p, words: soundWords) > 0
         }
         return any ? "Also showing plugins that sound like “\(query.trimmingCharacters(in: .whitespaces))”" : nil
     }
 
+    #if DEBUG
+    static var resultsCount = 0
+    #endif
+    /// Everything the list depends on. Reading it also tells SwiftUI what to watch.
+    private struct ResultsKey: Equatable {
+        let query: String, sort: PluginSort, collectionID: String?, pills: Set<String>, slot: String?
+        let suggestion: [String]?, favoritesOnly: Bool, store: Int, collections: [UserLibrary.Collection]
+        let groups: [PillGroup], uses: Int
+    }
+    @ObservationIgnored private var memo: (key: ResultsKey, list: [Plugin])?
+
+    /// The plugins shown, in order. Worked out again only when something it depends on changed
+    /// (BL-123): a selection, a redraw or scrolling reuse the same list.
     var results: [Plugin] {
+        let store = PluginStore.shared, lib = UserLibrary.shared
+        // Touch what the list depends on, so views redraw when it changes.
+        _ = store.plugins; _ = store.favorites; _ = store.hiddenGroups; _ = store.hiddenPlugins; _ = store.shownPlugins
+        let key = ResultsKey(query: query, sort: sort, collectionID: collectionID, pills: pills,
+                             slot: pointerTarget.map { "\($0.kind)" }, suggestion: suggestion?.ids,
+                             favoritesOnly: ViewSettings.shared.favoritesOnly, store: store.revision,
+                             collections: lib.collections, groups: lib.pills.groups,
+                             uses: sort == .mostUsed || !query.isEmpty ? lib.useCount.values.reduce(0, +) : 0)
+        if let memo, memo.key == key { return memo.list }
+        let list = computeResults()
+        memo = (key, list)
+        return list
+    }
+
+    private func computeResults() -> [Plugin] {
+        #if DEBUG
+        Self.resultsCount += 1
+        #endif
         let only = collectionID.flatMap { id in UserLibrary.shared.collections.first { $0.id == id } }
             .map { Set($0.pluginIDs) }
         var list = PluginStore.shared.filtered(query: query, sort: sort,

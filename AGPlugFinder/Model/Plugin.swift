@@ -101,6 +101,7 @@ struct Plugin: Identifiable, Codable, Hashable {
     @MainActor private static var kinds: [String: String] = UserDefaults.standard.dictionary(forKey: "plugin.kinds") as? [String: String] ?? [:]
     @MainActor static func reloadKinds() {
         kinds = UserDefaults.standard.dictionary(forKey: "plugin.kinds") as? [String: String] ?? [:]
+        PluginStore.shared.bumpRevision()
     }
     private static func splitDynamics(_ c: String, name: String, id: String) -> String {
         guard c == "Dynamics" else { return c }

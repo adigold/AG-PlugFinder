@@ -694,6 +694,80 @@ enum SelfTest {
             }
             fflush(stdout)
         }
+        func findScroll(_ v: NSView?) -> NSScrollView? {
+            guard let v else { return nil }
+            if let s = v as? NSScrollView, s.documentView?.frame.height ?? 0 > 2000 { return s }
+            for sub in v.subviews { if let s = findScroll(sub) { return s } }
+            return nil
+        }
+        // --selftest-perf: where the time goes with many plugins (BL-123). Changes nothing.
+        if args.contains("--selftest-perf") {
+            Task {
+                func ms(_ t: Date) -> String { String(format: "%.1f ms", Date().timeIntervalSince(t) * 1000) }
+                let store = PluginStore.shared
+                // --many N: copies of this Mac's plugins in memory, up to N, nothing saved.
+                if let k = args.firstIndex(of: "--many"), k + 1 < args.count, let n = Int(args[k + 1]) {
+                    UserLibrary.shared.readOnly = true
+                    let real = store.plugins
+                    var list: [Plugin] = []
+                    var i = 0
+                    while list.count < n {
+                        for var p in real where list.count < n {
+                            if i > 0 { p.id += "-\(i)"; p.name += " \(i)" }
+                            list.append(p)
+                        }
+                        i += 1
+                    }
+                    store.debugUsePlugins(list)
+                }
+                print("PERF plugins \(store.plugins.count)")
+                var t = Date(); let m = PickerModel(); _ = m.results; print("PERF results (no search) \(ms(t))")
+                t = Date(); m.query = "comp"; _ = m.results; print("PERF results 'comp' \(ms(t))")
+                t = Date(); m.query = "warm tape"; _ = m.results; print("PERF results 'warm tape' \(ms(t))")
+                m.query = ""
+                t = Date(); for p in store.plugins { _ = p.displayCategory }; print("PERF displayCategory x all \(ms(t))")
+                t = Date(); for p in store.plugins { _ = store.isVisible(p) }; print("PERF isVisible x all \(ms(t))")
+                t = Date(); _ = Pills.categoryPills(); print("PERF category pills \(ms(t))")
+                // A picture as the grid loads it.
+                if let p = store.plugins.first(where: { store.image(for: $0.id) != nil && !$0.isLogic }) ?? store.plugins.first {
+                    let url = store.snapshotURL(for: p.id)
+                    let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? 0
+                    t = Date(); let img = NSImage(contentsOf: url); _ = img?.cgImage(forProposedRect: nil, context: nil, hints: nil)
+                    print("PERF one picture load+decode \(ms(t)) (\(size / 1024) KB, \(Int(img?.size.width ?? 0))x\(Int(img?.size.height ?? 0)))")
+                }
+                // How often the list is rebuilt when one plugin is selected in the window.
+                LibraryWindow.show()
+                try? await Task.sleep(for: .seconds(1.5))
+                PickerModel.resultsCount = 0
+                NotificationCenter.default.post(name: .demoSelect, object: store.plugins.dropFirst(5).first?.name ?? "")
+                try? await Task.sleep(for: .seconds(1))
+                print("PERF list rebuilt \(PickerModel.resultsCount) times for one selection")
+                // Scrolling the grid: how often the list is rebuilt, and how long each step takes.
+                if let w = LibraryWindow.window, let scroll = findScroll(w.contentView) {
+                    PickerModel.resultsCount = 0
+                    var worst = 0.0, total = 0.0
+                    for step in 1...40 {
+                        let t0 = Date()
+                        scroll.contentView.scroll(to: NSPoint(x: 0, y: CGFloat(step) * 120))
+                        scroll.reflectScrolledClipView(scroll.contentView)
+                        RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+                        let d = Date().timeIntervalSince(t0) * 1000 - 20
+                        worst = max(worst, d); total += d
+                    }
+                    print(String(format: "PERF scroll 40 steps: list rebuilt %d times, average %.1f ms, worst %.1f ms per step",
+                                 PickerModel.resultsCount, total / 40, worst))
+                }
+                // Typing a search, one letter at a time.
+                t = Date()
+                for q in ["c", "co", "com", "comp"] {
+                    NotificationCenter.default.post(name: .demoQuery, object: q)
+                    RunLoop.current.run(until: Date().addingTimeInterval(0.01))
+                }
+                print("PERF typing 4 letters \(ms(t)) (with 40 ms of waiting)")
+                NotificationCenter.default.post(name: .demoQuery, object: "")
+                print("PERF done"); fflush(stdout)
+            }
+        }
         if let k = args.firstIndex(of: "--selftest-menu-actions"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])
             Task { await menuActions(dir) }
