@@ -36,6 +36,8 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-141** `P2 · Low` **Pill defaults:** new users get Show Both, Order Most plugins, Wrap to more rows, Regular, Counts on; Reset to Default restores the same. Choices people already made stay. Adi, 2026-11-01. · done 2026-11-01
+
 - [x] **BL-140** `P2 · Medium` **Channel Strip category:** a Channel Strip pill for channel strip plugins such as R-Channel, SSL channels, G-Channel and bx_console SSL. Adi, 2026-11-01. Built: a Channel Strip pill; strips are recognized by name before any other category (only the user's own choice wins). Checked against the shared database: 40 strips caught, no wrong ones. · done 2026-11-01
 - [x] **BL-139** `P2 · Medium` **Logic's categories and favorites:** read the categories and favorites the user set in Logic's Plug-in Manager (read-only, from Logic's files) and show them in the app. Adi, 2026-11-01. Built: Settings > From Logic > Import from Logic shows what it found and adds it on OK (favorites; categories become collections); the info panel shows crashes Logic recorded. Read only. Not yet seen with real custom categories or favorites (none on this Mac): check on the other Mac. · done 2026-11-01
 - [x] **BL-138** `P2 · Low` **Scroll to the top on a category click:** clicking a category or collection pill slides the plugin grid smoothly back to the top. Adi, 2026-11-01. · done 2026-11-01

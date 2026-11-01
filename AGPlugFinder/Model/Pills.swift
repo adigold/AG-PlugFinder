@@ -32,10 +32,10 @@ struct PillPrefs: Codable, Equatable {
     var colors: [String: String] = [:]
     var groups: [PillGroup] = []
     /// Counts on category pills; collections always show theirs.
-    var showCounts = false
+    var showCounts = true      // default on (BL-141)
     var compact = false
     /// Wrap to more rows instead of the More pill.
-    var wrap = false
+    var wrap = true            // wrap to more rows by default (BL-141)
 
     init() {}
 
@@ -48,9 +48,9 @@ struct PillPrefs: Codable, Equatable {
         names = try c.decodeIfPresent([String: String].self, forKey: .names) ?? [:]
         colors = try c.decodeIfPresent([String: String].self, forKey: .colors) ?? [:]
         groups = try c.decodeIfPresent([PillGroup].self, forKey: .groups) ?? []
-        showCounts = try c.decodeIfPresent(Bool.self, forKey: .showCounts) ?? false
+        showCounts = try c.decodeIfPresent(Bool.self, forKey: .showCounts) ?? true
         compact = try c.decodeIfPresent(Bool.self, forKey: .compact) ?? false
-        wrap = try c.decodeIfPresent(Bool.self, forKey: .wrap) ?? false
+        wrap = try c.decodeIfPresent(Bool.self, forKey: .wrap) ?? true
     }
 }
 
@@ -249,6 +249,7 @@ enum Pills {
         var p = PillPrefs()
         p.groups = prefs.groups
         prefs = p
+        ViewSettings.shared.chipRow = .both
     }
 
     // MARK: Widths for the More pill

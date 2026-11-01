@@ -87,7 +87,7 @@ final class ViewSettings {
         showDetails = d.object(forKey: "view.showDetails") as? Bool ?? true
         showInfoPane = d.object(forKey: "view.showInfoPane") as? Bool ?? true
         favoritesOnly = d.bool(forKey: "view.favoritesOnly")
-        chipRow = ChipRow(rawValue: d.string(forKey: "view.chipRow") ?? "") ?? .categories
+        chipRow = ChipRow(rawValue: d.string(forKey: "view.chipRow") ?? "") ?? .both
         spacePreview = d.object(forKey: "view.spacePreview") as? Bool ?? true
         joinMonoStereo = d.object(forKey: "view.joinMonoStereo") as? Bool ?? true
     }

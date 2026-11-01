@@ -559,6 +559,14 @@ enum SelfTest {
                 print("LT done"); fflush(stdout)
             }
         }
+        // --selftest-pilldefaults: what a new user gets, and an old saved setting without these keys (BL-141).
+        if args.contains("--selftest-pilldefaults") {
+            let fresh = PillPrefs()
+            let old = (try? JSONDecoder().decode(PillPrefs.self, from: Data("{}".utf8)))
+            print("PD fresh sort=\(fresh.sort) counts=\(fresh.showCounts) wrap=\(fresh.wrap) compact=\(fresh.compact)")
+            print("PD old-save sort=\(old.map { "\($0.sort)" } ?? "nil") counts=\(old?.showCounts ?? false) wrap=\(old?.wrap ?? false)")
+            print("PD done"); fflush(stdout)
+        }
         // --selftest-makerurl: where Maker's Website goes for a few plugins (BL-129).
         if args.contains("--selftest-makerurl") {
             Task {
