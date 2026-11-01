@@ -162,6 +162,10 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.39**
+
+- **Fixed:** Dragging several chosen plugins onto a collection adds all of them, not only the one you dragged.
+
 **0.9.38**
 
 - **New:** Pictures of Ableton Live's own devices, from Amp to Wavetable.
@@ -174,15 +178,15 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **New:** A thin footer with the version and Check for Update, and the tools sit together in the top-right corner.
 - **Fixed:** The Plugin Manager scan no longer seems stuck after matching installers. The last step shows its own progress and runs much faster.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.36)</summary>
+
 **0.9.36**
 
 - **New:** Choose what syncs. In Settings, each part of your library has its own switch, so every Mac can keep some things to itself.
 - **New:** Your theme, text size and view choices now sync with your other Macs too.
 - **New:** The Plugin Manager shows how many plugins and how much space your filter covers, and how much space the plugins you chose will free.
 - **Faster:** Plugins you move in the Plugin Manager leave the list at once, with no new scan.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.35)</summary>
 
 **0.9.35**
 
