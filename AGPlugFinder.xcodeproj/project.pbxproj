@@ -41,6 +41,7 @@
 		7F4F4F8080F79CF039A760C4 /* LogicScreenshots in Resources */ = {isa = PBXBuildFile; fileRef = 356DA54D6AF0A0ECD8B21135 /* LogicScreenshots */; };
 		8091CB98BE54644D13D73DA3 /* OnDeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFFB100FD4998C193C7BEA94 /* OnDeviceInfo.swift */; };
 		8E8D3A87A231BD3E8D683B69 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AED26F1AE92B46F89A94CE6 /* LibraryView.swift */; };
+		90FC54F0EF2213DE7ED7F526 /* MakerSites.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A405FB134839B408486F5A /* MakerSites.swift */; };
 		931ACACD35A71211C23FDE8B /* LocalModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6EC4140429A7774ED898F02 /* LocalModel.swift */; };
 		9970AF4632E51CEE778BA8EE /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FC6C5138045E623B2A0134 /* Migration.swift */; };
 		A244E15B48EF37970CDC78F4 /* CrashReports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0135B483A0FBDF4DAD8DCC91 /* CrashReports.swift */; };
@@ -100,6 +101,7 @@
 		597B1DCFC14B2876ADEF60AA /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		59B755CD9FF0D19ABBDBC410 /* Pills.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pills.swift; sourceTree = "<group>"; };
 		5FD7E657F3026F318121A9D6 /* PluginStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginStore.swift; sourceTree = "<group>"; };
+		61A405FB134839B408486F5A /* MakerSites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MakerSites.swift; sourceTree = "<group>"; };
 		65D1DB32E57A0017C2D34478 /* FeatureViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureViews.swift; sourceTree = "<group>"; };
 		68C0948383AEB9D0BE90BBA8 /* WhatsNewWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewWindow.swift; sourceTree = "<group>"; };
 		73BE9C76C349750CE02E0E1B /* ShareWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareWindow.swift; sourceTree = "<group>"; };
@@ -198,6 +200,7 @@
 			children = (
 				3126DBE9AE17BDEEEA02A558 /* Keychain.swift */,
 				C6EC4140429A7774ED898F02 /* LocalModel.swift */,
+				61A405FB134839B408486F5A /* MakerSites.swift */,
 				EFFB100FD4998C193C7BEA94 /* OnDeviceInfo.swift */,
 				46463EBC97E295A49C3EB7CA /* PluginInfoFetcher.swift */,
 				CF6AF8240ADB0D6B6475E0EB /* WebPicture.swift */,
@@ -366,6 +369,7 @@
 				614EE6DB31B4D355967EE472 /* LogicCatalog.swift in Sources */,
 				55042213A5FBB48BD7609817 /* LogicInserter.swift in Sources */,
 				798772CCE9D7FB6C1CC04281 /* LogicTrack.swift in Sources */,
+				90FC54F0EF2213DE7ED7F526 /* MakerSites.swift in Sources */,
 				1D0A7F6722952750D7F6070A /* MenuSelfTest.swift in Sources */,
 				9970AF4632E51CEE778BA8EE /* Migration.swift in Sources */,
 				8091CB98BE54644D13D73DA3 /* OnDeviceInfo.swift in Sources */,

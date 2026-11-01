@@ -614,10 +614,53 @@ enum SelfTest {
                 if let pw = NSApp.windows.first(where: { $0.isVisible && $0.contentView is NSHostingView<PillsEditor> }) {
                     await capture(pw, to: dir.appendingPathComponent("8-editor.png"), scale: 1)
                 }
+                await shoot(ColorMapPicker(selected: "#4fa3e0") { _ in }, size: NSSize(width: 300, height: 250),
+                            to: dir.appendingPathComponent("10-colormap.png"))
+                // A real click on the first row's empty color circle must open the colors.
+                if let pw = NSApp.windows.first(where: { $0.isVisible && $0.contentView is NSHostingView<PillsEditor> }),
+                   let cv = pw.contentView {
+                    var dot: NSPoint?
+                    if let args2 = args.firstIndex(of: "--dot"), args2 + 2 < args.count,
+                       let x = Double(args[args2 + 1]), let y = Double(args[args2 + 2]) { dot = NSPoint(x: x, y: cv.bounds.height - y) }
+                    if let at = dot {
+                        for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+                            if let e = NSEvent.mouseEvent(with: type, location: at, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                                          windowNumber: pw.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1) {
+                                NSApp.postEvent(e, atStart: false)
+                            }
+                        }
+                        try? await Task.sleep(for: .seconds(0.8))
+                        let pops = NSApp.windows.filter { $0.isVisible && String(describing: type(of: $0)).contains("Popover") }
+                        say("dot click -> popover open: \(!pops.isEmpty)")
+                        if let pop = pops.first { await capture(pop, to: dir.appendingPathComponent("11-popover.png"), scale: 1) }
+                        pops.forEach { $0.orderOut(nil) }
+                    }
+                    // Esc closes the window.
+                    if let e = NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: pw.windowNumber,
+                                                context: nil, characters: "\u{1B}", charactersIgnoringModifiers: "\u{1B}", isARepeat: false, keyCode: 53) {
+                        pw.makeKeyAndOrderFront(nil)
+                        NSApp.postEvent(e, atStart: false)
+                    }
+                    try? await Task.sleep(for: .seconds(0.6))
+                    say("esc -> window still open: \(pw.isVisible)")
+                }
                 let mp = PickerModel()
                 mp.picked = Set(mp.results.prefix(3).map(\.id))
                 await shoot(PickedBar(model: mp).frame(width: 900, height: 80).background(Theme.ground),
                             size: NSSize(width: 900, height: 80), to: dir.appendingPathComponent("9-picked.png"))
+                // Inside a collection: Remove from it (nothing saved, the library is read only here).
+                if let c = lib.collections.first(where: { $0.pluginIDs.count >= 2 }) {
+                    let mc = PickerModel()
+                    mc.collectionID = c.id
+                    mc.picked = Set(mc.results.prefix(2).map(\.id))
+                    await shoot(PickedBar(model: mc).frame(width: 900, height: 80).background(Theme.ground),
+                                size: NSSize(width: 900, height: 80), to: dir.appendingPathComponent("12-in-collection.png"))
+                    let before = c.pluginIDs.count
+                    let savedCols = lib.collections
+                    PickedActions.removeFromCollection(mc)
+                    say("remove from \(c.name): \(before) -> \(lib.collections.first { $0.id == c.id }?.pluginIDs.count ?? -1)")
+                    lib.collections = savedCols
+                }
                 lib.pills = saved
                 ViewSettings.shared.chipRow = savedRow
                 say("done")

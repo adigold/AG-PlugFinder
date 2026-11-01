@@ -1173,6 +1173,16 @@ enum PickedActions {
         InsertRunner.run(list, title: "\(list.count) plugins")
     }
 
+    /// Takes the selected plugins out of the collection being shown (BL-113).
+    static func removeFromCollection(_ model: PickerModel) {
+        let lib = UserLibrary.shared
+        guard let id = model.collectionID, let i = lib.collections.firstIndex(where: { $0.id == id }) else { return }
+        let n = model.picked.count
+        lib.collections[i].pluginIDs.removeAll { model.picked.contains($0) }
+        model.picked = []
+        Toast.show("Removed \(n) from \(lib.collections[i].name)")
+    }
+
     static func takePictures(_ model: PickerModel) {
         let ids = Set(plugins(model).filter { !$0.isLogic }.map(\.id))
         guard !ids.isEmpty else { Toast.show("Logic's own plugins already have their pictures.", warning: true); return }
@@ -1205,6 +1215,9 @@ struct PickedMenu: View {
     var body: some View {
         let n = model.picked.count
         Button("Add All \(n) to Logic") { PickedActions.addAll(model) }
+        if let c = UserLibrary.shared.collections.first(where: { $0.id == model.collectionID }) {
+            Button("Remove \(n) from \(c.name)") { PickedActions.removeFromCollection(model) }
+        }
         Divider()
         Button("Take Pictures of \(n) Plugins") { PickedActions.takePictures(model) }
         Button("Clear \(n) Pictures") { PluginStore.shared.clearScreenshots(Array(model.picked)) }
@@ -1241,8 +1254,15 @@ struct PickedBar: View {
                     .help("Adds the \(model.picked.count) plugins to the selected track, one after another, in the order shown")
                 QuietPill(title: "Take Pictures", systemImage: "camera", height: 28) { PickedActions.takePictures(model) }
                 QuietPill(title: "Favorites", systemImage: "star", height: 28) { PickedActions.favorite(model) }
-                QuietPill(title: "Collection", systemImage: "plus.rectangle.on.rectangle", height: 28) {
-                    PickedActions.addToCollection(model, nil)
+                if let c = UserLibrary.shared.collections.first(where: { $0.id == model.collectionID }) {
+                    QuietPill(title: "Remove from \(c.name)", systemImage: "minus.circle", height: 28) {
+                        PickedActions.removeFromCollection(model)
+                    }
+                    .help("Takes the \(model.picked.count) selected plugins out of \(c.name). They stay installed.")
+                } else {
+                    QuietPill(title: "Collection", systemImage: "plus.rectangle.on.rectangle", height: 28) {
+                        PickedActions.addToCollection(model, nil)
+                    }
                 }
                 QuietPill(title: "Done", height: 28) { model.picked = [] }
             }
@@ -1352,6 +1372,7 @@ struct PictureActions: View {
                     .disabled(queue.isRunning)
             }
             small("Find on the Web", "globe") { WebPicture.find([plugin]) }
+            small("Maker's Website", "arrow.up.right.square") { MakerSites.open(plugin) }
             small("Database Picture", "arrow.uturn.backward") { WebPicture.revertToDatabase(plugin) }
             if FileManager.default.fileExists(atPath: WebPicture.backupURL(plugin.id).path) {
                 small("Undo", "arrow.uturn.backward") { WebPicture.undo(plugin) }

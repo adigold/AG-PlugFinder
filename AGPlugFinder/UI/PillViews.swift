@@ -14,8 +14,98 @@ extension Pills {
         case "blue": return Color(red: 0.36, green: 0.58, blue: 0.98)
         case "purple": return Color(red: 0.66, green: 0.46, blue: 0.96)
         case "pink": return Color(red: 0.95, green: 0.45, blue: 0.70)
-        default: return nil
+        default:
+            // A color picked on the map: "#rrggbb".
+            guard let name, name.hasPrefix("#"), name.count == 7, let v = UInt32(name.dropFirst(), radix: 16) else { return nil }
+            return Color(red: Double((v >> 16) & 0xFF) / 255, green: Double((v >> 8) & 0xFF) / 255, blue: Double(v & 0xFF) / 255)
         }
+    }
+
+    static func hex(hue: Double, saturation: Double, brightness: Double) -> String {
+        let c = NSColor(hue: hue, saturation: saturation, brightness: brightness, alpha: 1).usingColorSpace(.sRGB)
+            ?? .white
+        let r = Int(round(c.redComponent * 255)), g = Int(round(c.greenComponent * 255)), b = Int(round(c.blueComponent * 255))
+        return String(format: "#%02x%02x%02x", r, g, b)
+    }
+}
+
+/// Pick a pill color: eight quick colors, or anywhere on the color map (BL-112).
+struct ColorMapPicker: View {
+    let selected: String?
+    let pick: (String?) -> Void
+    var done: () -> Void = {}
+    @State private var marker: CGPoint?
+
+    private static let cols = 36, rows = 12
+    /// Hue left to right; light pastel at the top, full color in the middle, deep at the bottom.
+    static func hsb(_ x: Double, _ y: Double) -> (Double, Double, Double) {
+        let s = min(1, 0.22 + y * 1.6)
+        let b = y < 0.5 ? 1 : 1 - (y - 0.5) * 1.1
+        return (min(max(x, 0), 0.999), s, b)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Button { pick(nil); done() } label: {
+                    Circle().strokeBorder(Theme.faint, style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+                        .frame(width: 22, height: 22)
+                        .overlay(Image(systemName: "xmark").font(.system(size: 8, weight: .bold)).foregroundStyle(Theme.faint))
+                }
+                .buttonStyle(.plain).help("No color")
+                ForEach(Pills.colorNames, id: \.self) { c in
+                    Button { pick(c); done() } label: {
+                        Circle().fill(Pills.color(c) ?? .clear).frame(width: 22, height: 22)
+                            .overlay(Circle().strokeBorder(Color.white, lineWidth: selected == c ? 2 : 0))
+                    }
+                    .buttonStyle(.plain).help(c.capitalized)
+                }
+            }
+            GeometryReader { geo in
+                let w = geo.size.width, h = geo.size.height
+                Canvas { ctx, size in
+                    let cw = size.width / CGFloat(Self.cols), ch = size.height / CGFloat(Self.rows)
+                    for i in 0..<Self.cols {
+                        for j in 0..<Self.rows {
+                            let (hh, ss, bb) = Self.hsb((Double(i) + 0.5) / Double(Self.cols), (Double(j) + 0.5) / Double(Self.rows))
+                            ctx.fill(Path(CGRect(x: CGFloat(i) * cw, y: CGFloat(j) * ch, width: cw + 0.5, height: ch + 0.5)),
+                                     with: .color(Color(hue: hh, saturation: ss, brightness: bb)))
+                        }
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay {
+                    if let m = marker {
+                        Circle().strokeBorder(Color.white, lineWidth: 2)
+                            .background(Circle().strokeBorder(Color.black.opacity(0.4), lineWidth: 4))
+                            .frame(width: 16, height: 16)
+                            .position(m)
+                            .allowsHitTesting(false)
+                    }
+                }
+                .contentShape(Rectangle())
+                .gesture(DragGesture(minimumDistance: 0)
+                    .onChanged { v in
+                        let p = CGPoint(x: min(max(v.location.x, 0), w), y: min(max(v.location.y, 0), h))
+                        marker = p
+                        let (hh, ss, bb) = Self.hsb(Double(p.x / w), Double(p.y / h))
+                        pick(Pills.hex(hue: hh, saturation: ss, brightness: bb))
+                    }
+                    .onEnded { _ in done() })
+            }
+            .frame(height: 130)
+            HStack(spacing: 8) {
+                Circle().fill(Pills.color(selected) ?? Theme.raised).frame(width: 14, height: 14)
+                Text(selected.map { $0.hasPrefix("#") ? $0.uppercased() : $0.capitalized } ?? "No color")
+                    .font(.system(size: 11)).foregroundStyle(Theme.faint).monospacedDigit()
+                Spacer()
+                Text("Click or drag on the map").font(.system(size: 11)).foregroundStyle(Theme.faint)
+            }
+        }
+        .padding(14)
+        .frame(width: 300)
+        .background(Theme.surface)
+        .preferredColorScheme(.dark)
     }
 }
 
@@ -231,6 +321,8 @@ struct PillMenu: View {
                     if pill.color == c { Label(c.capitalized, systemImage: "checkmark") } else { Text(c.capitalized) }
                 }
             }
+            Divider()
+            Button("Any Color…") { PillsWindow.shared.show() }
         }
         Button("Hide Pill") {
             Pills.setHidden(pill.key, true)
@@ -316,6 +408,18 @@ struct MorePills: View {
 
 // MARK: - Edit Pills
 
+/// Esc closes it (BL-112), unless a sheet or a popover is open on it.
+final class EscClosingWindow: NSWindow {
+    override func sendEvent(_ event: NSEvent) {
+        if event.type == .keyDown, event.keyCode == 53, attachedSheet == nil,
+           !(firstResponder is NSText) {
+            close()
+            return
+        }
+        super.sendEvent(event)
+    }
+}
+
 @MainActor
 final class PillsWindow {
     static let shared = PillsWindow()
@@ -323,7 +427,7 @@ final class PillsWindow {
 
     func show(newGroupWith category: String? = nil, editGroup: String? = nil) {
         let w = window ?? {
-            let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 620, height: 680),
+            let w = EscClosingWindow(contentRect: NSRect(x: 0, y: 0, width: 620, height: 680),
                              styleMask: [.titled, .closable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
             w.titlebarAppearsTransparent = true
             w.titleVisibility = .hidden
@@ -500,7 +604,10 @@ struct PillEditRow: View {
             Button { showColors.toggle() } label: {
                 Circle().fill(Pills.color(pill.color) ?? Color.clear)
                     .overlay(Circle().strokeBorder(pill.color == nil ? Theme.faint : .clear, style: StrokeStyle(lineWidth: 1, dash: [2, 2])))
-                    .frame(width: 14, height: 14)
+                    .frame(width: 16, height: 16)
+                    // The empty circle is see-through: without this only its dashed edge took clicks.
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .help("Color")
@@ -547,24 +654,9 @@ struct PillEditRow: View {
     }
 
     private var palette: some View {
-        HStack(spacing: 8) {
-            Button { Pills.setColor(pill.key, nil); showColors = false } label: {
-                Circle().strokeBorder(Theme.faint, style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
-                    .frame(width: 20, height: 20)
-                    .overlay(Image(systemName: "xmark").font(.system(size: 8, weight: .bold)).foregroundStyle(Theme.faint))
-            }
-            .buttonStyle(.plain).help("No color")
-            ForEach(Pills.colorNames, id: \.self) { c in
-                Button { Pills.setColor(pill.key, c); showColors = false } label: {
-                    Circle().fill(Pills.color(c) ?? .clear).frame(width: 20, height: 20)
-                        .overlay(Circle().strokeBorder(Color.white, lineWidth: pill.color == c ? 2 : 0))
-                }
-                .buttonStyle(.plain).help(c.capitalized)
-            }
-        }
-        .padding(12)
-        .background(Theme.surface)
-        .preferredColorScheme(.dark)
+        ColorMapPicker(selected: pill.color) { c in
+            Pills.setColor(pill.key, c)
+        } done: { showColors = false }
     }
 }
 
