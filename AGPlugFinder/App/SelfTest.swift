@@ -167,6 +167,31 @@ enum SelfTest {
                     ViewSettings.shared.zoomSelected = false
                     try? await Task.sleep(for: .seconds(1.2))
                     await capture(window, to: out.deletingPathExtension().appendingPathExtension("zoomoff.png"))
+                    // A real mouse click and a real mouse hold on the pill (BL-176).
+                    if args.contains("--zoomhold"), let content = window.contentView {
+                        let f = ZoomPill.testFrame
+                        let pt = NSPoint(x: f.midX, y: content.bounds.height - f.midY)
+                        func mouse(_ t: NSEvent.EventType) {
+                            if let e = NSEvent.mouseEvent(with: t, location: pt, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                                          windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1) { window.sendEvent(e) }
+                        }
+                        NSApp.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil)
+                        try? await Task.sleep(for: .milliseconds(400))
+                        print("HOLD content=\(content.bounds.size) pt=\(pt) hit=\(content.hitTest(pt).map { String(describing: type(of: $0)) } ?? "none") key=\(window.isKeyWindow)")
+                        let before = ViewSettings.shared.zoomSelected
+                        mouse(.leftMouseDown); try? await Task.sleep(for: .milliseconds(120)); mouse(.leftMouseUp)
+                        try? await Task.sleep(for: .seconds(0.8))
+                        print("HOLD click toggled=\(ViewSettings.shared.zoomSelected != before) sizes=\(ZoomPill.testSizesShown)")
+                        let mid = ViewSettings.shared.zoomSelected
+                        mouse(.leftMouseDown)
+                        // Held still: keep sending the press so AppKit sees a held button.
+                        try? await Task.sleep(for: .seconds(0.9))
+                        await capture(window, to: out.deletingPathExtension().appendingPathExtension("zoomhold.png"))
+                        mouse(.leftMouseUp)
+                        try? await Task.sleep(for: .seconds(0.6))
+                        print("HOLD hold sizes=\(ZoomPill.testSizesShown) toggled=\(ViewSettings.shared.zoomSelected != mid) frame=\(f)")
+                        fflush(stdout)
+                    }
                     print("ZOOM done"); fflush(stdout)
                 }
                 if args.contains("--later") {

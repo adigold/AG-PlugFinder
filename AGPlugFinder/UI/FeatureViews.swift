@@ -103,6 +103,11 @@ struct ZoomPill: View {
     @State private var showSizes = false
     @State private var held = false
     static let sizes: [(String, Double)] = [("S", 1.15), ("M", 1.25), ("L", 1.4)]
+    #if DEBUG
+    /// For the self test: where the pill is, and how often the sizes opened.
+    nonisolated(unsafe) static var testFrame: CGRect = .zero
+    nonisolated(unsafe) static var testSizesShown = 0
+    #endif
 
     var body: some View {
         let on = view.zoomSelected
@@ -137,6 +142,11 @@ struct ZoomPill: View {
             }
             .padding(10).background(Theme.surface).preferredColorScheme(Theme.scheme)
         }
+        #if DEBUG
+        .background(GeometryReader { g in Color.clear.onAppear { Self.testFrame = g.frame(in: .global) }
+            .onChange(of: g.frame(in: .global)) { _, f in Self.testFrame = f } })
+        .onChange(of: showSizes) { _, v in if v { Self.testSizesShown += 1 } }
+        #endif
         .help(on ? "Zoom is on: the selected plugin shows bigger. Click to turn off, hold for S, M or L." : "Show the selected plugin bigger; it follows the arrow keys. Hold for S, M or L.")
         .disabled(view.layout == .list)
         .opacity(view.layout == .list ? 0.4 : 1)
