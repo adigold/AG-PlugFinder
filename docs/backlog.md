@@ -36,6 +36,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-143** `P2 · Low` **Dismiss Fix Failed Screenshots:** an x on the button hides it until more screenshots fail. Adi, 2026-11-01. Built: an x beside the button hides it until more screenshots fail than when it was hidden; if some get fixed meanwhile, new failures bring it back. · done 2026-11-01
 - [x] **BL-142** `P1 · Medium` **Rescan removes uninstalled plugins:** plugins the user removed from the Audio Units folder disappear from the app on a scan. Adi, 2026-11-01. Built: a scan drops plugins whose file is gone even if macOS still lists them (never most of the list at once); the Components folders are watched so a manual delete rescans by itself; the app says how many were removed. Example from Adi: Tuned Plugins and Universal Audio rows in Plugin List. · done 2026-11-01
 - [x] **BL-141** `P2 · Low` **Pill defaults:** new users get Show Both, Order Most plugins, Wrap to more rows, Regular, Counts on; Reset to Default restores the same. Choices people already made stay. Adi, 2026-11-01. · done 2026-11-01
 

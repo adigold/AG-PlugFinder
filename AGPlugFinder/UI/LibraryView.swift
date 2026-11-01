@@ -5,6 +5,7 @@ import SwiftUI
 /// middle and the tools on the right. Arrow keys browse, Return inserts, Esc clears the search.
 /// The pin keeps it above Logic; mini mode shrinks it to the search and two result rows.
 struct LibraryView: View {
+    @AppStorage("fixFailed.dismissedAt") private var fixFailedDismissedAt = 0
     @State private var model = PickerModel()
     @State private var confirmLookup = false
     @State private var window: NSWindow?
@@ -174,13 +175,33 @@ struct LibraryView: View {
             Spacer(minLength: 16)
             // Shown only while some screenshots failed (BL-130).
             let failed = PlugDB.shownFailedIDs.count
-            if failed > 0, !snapshots.isRunning {
-                QuietPill(title: "Fix Failed Screenshots (\(failed))", systemImage: "arrow.triangle.2.circlepath", height: 28) {
-                    PlugDB.fixFailed()
+            // Dismissed with its x, it stays away until more screenshots fail (BL-143).
+            if failed > 0, !snapshots.isRunning, failed > fixFailedDismissedAt {
+                HStack(spacing: 0) {
+                    QuietPill(title: "Fix Failed Screenshots (\(failed))", systemImage: "arrow.triangle.2.circlepath", height: 28) {
+                        PlugDB.fixFailed()
+                    }
+                    .help("Checks the shared database again for the \(failed) plugin\(failed == 1 ? "" : "s") whose screenshot failed")
+                    Button {
+                        withAnimation(.easeOut(duration: 0.2)) { fixFailedDismissedAt = failed }
+                        Toast.show("Hidden. It comes back if more screenshots fail.")
+                    } label: {
+                        Image(systemName: "xmark").font(.system(size: Theme.ts(10), weight: .bold))
+                            .foregroundStyle(Theme.faint)
+                            .frame(width: 22, height: 22)
+                            .background(Circle().fill(Theme.raised))
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(PressScale())
+                    .help("Hide this until more screenshots fail")
+                    .padding(.leading, 4)
                 }
-                .help("Checks the shared database again for the \(failed) plugin\(failed == 1 ? "" : "s") whose screenshot failed")
                 .fixedSize()
+                .transition(.opacity)
             }
+            // Fewer failures than when it was dismissed (some got fixed): new ones bring it back.
+            Color.clear.frame(width: 0, height: 0)
+                .onChange(of: failed) { _, n in if n < fixFailedDismissedAt { fixFailedDismissedAt = n } }
             HStack(spacing: 2) {
                 ShuffleButton(model: model)
                 BarIconButton(systemImage: "slider.vertical.3", help: "This track in Logic: its plugins, on and off, replace, remove",
