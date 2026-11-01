@@ -485,6 +485,12 @@ enum SelfTest {
             let dir = URL(fileURLWithPath: args[k + 1])
             Task {
                 let look = AppearanceSettings.shared
+                // --fakefailed: two visible plugins look failed, in memory only (BL-137 button picture).
+                if args.contains("--fakefailed") {
+                    let store = PluginStore.shared
+                    let pick = Set(store.plugins.filter { !$0.isLogic && store.isVisible($0) }.prefix(2).map(\.id))
+                    store.debugUsePlugins(store.plugins.map { p in var q = p; if pick.contains(q.id) { q.snapshotState = .failed }; return q })
+                }
                 LibraryWindow.show()
                 try? await Task.sleep(for: .seconds(2))
                 guard let w = LibraryWindow.window else { print("THEMES no window"); return }
