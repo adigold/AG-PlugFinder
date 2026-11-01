@@ -22,6 +22,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-20** `P1 · High` **Make the app beautiful:** full design pass on every screen (library, quick picker, info panel, mini window, settings, welcome tour, progress window) so it feels like a finished, premium Mac app. Adi, 2026-10-30, while he is away for an hour.
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 ## Now
+- [~] **BL-178** `P2 · Medium` **README brought up to date:** every section matches what the app does today (Ableton Live, Sideview, Plugin Manager, sync choices, Zoom, new categories, menu). Adi, 2026-11-01.
 - [~] **BL-100** `P2 · Medium` **Wish list and price alerts:** add plugins you want (name, maker, store link, target price); the app checks the store page's price and tells you when it drops or reaches your target; wish list total next to the collection value. Adi, 2026-10-31.
 - [ ] **BL-101** `P2 · Medium` **Project plugin report:** for the open Logic project, which plugins it uses, on which tracks, and which are missing on this Mac; export a list for a collaborator. Adi, 2026-10-31.
 - [ ] **BL-102** `P2 · Medium` **Plugin presets:** the user's saved Logic settings for each plugin, shown in its info panel; insert a plugin with a chosen setting loaded, from the picker or a number key; synced. Adi, 2026-10-31.
@@ -41,6 +42,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-177** `P3 · Low` **Long press tip under Zoom:** a tiny "Long press" under the Zoom pill until the user picks a size once, then it is gone. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-176** `P2 · Medium` **Menu bar menu in order:** a version header, then Plugin Library (its shortcut on the right), Quick Picker and a Window Style submenu (Full Window, Sideview, Mini Window); then My Purchases and Share; a Help submenu with feedback and error log; then Check for Updates, Settings and Quit with their keys. Icons on every item. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-175** `P2 · Medium` **Zoom steps aside while several plugins are picked:** the bigger card hides as soon as a second plugin is picked and comes back when one is left. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-173** `P1 · High` **Zoom redone:** the zoomed card now sits in front of every other card and shows a truly bigger picture (a sharp larger copy, not a stretched card); with Zoom on, moving through plugins brings the card to the middle so the bigger copy fits on screen. Adi, 2026-11-01. · done 2026-11-01

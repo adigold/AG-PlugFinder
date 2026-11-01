@@ -102,6 +102,8 @@ struct ZoomPill: View {
     /// Held down: the three sizes (BL-172).
     @State private var showSizes = false
     @State private var held = false
+    /// The small "Long press" tip under the pill, until a size has been chosen once (BL-177).
+    @AppStorage("zoomSizeTipDone") private var tipDone = false
     static let sizes: [(String, Double)] = [("S", 1.15), ("M", 1.25), ("L", 1.4)]
     #if DEBUG
     /// For the self test: where the pill is, and how often the sizes opened.
@@ -137,6 +139,7 @@ struct ZoomPill: View {
                     Chip(title: label, on: view.zoomScale == scale) {
                         withAnimation(.spring(duration: 0.3, bounce: 0.15)) { view.zoomScale = scale; view.zoomSelected = true }
                         showSizes = false
+                        withAnimation(.easeOut(duration: 0.2)) { tipDone = true }
                     }
                 }
             }
@@ -150,6 +153,17 @@ struct ZoomPill: View {
         .help(on ? "Zoom is on: the selected plugin shows bigger. Click to turn off, hold for S, M or L." : "Show the selected plugin bigger; it follows the arrow keys. Hold for S, M or L.")
         .disabled(view.layout == .list)
         .opacity(view.layout == .list ? 0.4 : 1)
+        .overlay(alignment: .bottom) {
+            if !tipDone {
+                Text("Long press")
+                    .font(.system(size: Theme.ts(8.5), weight: .medium))
+                    .foregroundStyle(Theme.muted)
+                    .fixedSize()
+                    .offset(y: 13)
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
+            }
+        }
     }
 }
 
