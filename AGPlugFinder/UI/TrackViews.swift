@@ -514,3 +514,70 @@ struct TrackMenuItems: View {
         Button("Find on Tracks…") { TracksWindow.shared.show(.find(plugin)) }
     }
 }
+
+/// Holding Option on an audio effect (BL-180): the selected track's effects in order, with a line
+/// where the new one goes. Option with the arrows moves the line, Return adds it there, and
+/// letting go of Option puts this away without adding anything.
+struct PlacePanel: View {
+    let plugin: Plugin
+    let spot: Int
+    var state = TrackState.shared
+
+    var body: some View {
+        let effects = state.effects
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Where should it go?").font(.system(size: Theme.ts(16), weight: .semibold)).foregroundStyle(Theme.text)
+                Text(state.track.map { "On \($0)" } ?? "On the selected track")
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
+            }
+            VStack(spacing: 4) {
+                ForEach(0...effects.count, id: \.self) { i in
+                    if i == spot { here }
+                    if i < effects.count {
+                        HStack(spacing: 10) {
+                            Text("\(i + 1)").monospacedDigit().foregroundStyle(Theme.faint).frame(width: 18)
+                            Text(effects[i].name).foregroundStyle(effects[i].isOn == false ? Theme.faint : Theme.text).lineLimit(1)
+                            Spacer()
+                        }
+                        .font(.system(size: Theme.ts(13)))
+                        .padding(.horizontal, 12).frame(height: 34)
+                        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.surface))
+                    }
+                }
+            }
+            .animation(.spring(duration: 0.22, bounce: 0.1), value: spot)
+            if effects.isEmpty {
+                Text("No effects on this track yet, so it goes in the first slot.")
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
+            }
+            Spacer(minLength: 0)
+            HStack(spacing: 6) {
+                KeyCap(key: "⌥"); KeyCap(key: "↑"); KeyCap(key: "↓")
+                Text("move").foregroundStyle(Theme.muted)
+                Spacer()
+                KeyCap(key: "↩")
+                Text("add").foregroundStyle(Theme.muted)
+            }
+            .font(.system(size: Theme.ts(11)))
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(Theme.ground)
+    }
+
+    /// The line where the new effect goes.
+    private var here: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "arrow.right").font(.system(size: Theme.ts(10), weight: .bold))
+            Text(plugin.name).font(.system(size: Theme.ts(13), weight: .semibold)).lineLimit(1)
+            Spacer()
+            Text("here").font(.system(size: Theme.ts(11), weight: .medium)).opacity(0.8)
+        }
+        .foregroundStyle(Theme.onAccent)
+        .padding(.horizontal, 12).frame(height: 34)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.accent))
+        .transition(.opacity)
+    }
+}
+

@@ -12,6 +12,11 @@ struct LibraryView: View {
     @State private var window: NSWindow?
     @State private var keyMonitor: Any?
     @State private var mouseMonitor: Any?
+    @State private var flagsMonitor: Any?
+    /// Holding Option: where on the track the selected effect will go (BL-180).
+    @State private var placing = false
+    @State private var placeSpot = 0
+    @State private var optionDown = false
     @State private var pinned = UserDefaults.standard.bool(forKey: "library.pinned")
     @State private var mode = WindowMode.full
     private var mini: Bool { mode == .mini }
@@ -78,6 +83,9 @@ struct LibraryView: View {
         .onReceive(NotificationCenter.default.publisher(for: .demoSelect)) { n in
             if let name = n.object as? String, let p = store.plugins.first(where: { $0.name == name }) { model.reveal(p.id) }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .demoPlace)) { n in
+            if let spot = n.object as? Int { placeSpot = spot; placing = true } else { placing = false }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .demoPick)) { n in
             let names = n.object as? [String] ?? []
             model.picked = Set(store.plugins.filter { names.contains($0.name) }.map(\.id))
@@ -132,11 +140,13 @@ struct LibraryView: View {
                             .transition(.opacity.combined(with: .scale(scale: 0.8)))
                         }
                     }
-                if view.showInfoPane {
+                if view.showInfoPane || placing {
                     Rectangle().fill(Theme.edge).frame(width: 1)
                         .transition(.move(edge: .trailing).combined(with: .opacity))
                     Group {
-                        if let p = model.selected {
+                        if placing, let p = model.selected {
+                            PlacePanel(plugin: p, spot: placeSpot)
+                        } else if let p = model.selected {
                             PluginDetailView(plugin: p, model: model) { insert() }
                         } else {
                             Color.clear
@@ -147,6 +157,7 @@ struct LibraryView: View {
                 }
             }
             .animation(.spring(duration: 0.28, bounce: 0.08), value: view.showInfoPane)
+            .animation(.easeOut(duration: 0.15), value: placing)
             if !view.showInfoPane, let message = model.message {
                 HStack(spacing: 10) {
                     Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Theme.warning)
@@ -415,8 +426,38 @@ struct LibraryView: View {
             model.keysOnPlugins = true
             return event
         }
+        // Option alone held for a moment, on an audio effect: show where it will go (BL-180).
+        flagsMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
+            guard let window, event.window === window else { return event }
+            let mods = event.modifierFlags.intersection([.command, .control, .option, .shift])
+            if mods == .option {
+                guard !optionDown else { return event }
+                optionDown = true
+                Task {
+                    try? await Task.sleep(for: .milliseconds(250))
+                    guard optionDown, canPlace() else { return }
+                    TrackState.shared.refresh()
+                    placeSpot = TrackState.shared.effects.count
+                    placing = true
+                }
+            } else {
+                optionDown = false
+                if placing { placing = false }
+            }
+            return event
+        }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             guard let window, event.window === window else { return event }
+            if placing {
+                let count = TrackState.shared.effects.count
+                switch event.keyCode {
+                case 126: placeSpot = max(0, placeSpot - 1); return nil              // Option Up
+                case 125: placeSpot = min(count, placeSpot + 1); return nil          // Option Down
+                case 36, 76: placeHere(); return nil                                 // Return
+                case 53: placing = false; return nil                                 // Esc
+                default: return nil
+                }
+            }
             if model.slotChoices != nil {
                 switch event.keyCode {
                 case 126: model.slotSelection = max(0, model.slotSelection - 1); return nil
@@ -504,8 +545,26 @@ struct LibraryView: View {
     private func removeKeys() {
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
         if let mouseMonitor { NSEvent.removeMonitor(mouseMonitor) }
+        if let flagsMonitor { NSEvent.removeMonitor(flagsMonitor) }
         keyMonitor = nil
         mouseMonitor = nil
+        flagsMonitor = nil
+    }
+
+    /// Only for an audio effect, in the full window, with Logic in use and nothing else open.
+    private func canPlace() -> Bool {
+        mode == .full && Host.current == .logic && model.selected?.slotKind == .audioFX && model.picked.count < 2
+            && !model.previewing && model.slotChoices == nil && model.replaceTarget == nil
+    }
+
+    /// Adds the selected effect at the chosen spot: before the effect there, or after the last.
+    private func placeHere() {
+        placing = false
+        guard let p = model.selected else { return }
+        let effects = TrackState.shared.effects
+        if effects.isEmpty { insert(); return }
+        if placeSpot < effects.count { TrackActions.insert(p, before: true, effects[placeSpot]) }
+        else { TrackActions.insert(p, before: false, effects[effects.count - 1]) }
     }
 }
 
@@ -634,6 +693,7 @@ extension Notification.Name {
     static let demoQueryPlain = Notification.Name("AGPFDemoQueryPlain")
     static let demoSelect = Notification.Name("AGPFDemoSelect")
     static let demoPick = Notification.Name("AGPFDemoPick")
+    static let demoPlace = Notification.Name("AGPFDemoPlace")
 }
 
 

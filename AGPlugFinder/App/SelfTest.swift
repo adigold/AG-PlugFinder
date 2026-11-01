@@ -194,6 +194,19 @@ enum SelfTest {
                     }
                     print("ZOOM done"); fflush(stdout)
                 }
+                if let k = args.firstIndex(of: "--place"), k + 1 < args.count {
+                    // Holding Option: a sample track, the line after the first effect (BL-180).
+                    NotificationCenter.default.post(name: .demoSelect, object: args[k + 1])
+                    TrackState.shared.track = "Vocal 1"
+                    TrackState.shared.plugins = ["Channel EQ", "Compressor", "ChromaVerb"].enumerated()
+                        .map { StripPlugin(id: $0.offset, name: $0.element, kind: .audioFX, isOn: true) }
+                    try? await Task.sleep(for: .seconds(1))
+                    NotificationCenter.default.post(name: .demoPlace, object: 1)
+                    try? await Task.sleep(for: .seconds(1))
+                    await capture(window, to: out.deletingPathExtension().appendingPathExtension("place.png"))
+                    NotificationCenter.default.post(name: .demoPlace, object: nil)
+                    print("PLACE done"); fflush(stdout)
+                }
                 if args.contains("--later") {
                     // The same window again a little later: a list still moving would look different.
                     let r0 = PluginStore.shared.revision
