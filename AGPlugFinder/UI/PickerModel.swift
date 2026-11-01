@@ -18,6 +18,9 @@ final class PickerModel {
     /// The plugin under the pointer, so a click selects it on press, like the arrows (BL-108).
     /// Read only by the mouse monitor, never by a view, so it causes no redraw.
     @ObservationIgnored var hoverID: String?
+    /// Where the preview card sits in the window (top-left origin), so a click outside it
+    /// closes the preview and still reaches what was clicked.
+    @ObservationIgnored var previewCard: CGRect = .zero
     var columns = 4
     /// The collection chip that is on (BL-29); nil shows everything.
     var collectionID: String? { didSet { if collectionID != oldValue { selection = 0 } } }

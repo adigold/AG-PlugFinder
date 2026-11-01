@@ -534,6 +534,29 @@ enum SelfTest {
                     try? await Task.sleep(for: .milliseconds(900))
                 }
                 await key(124, "\u{F703}"); await key(123, "\u{F702}")   // Right, Left
+                // --after-preview: open the preview, close it with the pointer over another plugin,
+                // then one click there must select it.
+                if args.contains("--after-preview") {
+                    // --click-through: click a plugin showing beside the open preview instead.
+                    let at = args.contains("--click-through") ? NSPoint(x: 45, y: lib.frame.height - 400)
+                                                              : NSPoint(x: 490, y: lib.frame.height - 170)
+                    await key(49, " ")
+                    let screen = lib.convertPoint(toScreen: at)
+                    CGWarpMouseCursorPosition(CGPoint(x: screen.x, y: (NSScreen.screens.first?.frame.maxY ?? 0) - screen.y))
+                    try? await Task.sleep(for: .milliseconds(400))
+                    if !args.contains("--click-through") { await key(49, " ") }
+                    for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+                        if let e = NSEvent.mouseEvent(with: type, location: at, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                                      windowNumber: lib.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1) {
+                            NSApp.postEvent(e, atStart: false)
+                        }
+                        try? await Task.sleep(for: .milliseconds(90))
+                    }
+                    try? await Task.sleep(for: .milliseconds(500))
+                    await shot("5-after-preview-one-click")
+                    print("PREVIEW done"); fflush(stdout)
+                    return
+                }
                 await key(49, " "); await shot("1-open")
                 await key(124, "\u{F703}"); await shot("2-next")
                 await key(49, " "); await shot("3-closed")

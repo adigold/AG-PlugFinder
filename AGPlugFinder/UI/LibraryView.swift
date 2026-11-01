@@ -282,9 +282,18 @@ struct LibraryView: View {
         // A click selects the plugin when the button goes down, not when it comes up (BL-108).
         // The event carries on, so double-click, drag, ⌘ and ⇧ clicks work as before.
         mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
-            guard let window, event.window === window, event.clickCount == 1, !mini,
+            guard let window, event.window === window else { return event }
+            if model.previewing {
+                // Inside the card: its own buttons. Outside: close, and the click goes on to
+                // whatever is under it, so one click both closes and selects.
+                let p = event.locationInWindow
+                let top = CGPoint(x: p.x, y: (window.contentView?.bounds.height ?? 0) - p.y)
+                if model.previewCard.contains(top) { return event }
+                model.previewing = false
+            }
+            guard event.clickCount == 1, !mini,
                   event.modifierFlags.intersection([.command, .shift, .control, .option]).isEmpty,
-                  !model.previewing, model.slotChoices == nil, store.confirmingUnfavorite == nil,
+                  model.slotChoices == nil, store.confirmingUnfavorite == nil,
                   let id = model.hoverID, !model.picked.contains(id),
                   let i = model.results.firstIndex(where: { $0.id == id }) else { return event }
             model.picked = []

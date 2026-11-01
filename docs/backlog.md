@@ -31,6 +31,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
+- [x] **BL-109** `P1 · High` **One click after the preview:** with the preview open, clicking a plugin beside it took two clicks (the first only closed it); now one click closes the preview and selects that plugin. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-108** `P1 · High` **Click selects on press:** a click now selects the plugin the moment the mouse button goes down, like Finder and as fast as the arrows; double-click, drag and ⌘/⇧ clicks unchanged. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-107** `P1 · High` **Choosing a plugin felt slow:** a click waited out the double-click time before selecting; now it selects at once and a double-click still inserts. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-105** `P1 · High` **Arturia pictures without the welcome box:** Adi chose real Arturia product pictures for 49 Arturia plugins on a review page; they replaced the database pictures (originals backed up in server/backups, not in git). Database pictures now carry a revision: when one is replaced, every app downloads it again at launch, keeping the old one for Undo. Adi, 2026-10-31. · done 2026-10-31

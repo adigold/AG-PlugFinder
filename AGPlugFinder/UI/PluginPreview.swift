@@ -11,11 +11,17 @@ struct PluginPreview: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
+                // Clicks pass through the dimming: the library window closes the preview and the
+                // click selects the plugin (or presses the button) under it.
                 Color.black.opacity(0.62)
-                    .contentShape(Rectangle())
-                    .onTapGesture { model.previewing = false }
+                    .allowsHitTesting(false)
                 card
                     .frame(width: min(geo.size.width - 64, 1180), height: min(geo.size.height - 56, 760))
+                    .background(GeometryReader { g in
+                        Color.clear
+                            .onAppear { model.previewCard = g.frame(in: .global) }
+                            .onChange(of: g.frame(in: .global)) { _, f in model.previewCard = f }
+                    })
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
