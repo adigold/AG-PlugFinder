@@ -149,6 +149,12 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.29**
+
+- **New:** Channel Strip pill. R-Channel, SSL strips, bx_console, Console 1, UltraChannel and other channel strips have their own category.
+- **New:** Import from Logic, in Settings. Brings in the plugins you starred in Logic's Plug-in Manager and the categories you made there, as collections. Nothing in Logic changes.
+- **New:** The info panel tells you when Logic recorded crashes with a plugin.
+
 **0.9.28**
 
 - **Improved:** Clicking a category or collection slides your plugins back to the top, so you always start at the first one.
@@ -157,13 +163,13 @@ Everything each version brought, newest first. The same notes appear in the app'
 
 - **New:** Fix Failed Screenshots. When some plugins show a failed screenshot, a button at the top checks again for pictures other users shared, adds the ones it finds, and tells you how many it fixed.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.26)</summary>
+
 **0.9.26**
 
 - **New:** Find Similar in the Space preview. See plugins like the one you are looking at, and click one to preview it.
 - **New:** Shuffle. Click the die in the top bar to land on a random plugin. With a category or search showing, it picks only from those plugins.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.25)</summary>
 
 **0.9.25**
 
