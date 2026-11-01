@@ -506,6 +506,20 @@ enum SelfTest {
                     print("PREVIEW \(name) responder=\(lib.firstResponder.map { String(describing: type(of: $0)) } ?? "nil")")
                     fflush(stdout)
                 }
+                // A single click on another tile: it must be selected at once, not after the
+                // double-click time.
+                if args.contains("--click") {
+                    let at = NSPoint(x: 300, y: lib.frame.height - 170)
+                    for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+                        if let e = NSEvent.mouseEvent(with: type, location: at, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                                      windowNumber: lib.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1) {
+                            NSApp.postEvent(e, atStart: false)
+                        }
+                    }
+                    try? await Task.sleep(for: .milliseconds(120))
+                    await shot("0-click-120ms")
+                    try? await Task.sleep(for: .milliseconds(900))
+                }
                 await key(124, "\u{F703}"); await key(123, "\u{F702}")   // Right, Left
                 await key(49, " "); await shot("1-open")
                 await key(124, "\u{F703}"); await shot("2-next")

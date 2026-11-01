@@ -122,7 +122,6 @@ struct LibraryView: View {
             // The search lets go of the keyboard, so Space reaches the plugins.
             if on, window?.firstResponder is NSText { window?.makeFirstResponder(nil) }
         }
-        .onChange(of: model.selected?.id) { _, id in if id == nil { model.previewing = false } }
     }
 
     private var topBar: some View {
@@ -322,6 +321,7 @@ struct LibraryView: View {
     /// Space bar preview keys (BL-106). nil: not handled here; true: used; false: pass it on.
     private func previewKeys(_ event: NSEvent, window: NSWindow) -> Bool? {
         let mods = event.modifierFlags.intersection([.command, .control, .option])
+        if model.previewing, model.selected == nil { model.previewing = false }
         if model.previewing {
             switch event.keyCode {
             case 49, 53: model.previewing = false; return true            // Space, Esc

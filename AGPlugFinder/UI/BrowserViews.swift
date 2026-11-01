@@ -533,8 +533,15 @@ struct PluginGrid: View {
                             .allowsHitTesting(false)
                     }
                 }
-                .onTapGesture(count: 2) { model.selection = i; onActivate() }
+                // One tap handler: selects on the first click with no wait, and the second click
+                // of a double-click inserts. Two separate tap gestures made every single click
+                // wait out the double-click time before selecting.
                 .onTapGesture {
+                    if NSApp.currentEvent?.clickCount ?? 1 >= 2 {
+                        model.selection = i
+                        onActivate()
+                        return
+                    }
                     let mods = NSEvent.modifierFlags
                     if mods.contains(.command) || mods.contains(.shift) {
                         model.pick(i, range: mods.contains(.shift))

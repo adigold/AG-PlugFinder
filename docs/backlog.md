@@ -31,6 +31,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [~] **BL-05** `P1 · Medium` **One-click updater like AGenda:** check for a new version, show "Update available" with what's new, install with one click and restart. Adi, 2026-10-30.
 
 ## Done
+- [x] **BL-107** `P1 · High` **Choosing a plugin felt slow:** a click waited out the double-click time before selecting; now it selects at once and a double-click still inserts. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-105** `P1 · High` **Arturia pictures without the welcome box:** Adi chose real Arturia product pictures for 49 Arturia plugins on a review page; they replaced the database pictures (originals backed up in server/backups, not in git). Database pictures now carry a revision: when one is replaced, every app downloads it again at launch, keeping the old one for Undo. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-104** `P1 · High` **Shared categories reach every user:** categories users share (Everyone) are handed out by the server and applied in every app at launch; the user's own choice wins; one vote is enough, the majority wins on disagreement; after updating, the app offers once to share earlier category changes. Logic's own plugins can be shared too. Adi, 2026-10-31. · done 2026-10-31
 - [x] **BL-99** `P1 · High` **Never used plugins:** a clear view of plugins installed but never inserted, with disk space and what was paid (from Licenses); hide them in one click or show them in Finder to uninstall. Adi, 2026-10-31. · done 2026-10-31
