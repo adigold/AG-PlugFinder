@@ -164,6 +164,11 @@ AG PlugFinder lives in the menu bar and can start when you log in. Its menu open
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.48**
+
+- **Fixed:** The OK and Cancel buttons in dialogs, like New collection, now always answer a mouse click, not only the keyboard.
+- **Improved:** The Plugin Manager no longer starts scanning by itself when you open it. Click Start Scanning when you are ready.
+
 **0.9.47**
 
 - **Improved:** iCloud sync now carries everything to your other Macs: your plugin screenshots, your own categories, the plugin descriptions you looked up, channel format choices and your shortcuts. A screenshot you clear is cleared on every Mac.
@@ -185,14 +190,14 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **Improved:** The plugin count now sits at the bottom right of the window.
 - **Fixed:** Dialogs could close by themselves as if Cancel had been clicked. Name dialogs now show OK only once something is typed, and Esc always closes them.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.45)</summary>
+
 **0.9.45**
 
 - **New:** Floating, a fourth way to show the window. A see-through search bar with a list under it floats over Logic; Tab moves through the categories, the arrows move through the plugins and Return adds one.
 - **New:** Hold Option on an effect to choose where it goes on the selected track. The track's effects show in order with a line where yours will land; Option with the arrows moves the line, Return adds it there, and letting go of Option cancels.
 - **Improved:** Favorites are yellow in every theme, and they always come first in the results.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.44)</summary>
 
 **0.9.44**
 
