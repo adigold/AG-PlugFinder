@@ -61,6 +61,17 @@ struct PluginManagerView: View {
             header
             if manager.scanning {
                 ScanTicker(manager: manager).frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if manager.lastScan == nil {
+                // Nothing runs until asked (BL-198): the scan reads every plugin folder on the Mac.
+                VStack(spacing: 14) {
+                    Image(systemName: "shippingbox").font(.system(size: Theme.ts(30), weight: .light)).foregroundStyle(Theme.faint)
+                    Text("Find every plugin on this Mac, in every format, with duplicates and what each installer left behind.")
+                        .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.muted)
+                        .multilineTextAlignment(.center).frame(maxWidth: 420)
+                    PrimaryPill(title: "Start Scanning", systemImage: "magnifyingglass", height: 40) { manager.scan() }
+                        .fixedSize()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if shown.isEmpty {
                 Text(mode == .duplicates ? "No duplicates found." : "No plugins match.")
                     .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint)
@@ -89,7 +100,6 @@ struct PluginManagerView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Theme.ground)
         .overlay { if asking != nil || done != nil { card } }
-        .onAppear { if manager.lastScan == nil { manager.scan() } }
         .onChange(of: Filter(search: search, formats: formats, mode: mode, scan: manager.lastScan), initial: true) { _, _ in
             shown = visible(manager.notes())
             groups = mode == .installers ? groupsByInstaller(shown) : []

@@ -849,6 +849,14 @@ enum SelfTest {
             print("RM safety: all paths wrong -> kept \(PluginScanner.keepInstalled(allGone).count) of \(allGone.count)")
             print("RM done"); fflush(stdout)
         }
+        // --selftest-pmstart <png>: the Plugin Manager before any scan: a Start Scanning button (BL-198).
+        if let k = args.firstIndex(of: "--selftest-pmstart"), k + 1 < args.count {
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(1))
+                await shoot(PluginManagerView(), size: NSSize(width: 780, height: 640), to: URL(fileURLWithPath: args[k + 1]))
+                print("PMSTART scanning=\(PluginManager.shared.scanning) scanned=\(PluginManager.shared.lastScan != nil)"); fflush(stdout)
+            }
+        }
         // --selftest-pluginmanager <dir>: scan every format, list duplicates, picture the tab (BL-144). Moves nothing.
         if let k = args.firstIndex(of: "--selftest-pluginmanager"), k + 1 < args.count {
             let dir = URL(fileURLWithPath: args[k + 1])

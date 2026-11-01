@@ -41,6 +41,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 
 ## Done
 
+- [x] **BL-198** `P2 · Medium` **Plugin Manager waits for a click:** it no longer scans by itself when opened; a centered Start Scanning button starts it. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-197** `P1 · High` **Dialogs opened from Settings took no clicks:** Import from Logic showed "Nothing to import" with an OK that did nothing. That note is now a message at the bottom, and the questions in Settings open once the click has finished. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-196** `P1 · High` **Hold Option: "I couldn't find the place before ..."** for an effect at the top of the chain. A little more room when finding the spot, and when there is none, the plugin is added at the end and moved into place. Adi, 2026-11-01. · done 2026-11-01
 - [x] **BL-193** `P1 · Critical` **iCloud sync must carry everything:** a user reported that moving to another Mac did not bring all his information, screenshots included. Find every gap and make the sync complete and dependable. Adi, 2026-11-01. Fixed: a new Mac could write over iCloud before reading it, and an iCloud file still downloading could look empty. Now a joining Mac merges both sides first, waits for the download, and never writes over an unread copy. Added to the sync: your screenshots (both ways, cleared ones cleared everywhere), your categories, looked-up descriptions, channel formats and shortcuts. Purchases got the same download guard. · done 2026-11-01
