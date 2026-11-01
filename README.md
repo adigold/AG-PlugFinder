@@ -149,6 +149,10 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.28**
+
+- **Improved:** Clicking a category or collection slides your plugins back to the top, so you always start at the first one.
+
 **0.9.27**
 
 - **New:** Fix Failed Screenshots. When some plugins show a failed screenshot, a button at the top checks again for pictures other users shared, adds the ones it finds, and tells you how many it fixed.
@@ -158,13 +162,13 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **New:** Find Similar in the Space preview. See plugins like the one you are looking at, and click one to preview it.
 - **New:** Shuffle. Click the die in the top bar to land on a random plugin. With a category or search showing, it picks only from those plugins.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.25)</summary>
+
 **0.9.25**
 
 - **New:** Appearance in Settings. Pick one of 9 themes, light or dark, and set the text size for the whole app. AG Classic keeps today's look.
 - **New:** Turning on Sync with my other Macs shows the sync as it happens, and tells you when it is done.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.24)</summary>
 
 **0.9.24**
 
