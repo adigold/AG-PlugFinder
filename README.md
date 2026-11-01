@@ -149,6 +149,10 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.27**
+
+- **New:** Fix Failed Screenshots. When some plugins show a failed screenshot, a button at the top checks again for pictures other users shared, adds the ones it finds, and tells you how many it fixed.
+
 **0.9.26**
 
 - **New:** Find Similar in the Space preview. See plugins like the one you are looking at, and click one to preview it.
@@ -159,6 +163,9 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **New:** Appearance in Settings. Pick one of 9 themes, light or dark, and set the text size for the whole app. AG Classic keeps today's look.
 - **New:** Turning on Sync with my other Macs shows the sync as it happens, and tells you when it is done.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.24)</summary>
+
 **0.9.24**
 
 - **New:** Mono and stereo versions of a plugin show as one, with an M/S mark. Logic gets the version that fits the track, and the info panel lets you pick one yourself. Turn it off in Settings if you prefer to see every version.
@@ -166,9 +173,6 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **Improved:** Licenses is now called My Purchases.
 - **Improved:** Maker's Website opens Apple's Logic Pro page for Logic's own plugins, and the maker's home page when a plugin has no page of its own.
 - **Fixed:** Plugin website links could be lost, so Maker's Website opened a web search instead of the plugin's page.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.23)</summary>
 
 **0.9.23**
 
