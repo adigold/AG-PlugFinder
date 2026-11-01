@@ -242,7 +242,8 @@ final class PickerModel {
     }
 
     /// Places the selected plugin in Logic. `onHide`/`onShow` let the popup step out of the way.
-    func insertSelected(replacing slot: Int? = nil, version: Plugin? = nil, onHide: () -> Void = {}, onShow: @escaping () -> Void = {}) {
+    func insertSelected(replacing slot: Int? = nil, version: Plugin? = nil, onHide: () -> Void = {}, onShow: @escaping () -> Void = {},
+                        onAdded: @escaping () -> Void = {}) {
         guard let plugin = version ?? selected, !isBusy else { return }
         if let target = replaceTarget, slot == nil {
             replace(target, with: plugin, onHide: onHide, onShow: onShow)
@@ -278,6 +279,7 @@ final class PickerModel {
                 PluginStore.shared.markUsed(plugin.id)
                 LogicTrack.shared.lastAdded = plugin.name
                 TrackState.shared.refreshSoon()
+                onAdded()
                 return
             case .allFull(let slots):
                 slotChoices = slots

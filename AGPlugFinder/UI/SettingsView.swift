@@ -5,6 +5,8 @@ struct SettingsView: View {
         TabView {
             GeneralSettings()
                 .tabItem { Label("General", systemImage: "gearshape") }
+            BehaviorSettings()
+                .tabItem { Label("Behavior", systemImage: "hand.tap") }
             AppearanceSettingsView()
                 .tabItem { Label("Appearance", systemImage: "paintpalette") }
             ShortcutSettings()
@@ -69,18 +71,6 @@ struct GeneralSettings: View {
                     ForEach(ViewSettings.ChipRow.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
-                Picker("Before you type, show", selection: Bindable(ViewSettings.shared).startView) {
-                    ForEach(ViewSettings.StartView.allCases) { Text($0.title).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                Text("What the library shows before you start typing. Most Used puts the plugins you add most often first, Never Used shows the ones you have not tried yet, and Nothing keeps the list clear until you type. A search or a category always shows everything that matches.")
-                    .font(.caption).foregroundStyle(.secondary)
-                Toggle("Show mono and stereo versions as one plugin", isOn: Bindable(ViewSettings.shared).joinMonoStereo)
-                Text("For example API-550A (m) and (s) show once. Logic gets the mono version on a mono track and the stereo version on a stereo track. Right-click a plugin to choose one yourself.")
-                    .font(.caption).foregroundStyle(.secondary)
-                Toggle("Preview with the Space bar", isOn: Bindable(ViewSettings.shared).spacePreview)
-                Text("Click a plugin and press Space to see it large, with what it does. Arrows move to the next one, Space or Esc closes it. After typing a search, press Tab to move to the results; Shift+Tab goes back to the search.")
-                    .font(.caption).foregroundStyle(.secondary)
             }
 
             Section("From Logic") {
@@ -240,5 +230,35 @@ struct SyncProgressRow: View {
         }
         .transition(.opacity)
         .animation(.easeOut(duration: 0.2), value: state)
+    }
+}
+
+/// Settings, Behavior (BL-200): what the app does as you use it, in one place.
+struct BehaviorSettings: View {
+    @Bindable var view = ViewSettings.shared
+
+    var body: some View {
+        Form {
+            Section("After adding a plugin") {
+                Toggle("Hide the window and go back to Logic", isOn: $view.hideAfterAdd)
+                Text("In every view: full window, Sideview, Mini and Floating. Press your AG PlugFinder shortcut to bring it back. With Ableton Live in use, it goes back to Live.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section("Finding plugins") {
+                Picker("Before you type, show", selection: Bindable(ViewSettings.shared).startView) {
+                    ForEach(ViewSettings.StartView.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                Text("What the library shows before you start typing. Most Used puts the plugins you add most often first, Never Used shows the ones you have not tried yet, and Nothing keeps the list clear until you type. A search or a category always shows everything that matches.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Toggle("Show mono and stereo versions as one plugin", isOn: Bindable(ViewSettings.shared).joinMonoStereo)
+                Text("For example API-550A (m) and (s) show once. Logic gets the mono version on a mono track and the stereo version on a stereo track. Right-click a plugin to choose one yourself.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Toggle("Preview with the Space bar", isOn: Bindable(ViewSettings.shared).spacePreview)
+                Text("Click a plugin and press Space to see it large, with what it does. Arrows move to the next one, Space or Esc closes it. After typing a search, press Tab to move to the results; Shift+Tab goes back to the search.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
     }
 }

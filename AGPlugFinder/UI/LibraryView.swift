@@ -383,7 +383,16 @@ struct LibraryView: View {
 
     // MARK: Window behaviour
 
-    private func insert() { model.insertSelected() }
+    private func insert() { model.insertSelected(onAdded: { stepAwayAfterAdd() }) }
+
+    /// Settings, Behavior: after a plugin went in, the window steps away and the music program
+    /// comes back to the front (BL-200).
+    private func stepAwayAfterAdd() {
+        guard ViewSettings.shared.hideAfterAdd, let window else { return }
+        window.orderOut(nil)
+        let target = NSWorkspace.shared.runningApplications.first(where: Host.now == .ableton ? Host.isAbleton : Host.isLogic)
+        target?.activate()
+    }
 
     /// Opens or closes the info panel on the right (BL-118).
     private func toggleInfo() { view.showInfoPane.toggle() }
@@ -629,6 +638,7 @@ struct LibraryView: View {
         if effects.isEmpty { insert(); return }
         if placeSpot < effects.count { TrackActions.insert(p, before: true, effects[placeSpot]) }
         else { TrackActions.insert(p, before: false, effects[effects.count - 1]) }
+        stepAwayAfterAdd()
     }
 }
 

@@ -96,6 +96,8 @@ final class ViewSettings {
     /// How much bigger (BL-172): S 1.15, M 1.25, L 1.4.
     var zoomScale: Double { didSet { save("zoomScale", zoomScale) } }
     var startView: StartView { didSet { save("startView", startView.rawValue) } }
+    /// After a plugin is added, the window steps away and the music program comes back (BL-200).
+    var hideAfterAdd: Bool { didSet { save("hideAfterAdd", hideAfterAdd) } }
     /// The icons at the top right, in the user's order, and the ones hidden (BL-189).
     var topOrder: [String] { didSet { save("topOrder", topOrder) } }
     var topHidden: [String] { didSet { save("topHidden", topHidden) } }
@@ -123,6 +125,7 @@ final class ViewSettings {
         let z = d.double(forKey: "view.zoomScale")
         zoomScale = [1.15, 1.25, 1.4].contains(z) ? z : 1.25
         startView = StartView(rawValue: d.string(forKey: "view.startView") ?? "") ?? .all
+        hideAfterAdd = d.bool(forKey: "view.hideAfterAdd")
         topOrder = d.stringArray(forKey: "view.topOrder") ?? []
         topHidden = d.stringArray(forKey: "view.topHidden") ?? []
     }
@@ -145,7 +148,7 @@ final class ViewSettings {
         ["layout": layout.rawValue, "size": size.rawValue, "tileWidth": String(Double(tileWidth)),
          "showName": String(showName), "showDetails": String(showDetails), "showInfoPane": String(showInfoPane),
          "chipRow": chipRow.rawValue, "spacePreview": String(spacePreview), "joinMonoStereo": String(joinMonoStereo),
-         "zoomSelected": String(zoomSelected), "zoomScale": String(zoomScale), "startView": startView.rawValue,
+         "zoomSelected": String(zoomSelected), "zoomScale": String(zoomScale), "startView": startView.rawValue, "hideAfterAdd": String(hideAfterAdd),
          "topOrder": topOrder.joined(separator: ","), "topHidden": topHidden.joined(separator: ",")]
     }
 
@@ -168,6 +171,7 @@ final class ViewSettings {
         if let x = flag("zoomSelected"), x != zoomSelected { zoomSelected = x }
         if let x = v["zoomScale"].flatMap(Double.init), [1.15, 1.25, 1.4].contains(x), x != zoomScale { zoomScale = x }
         if let x = v["startView"].flatMap(StartView.init(rawValue:)), x != startView { startView = x }
+        if let x = flag("hideAfterAdd"), x != hideAfterAdd { hideAfterAdd = x }
         func list(_ k: String) -> [String]? { v[k].map { $0.split(separator: ",").map(String.init) } }
         if let x = list("topOrder"), x != topOrder { topOrder = x }
         if let x = list("topHidden"), x != topHidden { topHidden = x }
