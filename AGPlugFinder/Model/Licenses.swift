@@ -187,8 +187,9 @@ final class Licenses {
     /// What the collection would cost to buy: each plugin's value (or its price when no value
     /// was entered), plus each bundle's value.
     var collectionValue: Double {
-        licenses.values.reduce(0) { $0 + ($1.value ?? $1.price ?? 0) }
-            + plans.reduce(0) { $0 + ($1.value ?? 0) }
+        let plugins: Double = licenses.values.reduce(0) { (sum: Double, l) in sum + (l.value ?? l.price ?? 0) }
+        let bundles: Double = plans.reduce(0) { (sum: Double, p) in sum + (p.value ?? 0) }
+        return plugins + bundles
     }
 
     struct Upcoming: Identifiable {

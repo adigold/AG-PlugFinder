@@ -18,6 +18,7 @@ After adding an item run `node ~/.claude/scripts/backlog-linear.mjs --send`; `--
 - [x] **BL-17** `P1 · Medium` **Design pass with the taste skill:** title on the bar with its own mark (no bubble), no gradients or resting shadows, no uppercase labels or tinted icon circles, one neutral card for Logic plugins, mini mode as one search line and two rows. Adi, 2026-10-30. · done 2026-10-30
 ## Now
 - [~] **BL-100** `P2 · Medium` **Wish list and price alerts:** add plugins you want (name, maker, store link, target price); the app checks the store page's price and tells you when it drops or reaches your target; wish list total next to the collection value. Adi, 2026-10-31.
+- [~] **BL-130** `P1 · Medium` **Fix Failed Screenshots button:** when some plugins show "Screenshot failed", a button at the top of the library checks the shared database again for those plugins, downloads the pictures it has, and tells the user how many were fixed. Adi, 2026-11-01.
 - [ ] **BL-101** `P2 · Medium` **Project plugin report:** for the open Logic project, which plugins it uses, on which tracks, and which are missing on this Mac; export a list for a collaborator. Adi, 2026-10-31.
 - [ ] **BL-102** `P2 · Medium` **Plugin presets:** the user's saved Logic settings for each plugin, shown in its info panel; insert a plugin with a chosen setting loaded, from the picker or a number key; synced. Adi, 2026-10-31.
 

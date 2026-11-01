@@ -172,6 +172,15 @@ struct LibraryView: View {
             SearchField(model: model, focusOnAppear: false)
                 .frame(minWidth: 220, maxWidth: 480)
             Spacer(minLength: 16)
+            // Shown only while some screenshots failed (BL-130).
+            let failed = PlugDB.shownFailedIDs.count
+            if failed > 0, !snapshots.isRunning {
+                QuietPill(title: "Fix Failed Screenshots (\(failed))", systemImage: "arrow.triangle.2.circlepath", height: 28) {
+                    PlugDB.fixFailed()
+                }
+                .help("Checks the shared database again for the \(failed) plugin\(failed == 1 ? "" : "s") whose screenshot failed")
+                .fixedSize()
+            }
             HStack(spacing: 2) {
                 ShuffleButton(model: model)
                 BarIconButton(systemImage: "slider.vertical.3", help: "This track in Logic: its plugins, on and off, replace, remove",
