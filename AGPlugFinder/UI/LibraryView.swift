@@ -151,6 +151,7 @@ struct LibraryView: View {
                 .padding(.horizontal, 18).frame(height: 44)
                 .background(Theme.warningGround)
             }
+            footer
         }
         .overlay { if model.slotChoices != nil { chooserOverlay } }
         .overlay {
@@ -234,16 +235,26 @@ struct LibraryView: View {
                               help: pinned ? "Stop keeping this window on top" : "Keep this window above Logic",
                               active: pinned) { togglePin() }
                 ViewModeButton(mode: mode, onMode: setMode)
-                Rectangle().fill(Theme.raised).frame(width: 1, height: 18).padding(.horizontal, 6)
-                BarIconButton(systemImage: "questionmark.bubble", help: "Send feedback to Goldi") { FeedbackWindow.shared.show() }
-                VersionBadge()
             }
             .fixedSize()
         }
-        .padding(.trailing, 14)
+        // The tools sit tight in the top-right corner (BL-163).
+        .padding(.trailing, 8)
         .frame(height: WindowChrome.barHeight)
         .background(Theme.ground)
         .gesture(WindowDragGesture())
+    }
+
+    /// A thin line at the bottom (BL-163): feedback, then the version and Check for Update.
+    private var footer: some View {
+        HStack(spacing: 4) {
+            BarIconButton(systemImage: "questionmark.bubble", help: "Send feedback to Goldi") { FeedbackWindow.shared.show() }
+                .scaleEffect(0.85)
+            VersionBadge(arrowEdge: .top)
+        }
+        .frame(maxWidth: .infinity).frame(height: 30)
+        .background(Theme.ground)
+        .overlay(alignment: .top) { Rectangle().fill(Theme.edge).frame(height: 1) }
     }
 
     /// Shown only while something runs in the background.
