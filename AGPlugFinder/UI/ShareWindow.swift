@@ -97,8 +97,8 @@ final class ShareWindow {
             w.titleVisibility = .hidden
             w.isMovableByWindowBackground = true
             w.isReleasedWhenClosed = false
-            w.backgroundColor = .black
-            w.appearance = NSAppearance(named: .darkAqua)
+            w.backgroundColor = Theme.nsGround
+            w.appearance = Theme.nsAppearance
             w.contentView = NSHostingView(rootView: ShareView())
             w.center()
             window = w
@@ -192,7 +192,7 @@ struct ShareView: View {
         .padding(.horizontal, 28).padding(.top, 40).padding(.bottom, 22)
         .frame(width: 640)
         .background(Theme.ground)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 
     private func tile(_ t: Target) -> some View {

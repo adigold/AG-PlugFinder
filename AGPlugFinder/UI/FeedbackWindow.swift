@@ -16,8 +16,8 @@ final class FeedbackWindow {
             w.titleVisibility = .hidden
             w.isMovableByWindowBackground = true
             w.isReleasedWhenClosed = false
-            w.backgroundColor = .black
-            w.appearance = NSAppearance(named: .darkAqua)
+            w.backgroundColor = Theme.nsGround
+            w.appearance = Theme.nsAppearance
             w.contentView = NSHostingView(rootView: FeedbackView())
             w.center()
             window = w
@@ -120,9 +120,9 @@ struct FeedbackView: View {
             HStack(spacing: 10) {
                 BrandMark(size: 22)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Send feedback to Goldi").font(.system(size: 18, weight: .bold)).foregroundStyle(Theme.text)
+                    Text("Send feedback to Goldi").font(.system(size: Theme.ts(18), weight: .bold)).foregroundStyle(Theme.text)
                     Text("Goldi reads every message. You'll see here when it's fixed.")
-                        .font(.system(size: 12)).foregroundStyle(Theme.muted)
+                        .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
                 }
             }
             .padding(.top, 18)
@@ -133,14 +133,14 @@ struct FeedbackView: View {
             }
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $message)
-                    .font(.system(size: 13)).scrollContentBackground(.hidden)
+                    .font(.system(size: Theme.ts(13))).scrollContentBackground(.hidden)
                     .padding(8).frame(height: 150)
                     .background(RoundedRectangle(cornerRadius: 10).fill(Theme.raised))
                 if message.isEmpty {
                     Text(kind == "idea" ? "What would make the app better for you?"
                          : kind == "question" ? "What would you like to know?"
                          : "What happened, and what did you expect?")
-                        .font(.system(size: 13)).foregroundStyle(Theme.faint).padding(14).allowsHitTesting(false)
+                        .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint).padding(14).allowsHitTesting(false)
                 }
             }
             HStack(spacing: 10) {
@@ -149,27 +149,27 @@ struct FeedbackView: View {
             }
             screenshotRow
             Toggle("Include the app's log (helps find the cause)", isOn: $includeLog)
-                .toggleStyle(.checkbox).font(.system(size: 12)).foregroundStyle(Theme.muted)
+                .toggleStyle(.checkbox).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
             HStack {
-                if let result { Text(result).font(.system(size: 12)).foregroundStyle(Theme.muted) }
+                if let result { Text(result).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted) }
                 Spacer()
                 PrimaryPill(title: sending ? "Sending…" : "Send", systemImage: "paperplane", busy: sending, height: 34) { send() }
                     .disabled(sending || message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
             Rectangle().fill(Theme.rule).frame(height: 1)
-            Text("What you sent").font(.system(size: 12)).foregroundStyle(Theme.faint)
+            Text("What you sent").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
                     if feedback.items.isEmpty {
-                        Text("Nothing yet.").font(.system(size: 12)).foregroundStyle(Theme.faint)
+                        Text("Nothing yet.").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                     }
                     ForEach(feedback.items) { item in
                         HStack(alignment: .top, spacing: 10) {
                             StatusPill(status: item.status)
                             VStack(alignment: .leading, spacing: 3) {
-                                Text(item.message).font(.system(size: 12)).foregroundStyle(Theme.text).lineLimit(2)
+                                Text(item.message).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.text).lineLimit(2)
                                 if let note = item.note, !note.isEmpty {
-                                    Text(note).font(.system(size: 11)).foregroundStyle(Theme.muted)
+                                    Text(note).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.muted)
                                 }
                             }
                             Spacer(minLength: 0)
@@ -194,12 +194,12 @@ struct FeedbackView: View {
             return false
         }
         .background(Theme.ground)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 
     private func field(_ prompt: String, _ text: Binding<String>) -> some View {
         TextField("", text: text, prompt: Text(prompt).foregroundStyle(Theme.faint))
-            .textFieldStyle(.plain).font(.system(size: 13)).foregroundStyle(Theme.text)
+            .textFieldStyle(.plain).font(.system(size: Theme.ts(13))).foregroundStyle(Theme.text)
             .padding(.horizontal, 12).frame(height: 34)
             .background(RoundedRectangle(cornerRadius: 10).fill(Theme.raised))
     }
@@ -216,11 +216,11 @@ struct FeedbackView: View {
                         }
                         .buttonStyle(.plain).padding(3).help("Remove the screenshot")
                     }
-                Text("Screenshot attached").font(.system(size: 12)).foregroundStyle(Theme.muted)
+                Text("Screenshot attached").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
             } else {
                 QuietPill(title: "Add Screenshot…", systemImage: "photo", height: 28) { choose() }
                 QuietPill(title: "Paste", systemImage: "doc.on.clipboard", height: 28) { paste() }
-                Text("or drop an image here").font(.system(size: 11)).foregroundStyle(Theme.faint)
+                Text("or drop an image here").font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
             }
             Spacer()
         }
@@ -268,7 +268,7 @@ private struct StatusPill: View {
         case "closed": ("Done", Theme.faint)
         default: ("Sent", Theme.muted)
         }
-        Text(title).font(.system(size: 10, weight: .semibold)).foregroundStyle(color)
+        Text(title).font(.system(size: Theme.ts(10), weight: .semibold)).foregroundStyle(color)
             .padding(.horizontal, 8).frame(height: 20)
             .background(Capsule().fill(color.opacity(0.14)))
             .frame(width: 78, alignment: .leading)

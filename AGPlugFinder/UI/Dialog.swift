@@ -37,7 +37,7 @@ enum Dialog {
         panel.backgroundColor = .clear
         panel.hasShadow = true
         panel.level = .modalPanel
-        panel.appearance = NSAppearance(named: .darkAqua)
+        panel.appearance = Theme.nsAppearance
         let primary = choices.firstIndex(where: \.primary) ?? 0
         let cancel = choices.firstIndex(where: \.cancel) ?? (choices.count - 1)
         var picked: Int?
@@ -139,10 +139,10 @@ struct DialogCard: View {
             HStack(alignment: .top, spacing: 12) {
                 BrandMark(size: 22).padding(.top, 2)
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(title).font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
+                    Text(title).font(.system(size: Theme.ts(15), weight: .semibold)).foregroundStyle(Theme.text)
                         .fixedSize(horizontal: false, vertical: true)
                     if let message {
-                        Text(message).font(.system(size: 12.5)).foregroundStyle(Theme.muted)
+                        Text(message).font(.system(size: Theme.ts(12.5))).foregroundStyle(Theme.muted)
                             .lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -158,7 +158,7 @@ struct DialogCard: View {
                             .frame(height: 38)
                     }
                 }
-                .textFieldStyle(.plain).font(.system(size: 14)).foregroundStyle(Theme.text)
+                .textFieldStyle(.plain).font(.system(size: Theme.ts(14))).foregroundStyle(Theme.text)
                 .focused($focused)
                 .padding(.horizontal, 14)
                 .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.raised))
@@ -169,7 +169,7 @@ struct DialogCard: View {
                 Button { state.checked.toggle() } label: {
                     HStack(spacing: 9) {
                         CheckMark(on: state.checked)
-                        Text(checkbox).font(.system(size: 12.5)).foregroundStyle(Theme.muted)
+                        Text(checkbox).font(.system(size: Theme.ts(12.5))).foregroundStyle(Theme.muted)
                     }
                     .contentShape(Rectangle())
                 }
@@ -187,7 +187,7 @@ struct DialogCard: View {
         .frame(width: 400)
         .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(Theme.surface))
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Theme.edge, lineWidth: 1))
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
         .onAppear { if field != nil { DispatchQueue.main.async { focused = true } } }
     }
 }
@@ -200,9 +200,9 @@ private struct DialogButton: View {
     var body: some View {
         Button(action: action) {
             Text(choice.title)
-                .font(.system(size: 13, weight: choice.primary ? .semibold : .medium))
+                .font(.system(size: Theme.ts(13), weight: choice.primary ? .semibold : .medium))
                 .padding(.horizontal, 16).frame(height: 32)
-                .foregroundStyle(choice.primary ? (choice.destructive ? Color.white : Color.black) : Theme.text)
+                .foregroundStyle(choice.primary ? (choice.destructive ? Color.white : Theme.onInk) : Theme.text)
                 .background(Capsule().fill(fill.opacity(hovering ? 0.88 : 1)))
                 .contentShape(Capsule())
         }
@@ -211,7 +211,7 @@ private struct DialogButton: View {
     }
 
     private var fill: Color {
-        if choice.primary { return choice.destructive ? Theme.negative : Color.white }
+        if choice.primary { return choice.destructive ? Theme.negative : Theme.ink }
         return Theme.raised
     }
 }

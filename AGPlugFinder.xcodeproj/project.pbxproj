@@ -68,12 +68,14 @@
 		EF653A7BEB1F498F492ABA1E /* UserLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1211458E32500BCFB817B799 /* UserLibrary.swift */; };
 		F0139F7726A197C0F1D334FD /* PlugDB.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8400D6D1B92CAB96090263 /* PlugDB.swift */; };
 		F03AC7DB259F432CAD156DC2 /* PickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5404214EB311D626E97267AD /* PickerView.swift */; };
+		F04C19DCCE0385AB2F028426 /* Appearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09391523E659678EB66F20F1 /* Appearance.swift */; };
 		F187F1FBF38723B078A30291 /* SnapshotRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F77814834E56DA4A623391 /* SnapshotRenderer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0135B483A0FBDF4DAD8DCC91 /* CrashReports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReports.swift; sourceTree = "<group>"; };
 		04543FB792952D69782A9314 /* Shortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shortcuts.swift; sourceTree = "<group>"; };
+		09391523E659678EB66F20F1 /* Appearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Appearance.swift; sourceTree = "<group>"; };
 		0A06B5A571B3FD73B01B759C /* HotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKey.swift; sourceTree = "<group>"; };
 		0BDC110B970E49E7DE95773C /* PluginVariants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginVariants.swift; sourceTree = "<group>"; };
 		0D47D34C73708761076C4971 /* SoundSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundSearch.swift; sourceTree = "<group>"; };
@@ -216,6 +218,7 @@
 		A74EC746F53D07A2D9356756 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				09391523E659678EB66F20F1 /* Appearance.swift */,
 				CC0BC245023DFE7ED68CE6AA /* BrowserViews.swift */,
 				2F227679D76489B61B50D3EF /* DesignSystem.swift */,
 				8F4B091409E5CFB764CCC3FE /* Dialog.swift */,
@@ -358,6 +361,7 @@
 			files = (
 				3BBC1A8A91E10880B239C18D /* AX.swift in Sources */,
 				6A189FEC2349289FD418F81D /* AppEntry.swift in Sources */,
+				F04C19DCCE0385AB2F028426 /* Appearance.swift in Sources */,
 				E80952E50B926A41F630F61F /* BrowserViews.swift in Sources */,
 				3C4BCBCC68DB9EFD408B3897 /* ChannelFormat.swift in Sources */,
 				A244E15B48EF37970CDC78F4 /* CrashReports.swift in Sources */,

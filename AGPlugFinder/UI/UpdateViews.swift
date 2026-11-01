@@ -31,11 +31,11 @@ struct UpdateBanner: View {
         HStack(alignment: .center, spacing: 14) {
             if badge { NewBadge() } else { Circle().fill(dot).frame(width: 8, height: 8) }
             VStack(alignment: .leading, spacing: 3) {
-                Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text)
+                Text(title).font(.system(size: Theme.ts(13), weight: .semibold)).foregroundStyle(Theme.text)
                 if !notes.isEmpty {
                     Text(badge ? ReleaseNote.parse(notes).prefix(4).map(\.title).joined(separator: "  ·  ")
                                : notes.prefix(3).joined(separator: "  ·  "))
-                        .font(.system(size: 12)).foregroundStyle(Theme.muted).lineLimit(1)
+                        .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).lineLimit(1)
                 }
             }
             Spacer()
@@ -109,10 +109,10 @@ struct VersionBadge: View {
                     ProgressView().controlSize(.mini)
                 } else {
                     Image(systemName: updater.state == .upToDate ? "checkmark" : "arrow.triangle.2.circlepath")
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.system(size: Theme.ts(10), weight: .bold))
                         .foregroundStyle(Theme.faint)
                 }
-                Text(label).font(.system(size: 12, weight: .medium))
+                Text(label).font(.system(size: Theme.ts(12), weight: .medium))
                     .foregroundStyle(updater.available != nil ? Theme.text : Theme.muted)
             }
             .padding(.horizontal, 12).frame(height: 28)
@@ -145,10 +145,10 @@ struct VersionsPanel: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 10) {
                 BrandMark(size: 18)
-                Text("AG PlugFinder").font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.text)
+                Text("AG PlugFinder").font(.system(size: Theme.ts(16), weight: .semibold)).foregroundStyle(Theme.text)
             }
             Text(status)
-                .font(.system(size: 20, weight: .semibold))
+                .font(.system(size: Theme.ts(20), weight: .semibold))
                 .foregroundStyle(Theme.text)
             VStack(spacing: 0) {
                 row("Installed", "v\(updater.currentVersion)")
@@ -160,19 +160,19 @@ struct VersionsPanel: View {
             if let r = updater.available, !r.notes.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 8) {
-                        Text("What's new in \(r.version)").font(.system(size: 12)).foregroundStyle(Theme.faint)
+                        Text("What's new in \(r.version)").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                         NewBadge()
                     }
                     ForEach(ReleaseNote.parse(r.notes).prefix(3)) { n in
                         HStack(alignment: .top, spacing: 10) {
-                            Image(systemName: n.icon).font(.system(size: 13, weight: .medium))
+                            Image(systemName: n.icon).font(.system(size: Theme.ts(13), weight: .medium))
                                 .foregroundStyle(Theme.accent).frame(width: 18)
-                            Text(n.title).font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.text)
+                            Text(n.title).font(.system(size: Theme.ts(13), weight: .medium)).foregroundStyle(Theme.text)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     Button { WhatsNewWindow.shared.show(version: r.version, notes: r.notes) } label: {
-                        Text("See all \(r.notes.count) changes").font(.system(size: 12, weight: .medium))
+                        Text("See all \(r.notes.count) changes").font(.system(size: Theme.ts(12), weight: .medium))
                             .foregroundStyle(Theme.accent)
                     }
                     .buttonStyle(.plain)
@@ -191,7 +191,7 @@ struct VersionsPanel: View {
         .padding(22)
         .frame(width: 340, alignment: .leading)
         .background(Theme.surface)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 
     private var status: String {
@@ -217,7 +217,7 @@ struct VersionsPanel: View {
                 if dot { Circle().fill(Theme.accent).frame(width: 6, height: 6) }
                 Text(v).foregroundStyle(Theme.text).monospacedDigit()
             }
-            .font(.system(size: 13))
+            .font(.system(size: Theme.ts(13)))
             .padding(.vertical, 9)
         }
     }

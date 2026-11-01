@@ -19,8 +19,8 @@ final class OnboardingWindow {
         w.titleVisibility = .hidden
         w.isMovableByWindowBackground = true
         w.isReleasedWhenClosed = false
-        w.backgroundColor = .black
-        w.appearance = NSAppearance(named: .darkAqua)
+        w.backgroundColor = Theme.nsGround
+        w.appearance = Theme.nsAppearance
         w.contentView = NSHostingView(rootView: OnboardingView())
         w.center()
         return w
@@ -74,7 +74,7 @@ struct OnboardingView: View {
         }
         .frame(width: 640, height: 500)
         .background(Theme.ground)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
 
         .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
             trusted = AXAccess.isTrusted
@@ -86,9 +86,9 @@ struct OnboardingView: View {
     private var welcome: some View {
         VStack(spacing: 18) {
             Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 88, height: 88)
-            Text("Welcome to AG PlugFinder").font(.system(size: 26, weight: .bold))
+            Text("Welcome to AG PlugFinder").font(.system(size: Theme.ts(26), weight: .bold))
             Text("Find any plugin by sight and drop it on your Logic track in a second.")
-                .font(.system(size: 14)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+                .font(.system(size: Theme.ts(14))).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
             VStack(alignment: .leading, spacing: 10) {
                 bullet("magnifyingglass", "Search every Audio Unit and Logic plugin, with a picture of each one")
                 bullet("keyboard", "Press \(HotKey.display) anywhere, type, press Return")
@@ -96,16 +96,16 @@ struct OnboardingView: View {
             }
             .padding(.top, 6)
             Text("Two quick permissions first, then you're ready.")
-                .font(.system(size: 12)).foregroundStyle(Theme.muted).padding(.top, 4)
+                .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).padding(.top, 4)
         }
     }
 
     private var logic: some View {
         VStack(spacing: 16) {
             stepIcon("hand.raised.fill")
-            Text("Let AG PlugFinder work with Logic").font(.system(size: 22, weight: .bold))
+            Text("Let AG PlugFinder work with Logic").font(.system(size: Theme.ts(22), weight: .bold))
             Text("To place a plugin in an insert slot, the app needs Accessibility access. It only opens Logic's plug-in menu and picks the plugin you chose. Nothing else.")
-                .font(.system(size: 13)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+                .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
             if trusted {
                 statusChip("checkmark.circle.fill", "Access allowed", .green)
@@ -115,10 +115,10 @@ struct OnboardingView: View {
                     AXAccess.openSettings()
                 } label: {
                     Label("Open System Settings", systemImage: "gearshape")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: Theme.ts(14), weight: .semibold))
                         .padding(.horizontal, 18).frame(height: 38)
-                        .background(Capsule().fill(Color.white))
-                        .foregroundStyle(Color.black)
+                        .background(Capsule().fill(Theme.ink))
+                        .foregroundStyle(Theme.onInk)
                 }
                 .buttonStyle(.plain)
                 VStack(alignment: .leading, spacing: 6) {
@@ -136,17 +136,17 @@ struct OnboardingView: View {
     private var login: some View {
         VStack(spacing: 16) {
             stepIcon("power")
-            Text("Ready whenever Logic is").font(.system(size: 22, weight: .bold))
+            Text("Ready whenever Logic is").font(.system(size: Theme.ts(22), weight: .bold))
             Text("AG PlugFinder sits quietly in the menu bar so \(HotKey.display) always works. Start it when you log in?")
-                .font(.system(size: 13)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+                .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
             Toggle(isOn: $launchAtLogin) {
-                Text("Open at login").font(.system(size: 14, weight: .medium))
+                Text("Open at login").font(.system(size: Theme.ts(14), weight: .medium))
             }
             .toggleStyle(.switch)
             .padding(14)
             .background(RoundedRectangle(cornerRadius: 12).fill(Theme.surface))
             Text("You can change this any time in Settings.")
-                .font(.system(size: 11)).foregroundStyle(Theme.muted)
+                .font(.system(size: Theme.ts(11))).foregroundStyle(Theme.muted)
         }
     }
 
@@ -155,11 +155,11 @@ struct OnboardingView: View {
         let drive = UserLibrary.cloudFile != nil
         return VStack(spacing: 16) {
             stepIcon("icloud")
-            Text("Same library on every Mac").font(.system(size: 22, weight: .bold))
+            Text("Same library on every Mac").font(.system(size: Theme.ts(22), weight: .bold))
             Text("Sync your favorites, collections, chains, notes, number keys, licenses and subscriptions with your other Macs through iCloud Drive. No account needed, it uses your Apple ID.")
-                .font(.system(size: 13)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+                .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
             Toggle(isOn: $sync) {
-                Text("Sync with my other Macs").font(.system(size: 14, weight: .medium))
+                Text("Sync with my other Macs").font(.system(size: Theme.ts(14), weight: .medium))
             }
             .toggleStyle(.switch)
             .disabled(!drive)
@@ -167,16 +167,16 @@ struct OnboardingView: View {
             .background(RoundedRectangle(cornerRadius: 12).fill(Theme.surface))
             Text(drive ? "License keys stay on each Mac. You can change this any time in Settings."
                        : "iCloud Drive is off on this Mac. Turn it on in System Settings, then switch sync on in Settings.")
-                .font(.system(size: 11)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+                .font(.system(size: Theme.ts(11))).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
         }
     }
 
     private var info: some View {
         VStack(spacing: 14) {
             stepIcon("sparkles")
-            Text("Plugin info (optional)").font(.system(size: 22, weight: .bold))
+            Text("Plugin info (optional)").font(.system(size: Theme.ts(22), weight: .bold))
             Text("With an Anthropic API key, AG PlugFinder can look up what each plugin does and its best feature. You choose when; each plugin is looked up once.")
-                .font(.system(size: 13)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+                .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
             if keySaved {
                 statusChip("checkmark.circle.fill", "Key saved in your Keychain", .green)
@@ -188,7 +188,7 @@ struct OnboardingView: View {
                         .disabled(apiKey.isEmpty)
                 }
                 Text("No key? Skip this step. You can use a free option instead, in Settings > General > Plugin info.")
-                    .font(.system(size: 11)).foregroundStyle(Theme.muted)
+                    .font(.system(size: Theme.ts(11))).foregroundStyle(Theme.muted)
             }
         }
     }
@@ -197,23 +197,23 @@ struct OnboardingView: View {
         VStack(spacing: 16) {
             stepIcon("camera.viewfinder")
             Text(scanStarted && !busy ? "All set" : "Find your plugins")
-                .font(.system(size: 22, weight: .bold))
+                .font(.system(size: Theme.ts(22), weight: .bold))
             if !scanStarted {
                 Text("AG PlugFinder will list your plugins, download the pictures it already has, and take a picture of any other plugin. Each one opens for a moment in the bottom left corner of the screen. This happens once.")
-                    .font(.system(size: 13)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+                    .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             } else if pack.state == .working {
                 ProgressView().controlSize(.small)
                 Text("Downloading plugin pictures and info…")
-                    .font(.system(size: 12)).foregroundStyle(Theme.muted)
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
             } else if queue.isRunning {
                 ProgressView(value: Double(queue.done), total: Double(max(1, queue.total)))
                     .tint(Theme.accent)
                 Text("\(queue.done) of \(queue.total): \(queue.currentName)")
-                    .font(.system(size: 12)).foregroundStyle(Theme.muted).monospacedDigit()
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).monospacedDigit()
             } else {
                 Text("\(PluginStore.shared.plugins.count) plugins ready. In Logic, select a track and press \(HotKey.display).")
-                    .font(.system(size: 14)).multilineTextAlignment(.center)
+                    .font(.system(size: Theme.ts(14))).multilineTextAlignment(.center)
             }
         }
     }
@@ -254,10 +254,10 @@ struct OnboardingView: View {
             else { title = "Start Using AG PlugFinder" }
         }
         return Button(action: primary) {
-            Text(title).font(.system(size: 14, weight: .semibold))
+            Text(title).font(.system(size: Theme.ts(14), weight: .semibold))
                 .padding(.horizontal, 20).frame(height: 36)
-                .background(Capsule().fill(disabled ? Theme.raised : Color.white))
-                .foregroundStyle(disabled ? Theme.faint : Color.black)
+                .background(Capsule().fill(disabled ? Theme.raised : Theme.ink))
+                .foregroundStyle(disabled ? Theme.faint : Theme.onInk)
         }
         .buttonStyle(.plain)
         .disabled(disabled)
@@ -303,7 +303,7 @@ struct OnboardingView: View {
         HStack(spacing: 6) {
             ForEach(Step.allCases, id: \.rawValue) { s in
                 Capsule()
-                    .fill(s == step ? Color.white : (s.rawValue < step.rawValue ? Theme.accent : Theme.raised))
+                    .fill(s == step ? Theme.ink : (s.rawValue < step.rawValue ? Theme.accent : Theme.raised))
                     .frame(width: s == step ? 22 : 8, height: 8)
             }
         }
@@ -312,7 +312,7 @@ struct OnboardingView: View {
 
     private func stepIcon(_ name: String) -> some View {
         Image(systemName: name)
-            .font(.system(size: 34, weight: .light))
+            .font(.system(size: Theme.ts(34), weight: .light))
             .foregroundStyle(Theme.muted)
             .frame(height: 48)
     }
@@ -320,21 +320,21 @@ struct OnboardingView: View {
     private func bullet(_ icon: String, _ text: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon).foregroundStyle(Theme.accent).frame(width: 22)
-            Text(text).font(.system(size: 13))
+            Text(text).font(.system(size: Theme.ts(13)))
         }
     }
 
     private func numbered(_ n: Int, _ text: String) -> some View {
         HStack(spacing: 10) {
-            Text("\(n).").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.muted)
+            Text("\(n).").font(.system(size: Theme.ts(12), weight: .semibold)).foregroundStyle(Theme.muted)
                 .frame(width: 18, alignment: .trailing)
-            Text(text).font(.system(size: 12))
+            Text(text).font(.system(size: Theme.ts(12)))
         }
     }
 
     private func statusChip(_ icon: String, _ text: String, _ color: Color) -> some View {
         Label(text, systemImage: icon)
-            .font(.system(size: 12, weight: .semibold))
+            .font(.system(size: Theme.ts(12), weight: .semibold))
             .foregroundStyle(color)
             .padding(.horizontal, 12).padding(.vertical, 6)
             .background(Capsule().fill(color.opacity(0.12)))

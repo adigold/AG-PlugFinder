@@ -42,8 +42,8 @@ struct CollectionBar: View {
                 suggestionNote
                 if let hint = model.soundHint {
                     HStack(spacing: 7) {
-                        Image(systemName: "waveform").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.accent)
-                        Text(hint).font(.system(size: 12)).foregroundStyle(Theme.muted).lineLimit(1)
+                        Image(systemName: "waveform").font(.system(size: Theme.ts(10), weight: .semibold)).foregroundStyle(Theme.accent)
+                        Text(hint).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).lineLimit(1)
                     }
                     .padding(.horizontal, 20).padding(.top, 2).padding(.bottom, 8)
                 }
@@ -60,7 +60,7 @@ struct CollectionBar: View {
             HStack(spacing: 7) {
                 Circle().fill(Theme.accent).frame(width: 6, height: 6)
                 Text("Suggested for “\(s.track)” shown first")
-                    .font(.system(size: 12)).foregroundStyle(Theme.muted).lineLimit(1)
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).lineLimit(1)
             }
             .fixedSize()
             .help("Plugins that fit the selected Logic track come first while the search is empty")
@@ -74,12 +74,12 @@ struct SizeSlider: View {
     var view = ViewSettings.shared
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: "photo").font(.system(size: 10)).foregroundStyle(Theme.faint)
+            Image(systemName: "photo").font(.system(size: Theme.ts(10))).foregroundStyle(Theme.faint)
             Slider(value: Binding(get: { view.tileWidth }, set: { view.setTileWidth($0) }), in: ViewSettings.tileRange)
                 .controlSize(.small)
                 .tint(Theme.accent)
                 .frame(width: 130)
-            Image(systemName: "photo").font(.system(size: 15)).foregroundStyle(Theme.faint)
+            Image(systemName: "photo").font(.system(size: Theme.ts(15))).foregroundStyle(Theme.faint)
         }
         .help("Picture size")
         .disabled(view.layout == .list)
@@ -151,16 +151,16 @@ struct PluginExtras: View {
     }
 
     private func label(_ text: String) -> some View {
-        Text(text).font(.system(size: 12)).foregroundStyle(Theme.faint)
+        Text(text).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
     }
 
     @ViewBuilder private var usage: some View {
         let n = library.useCount[plugin.id] ?? 0
         HStack(spacing: 8) {
-            Image(systemName: "chart.bar").font(.system(size: 11)).foregroundStyle(Theme.faint)
+            Image(systemName: "chart.bar").font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
             Text(n == 0 ? "Not used yet" : "Used \(n) time\(n == 1 ? "" : "s")"
                  + (PluginStore.shared.lastUsed[plugin.id].map { " · last \($0.formatted(.relative(presentation: .named)))" } ?? ""))
-                .font(.system(size: 12)).foregroundStyle(Theme.muted)
+                .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
         }
     }
 
@@ -216,10 +216,10 @@ struct PluginExtras: View {
                     Button {
                         library.pin(n, to: mine == n ? nil : .plugin(plugin.id))
                     } label: {
-                        Text("\(n)").font(.system(size: 12, weight: .semibold)).monospacedDigit()
+                        Text("\(n)").font(.system(size: Theme.ts(12), weight: .semibold)).monospacedDigit()
                             .frame(width: 26, height: 26)
-                            .foregroundStyle(mine == n ? Color.black : (taken ? Theme.faint : Theme.text))
-                            .background(RoundedRectangle(cornerRadius: 7).fill(mine == n ? Color.white : Theme.raised))
+                            .foregroundStyle(mine == n ? Theme.onInk : (taken ? Theme.faint : Theme.text))
+                            .background(RoundedRectangle(cornerRadius: 7).fill(mine == n ? Theme.ink : Theme.raised))
                             .overlay(alignment: .topTrailing) {
                                 if taken { Circle().fill(Theme.faint).frame(width: 4, height: 4).padding(3) }
                             }
@@ -266,7 +266,7 @@ struct PluginExtras: View {
                         AddToChainList(pluginID: plugin.id) { showChains = false }
                     }
                 if !inChains.isEmpty {
-                    Text("In \(inChains.joined(separator: ", "))").font(.system(size: 12))
+                    Text("In \(inChains.joined(separator: ", "))").font(.system(size: Theme.ts(12)))
                         .foregroundStyle(Theme.muted).lineLimit(1)
                 }
             }
@@ -277,7 +277,7 @@ struct PluginExtras: View {
         VStack(alignment: .leading, spacing: 8) {
             label("My notes")
             TextEditor(text: $note)
-                .font(.system(size: 13))
+                .font(.system(size: Theme.ts(13)))
                 .scrollContentBackground(.hidden)
                 .padding(8)
                 .frame(minHeight: 70)
@@ -285,7 +285,7 @@ struct PluginExtras: View {
                 .overlay(alignment: .topLeading) {
                     if note.isEmpty {
                         Text("Your settings and tips, for example Ratio 4:1 on vocals")
-                            .font(.system(size: 13)).foregroundStyle(Theme.faint)
+                            .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint)
                             .padding(.horizontal, 13).padding(.vertical, 8).allowsHitTesting(false)
                     }
                 }
@@ -306,8 +306,8 @@ struct PluginExtras: View {
                         Button { model.reveal(p.id) } label: {
                             VStack(alignment: .leading, spacing: 5) {
                                 PluginThumbnail(plugin: p, radius: 10).aspectRatio(1.5, contentMode: .fit)
-                                Text(p.name).font(.system(size: 11, weight: .medium)).foregroundStyle(Theme.text).lineLimit(1)
-                                Text(p.manufacturer).font(.system(size: 10)).foregroundStyle(Theme.faint).lineLimit(1)
+                                Text(p.name).font(.system(size: Theme.ts(11), weight: .medium)).foregroundStyle(Theme.text).lineLimit(1)
+                                Text(p.manufacturer).font(.system(size: Theme.ts(10))).foregroundStyle(Theme.faint).lineLimit(1)
                             }
                         }
                         .buttonStyle(PressScale())
@@ -355,7 +355,7 @@ struct AddToChainList: View {
                 }
             }
         }
-        .padding(8).frame(width: 260).background(Theme.surface).preferredColorScheme(.dark)
+        .padding(8).frame(width: 260).background(Theme.surface).preferredColorScheme(Theme.scheme)
     }
 }
 
@@ -369,7 +369,7 @@ struct ChainsPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Chains").font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.text)
+                Text("Chains").font(.system(size: Theme.ts(16), weight: .semibold)).foregroundStyle(Theme.text)
                 Spacer()
                 QuietPill(title: "New Chain", systemImage: "plus", height: 28) {
                     if let n = NamePrompt.ask("New chain", placeholder: "For example Vocal chain") {
@@ -379,7 +379,7 @@ struct ChainsPanel: View {
             }
             if library.chains.isEmpty {
                 Text("A chain is a list of plugins you add to a track in one go, like EQ, Compressor, DeEsser and Reverb for vocals. Start one here, or right-click a plugin and choose Add to Chain.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.muted).fixedSize(horizontal: false, vertical: true)
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).fixedSize(horizontal: false, vertical: true)
             }
             ScrollView {
                 VStack(spacing: 8) {
@@ -388,7 +388,7 @@ struct ChainsPanel: View {
             }
             .frame(maxHeight: 460)
         }
-        .padding(18).frame(width: 380).background(Theme.surface).preferredColorScheme(.dark)
+        .padding(18).frame(width: 380).background(Theme.surface).preferredColorScheme(Theme.scheme)
     }
 
     private func card(_ chain: UserLibrary.Chain) -> some View {
@@ -398,9 +398,9 @@ struct ChainsPanel: View {
         return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(chain.name).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.text)
+                    Text(chain.name).font(.system(size: Theme.ts(14), weight: .semibold)).foregroundStyle(Theme.text)
                     Text(plugins.map(\.name).joined(separator: " → ").ifEmpty("No plugins yet"))
-                        .font(.system(size: 11)).foregroundStyle(Theme.faint).lineLimit(2)
+                        .font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).lineLimit(2)
                 }
                 Spacer(minLength: 6)
                 if let key { KeyCap(key: HotKey.pinDisplay(key)) }
@@ -420,8 +420,8 @@ struct ChainsPanel: View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(Array(chain.pluginIDs.enumerated()), id: \.offset) { i, id in
                 HStack(spacing: 8) {
-                    Text("\(i + 1)").font(.system(size: 11)).monospacedDigit().foregroundStyle(Theme.faint).frame(width: 14)
-                    Text(PluginStore.shared.plugin(id)?.name ?? "Not installed").font(.system(size: 12))
+                    Text("\(i + 1)").font(.system(size: Theme.ts(11))).monospacedDigit().foregroundStyle(Theme.faint).frame(width: 14)
+                    Text(PluginStore.shared.plugin(id)?.name ?? "Not installed").font(.system(size: Theme.ts(12)))
                         .foregroundStyle(Theme.text)
                     Spacer()
                     mini("arrow.up") { move(chain.id, i, -1) }.disabled(i == 0)
@@ -430,12 +430,12 @@ struct ChainsPanel: View {
                 }
             }
             HStack(spacing: 4) {
-                Text("Key").font(.system(size: 11)).foregroundStyle(Theme.faint)
+                Text("Key").font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
                 ForEach(1...9, id: \.self) { n in
                     Button { library.pin(n, to: key == n ? nil : .chain(chain.id)) } label: {
-                        Text("\(n)").font(.system(size: 11, weight: .semibold)).frame(width: 20, height: 20)
-                            .foregroundStyle(key == n ? Color.black : Theme.text)
-                            .background(RoundedRectangle(cornerRadius: 5).fill(key == n ? Color.white : Theme.surface))
+                        Text("\(n)").font(.system(size: Theme.ts(11), weight: .semibold)).frame(width: 20, height: 20)
+                            .foregroundStyle(key == n ? Theme.onInk : Theme.text)
+                            .background(RoundedRectangle(cornerRadius: 5).fill(key == n ? Theme.ink : Theme.surface))
                     }
                     .buttonStyle(.plain)
                 }
@@ -452,13 +452,13 @@ struct ChainsPanel: View {
                 Spacer()
                 Button("Delete Chain") { library.deleteChain(chain.id) }.foregroundStyle(Theme.negative)
             }
-            .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Theme.muted)
+            .buttonStyle(.plain).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
         }
     }
 
     private func mini(_ icon: String, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: icon).font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.muted)
+            Image(systemName: icon).font(.system(size: Theme.ts(10), weight: .semibold)).foregroundStyle(Theme.muted)
                 .frame(width: 22, height: 22).background(Circle().fill(Theme.surface))
         }
         .buttonStyle(.plain)
@@ -492,8 +492,8 @@ final class ReportWindow {
         w.titleVisibility = .hidden
         w.isMovableByWindowBackground = true
         w.isReleasedWhenClosed = false
-        w.backgroundColor = .black
-        w.appearance = NSAppearance(named: .darkAqua)
+        w.backgroundColor = Theme.nsGround
+        w.appearance = Theme.nsAppearance
         w.minSize = NSSize(width: 520, height: 420)
         w.contentView = NSHostingView(rootView: ReportView())
         w.center()
@@ -521,7 +521,7 @@ struct ReportView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Plugin report").font(.system(size: 22, weight: .bold)).foregroundStyle(Theme.text)
+            Text("Plugin report").font(.system(size: Theme.ts(22), weight: .bold)).foregroundStyle(Theme.text)
             HStack(spacing: 6) {
                 ForEach(Tab.allCases, id: \.self) { t in Chip(title: t.rawValue, on: tab == t) { tab = t } }
             }
@@ -544,7 +544,7 @@ struct ReportView: View {
         .padding(.horizontal, 26).padding(.top, 40).padding(.bottom, 22)
         .frame(minWidth: 520, minHeight: 420)
         .background(Theme.ground)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
         .task(id: tab) { if tab == .disk && sizes.isEmpty { sizes = await Self.diskByMaker() } }
         .onAppear {
             if let raw = ReportWindow.pendingTab, let t = Tab(rawValue: raw) { tab = t }
@@ -559,11 +559,11 @@ struct ReportView: View {
         VStack(spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(left).font(.system(size: 13)).foregroundStyle(Theme.text)
-                    if !sub.isEmpty { Text(sub).font(.system(size: 11)).foregroundStyle(Theme.faint) }
+                    Text(left).font(.system(size: Theme.ts(13))).foregroundStyle(Theme.text)
+                    if !sub.isEmpty { Text(sub).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint) }
                 }
                 Spacer()
-                Text(right).font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.muted).monospacedDigit()
+                Text(right).font(.system(size: Theme.ts(13), weight: .medium)).foregroundStyle(Theme.muted).monospacedDigit()
             }
             .padding(.horizontal, 14).padding(.vertical, 9)
             Rectangle().fill(Theme.rule).frame(height: 1)
@@ -571,7 +571,7 @@ struct ReportView: View {
     }
 
     private func empty(_ text: String) -> some View {
-        Text(text).font(.system(size: 13)).foregroundStyle(Theme.faint).padding(20)
+        Text(text).font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint).padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 

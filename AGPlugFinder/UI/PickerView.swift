@@ -34,7 +34,7 @@ struct PickerView: View {
             if !view.showInfoPane, let message = model.message {
                 HStack(spacing: 10) {
                     Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Theme.warning)
-                    Text(message).font(.system(size: 12)).foregroundStyle(Theme.text)
+                    Text(message).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.text)
                     Spacer()
                     if model.showAccessibilityButton {
                         QuietPill(title: "Allow in System Settings", height: 26) { AXAccess.openSettings() }
@@ -56,7 +56,7 @@ struct PickerView: View {
             }
         }
         .ignoresSafeArea(.container, edges: .top)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 
     private var footer: some View {
@@ -70,7 +70,7 @@ struct PickerView: View {
             Spacer()
             Text("\(model.results.count) plugins").monospacedDigit().foregroundStyle(Theme.faint)
         }
-        .font(.system(size: 11))
+        .font(.system(size: Theme.ts(11)))
         .padding(.horizontal, 18).frame(height: 38)
     }
 

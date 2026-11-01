@@ -15,8 +15,8 @@ final class UpdateWindow {
         w.titleVisibility = .hidden
         w.isMovableByWindowBackground = true
         w.isReleasedWhenClosed = false
-        w.backgroundColor = .black
-        w.appearance = NSAppearance(named: .darkAqua)
+        w.backgroundColor = Theme.nsGround
+        w.appearance = Theme.nsAppearance
         w.contentView = NSHostingView(rootView: UpdateProgressView())
         w.center()
         return w
@@ -62,7 +62,7 @@ struct UpdateProgressView: View {
         .padding(.horizontal, 32).padding(.top, 40).padding(.bottom, 26)
         .frame(width: 520, height: 560, alignment: .topLeading)
         .background(Theme.ground)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
         .animation(.easeOut(duration: 0.25), value: updater.state)
     }
 
@@ -74,8 +74,8 @@ struct UpdateProgressView: View {
         HStack(spacing: 16) {
             Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 64, height: 64)
             VStack(alignment: .leading, spacing: 5) {
-                Text(title).font(.system(size: 22, weight: .bold)).foregroundStyle(Theme.text)
-                Text(subtitle).font(.system(size: 13)).foregroundStyle(Theme.muted).monospacedDigit()
+                Text(title).font(.system(size: Theme.ts(22), weight: .bold)).foregroundStyle(Theme.text)
+                Text(subtitle).font(.system(size: Theme.ts(13))).foregroundStyle(Theme.muted).monospacedDigit()
             }
         }
     }
@@ -114,11 +114,11 @@ struct UpdateProgressView: View {
                 HStack(spacing: 12) {
                     icon(for: step).frame(width: 20, height: 20)
                     Text(step.title)
-                        .font(.system(size: 14, weight: step == current ? .semibold : .regular))
+                        .font(.system(size: Theme.ts(14), weight: step == current ? .semibold : .regular))
                         .foregroundStyle(state(of: step) == .waiting ? Theme.faint : Theme.text)
                     Spacer()
                     if step == .download, updater.state == .downloading {
-                        Text(downloadText).font(.system(size: 12)).foregroundStyle(Theme.muted).monospacedDigit()
+                        Text(downloadText).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).monospacedDigit()
                     }
                 }
                 .padding(.vertical, 11)
@@ -137,7 +137,7 @@ struct UpdateProgressView: View {
                 if step != .restart { Rectangle().fill(Theme.rule).frame(height: 1).padding(.leading, 32) }
             }
             if case .failed(let why) = updater.state {
-                Text(why).font(.system(size: 13)).foregroundStyle(Theme.negative)
+                Text(why).font(.system(size: Theme.ts(13))).foregroundStyle(Theme.negative)
                     .padding(.top, 12).fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -159,7 +159,7 @@ struct UpdateProgressView: View {
     private func icon(for step: Step) -> some View {
         switch state(of: step) {
         case .done:
-            Image(systemName: "checkmark.circle.fill").font(.system(size: 17)).foregroundStyle(Theme.accent)
+            Image(systemName: "checkmark.circle.fill").font(.system(size: Theme.ts(17))).foregroundStyle(Theme.accent)
         case .active:
             ProgressView().controlSize(.small)
         case .waiting:
@@ -180,17 +180,17 @@ struct UpdateProgressView: View {
 
     private func notesList(_ notes: [String]) -> some View {
         VStack(alignment: .leading, spacing: 9) {
-            Text("What's new").font(.system(size: 12)).foregroundStyle(Theme.faint)
+            Text("What's new").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(ReleaseNote.parse(notes)) { n in
                         HStack(alignment: .top, spacing: 12) {
-                            Image(systemName: n.icon).font(.system(size: 13, weight: .medium))
+                            Image(systemName: n.icon).font(.system(size: Theme.ts(13), weight: .medium))
                                 .foregroundStyle(n.kind == .new ? Theme.accent : Theme.muted).frame(width: 18)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(n.title).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text)
+                                Text(n.title).font(.system(size: Theme.ts(13), weight: .semibold)).foregroundStyle(Theme.text)
                                 if !n.detail.isEmpty {
-                                    Text(n.detail).font(.system(size: 12)).foregroundStyle(Theme.muted)
+                                    Text(n.detail).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
                                 }
                             }
                             .fixedSize(horizontal: false, vertical: true)
@@ -211,7 +211,7 @@ struct UpdateProgressView: View {
                 PrimaryPill(title: "Try Again") { updater.install() }
             } else if updater.busy {
                 Text("AG PlugFinder will close and open again by itself.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.faint)
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                 Spacer()
             } else {
                 QuietPill(title: "Later") { UpdateWindow.shared.hide() }

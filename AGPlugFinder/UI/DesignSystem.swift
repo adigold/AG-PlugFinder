@@ -4,24 +4,43 @@ import SwiftUI
 /// AG PlugFinder's look: true black, elevation by lightness alone, colour only on data.
 /// (taste skill app style "True-black flat", seed 2123194605, with AG amber as the one hue.)
 enum Theme {
+    /// The chosen look (BL-130). Views that read these colors redraw when it changes.
+    static var palette: Palette { AppearanceSettings.shared.palette }
+    static var isDark: Bool { palette.isDark }
+
     // Ground and elevation steps. No borders or shadows on anything at rest.
-    static let ground = Color(white: 0.0)          // #000 window
-    static let surface = Color(white: 0.067)       // #111 tiles, cards
-    static let hover = Color(white: 0.094)         // #181818 tile under the pointer
-    static let raised = Color(white: 0.165)        // #2a2a2a controls, selected tile, nested panels
-    static let rule = Color(white: 0.086)          // #161616 row rules
-    static let edge = Color(white: 0.10)           // #1a1a1a the one structural line
+    static var ground: Color { Color(hex: palette.ground) }       // window
+    static var surface: Color { Color(hex: palette.surface) }     // tiles, cards
+    static var hover: Color { Color(hex: palette.hover) }         // tile under the pointer
+    static var raised: Color { Color(hex: palette.raised) }       // controls, selected tile, nested panels
+    static var rule: Color { Color(hex: palette.rule) }           // row rules
+    static var edge: Color { Color(hex: palette.edge) }           // the one structural line
 
     // Text in three tiers, each 4.5:1 or better on the surfaces it sits on.
-    static let text = Color.white
-    static let muted = Color(white: 0.706)         // #b4b4b4
-    static let faint = Color(white: 0.58)          // #949494
+    static var text: Color { Color(hex: palette.text) }
+    static var muted: Color { Color(hex: palette.muted) }
+    static var faint: Color { Color(hex: palette.faint) }
 
     /// The one hue. Data and the selection only: never buttons, tabs or navigation.
-    static let accent = Color(red: 0.961, green: 0.62, blue: 0.239)   // AG amber #f59e3d
-    static let warning = Color(red: 0.898, green: 0.663, blue: 0.231)
-    static let warningGround = Color(red: 0.169, green: 0.141, blue: 0.078)
-    static let negative = Color(red: 0.898, green: 0.337, blue: 0.435)
+    static var accent: Color { Color(hex: palette.accent) }
+    /// Text or marks drawn on the accent.
+    static var onAccent: Color { Color(hex: palette.onAccent) }
+    /// The strongest fill (a chosen pill, the main button) and what sits on it: white on black
+    /// in dark looks, black on white in light ones.
+    static var ink: Color { text }
+    static var onInk: Color { Color(hex: palette.isDark ? 0x000000 : 0xffffff) }
+
+    static var warning: Color { palette.isDark ? Color(red: 0.898, green: 0.663, blue: 0.231) : Color(hex: 0x9a6312) }
+    static var warningGround: Color { palette.isDark ? Color(red: 0.169, green: 0.141, blue: 0.078) : Color(hex: 0xfbefd5) }
+    static var negative: Color { palette.isDark ? Color(red: 0.898, green: 0.337, blue: 0.435) : Color(hex: 0xc0394f) }
+
+    static var scheme: ColorScheme { palette.isDark ? .dark : .light }
+    static var nsAppearance: NSAppearance? { NSAppearance(named: palette.isDark ? .darkAqua : .aqua) }
+    static var nsGround: NSColor { NSColor(hex: palette.ground) }
+    static var nsText: NSColor { NSColor(hex: palette.text) }
+
+    /// A text size scaled by the user's Text size setting (BL-130).
+    static func ts(_ size: CGFloat) -> CGFloat { size * AppearanceSettings.shared.textScale }
 
     static let radiusCard: CGFloat = 20
     static let radiusInner: CGFloat = 12
@@ -30,9 +49,9 @@ enum Theme {
     static let control: CGFloat = 36
 
     // Names used by older views.
-    static let tileBG = surface
-    static let tileSelected = raised
-    static let cardGround = Color(white: 0.04)
+    static var tileBG: Color { surface }
+    static var tileSelected: Color { raised }
+    static var cardGround: Color { palette.id == "classic" ? Color(white: 0.04) : hover }
 }
 
 /// The product's mark: three insert slots, the last one filled, as in Logic's channel strip.
@@ -42,7 +61,7 @@ struct BrandMark: View {
         VStack(spacing: size * 0.13) {
             ForEach(0..<3) { i in
                 Capsule()
-                    .fill(i == 2 ? Theme.accent : Color.white.opacity(0.32))
+                    .fill(i == 2 ? Theme.accent : Theme.text.opacity(0.32))
                     .frame(width: size, height: size * 0.2)
             }
         }
@@ -66,21 +85,21 @@ struct PrimaryPill: View {
         Button(action: action) {
             HStack(spacing: 8) {
                 if busy {
-                    ProgressView().controlSize(.small).tint(.black)
+                    ProgressView().controlSize(.small).tint(Theme.onInk)
                 } else if let systemImage {
-                    Image(systemName: systemImage).font(.system(size: 13, weight: .semibold))
+                    Image(systemName: systemImage).font(.system(size: Theme.ts(13), weight: .semibold))
                 }
-                Text(title).font(.system(size: 14, weight: .semibold))
+                Text(title).font(.system(size: Theme.ts(14), weight: .semibold))
                 if fullWidth { Spacer(minLength: 0) }
                 if let hint {
-                    Text(hint).font(.system(size: 12, weight: .semibold)).opacity(0.45)
+                    Text(hint).font(.system(size: Theme.ts(12), weight: .semibold)).opacity(0.45)
                 }
             }
             .padding(.horizontal, 18)
             .frame(maxWidth: fullWidth ? .infinity : nil)
             .frame(height: height)
-            .foregroundStyle(Color.black)
-            .background(Capsule().fill(Color.white.opacity(hovering ? 0.88 : 1)))
+            .foregroundStyle(Theme.onInk)
+            .background(Capsule().fill(Theme.ink.opacity(hovering ? 0.88 : 1)))
             .contentShape(Capsule())
         }
         .buttonStyle(PressScale())
@@ -99,12 +118,12 @@ struct QuietPill: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                if let systemImage { Image(systemName: systemImage).font(.system(size: 12, weight: .medium)) }
-                Text(title).font(.system(size: 13, weight: .medium))
+                if let systemImage { Image(systemName: systemImage).font(.system(size: Theme.ts(12), weight: .medium)) }
+                Text(title).font(.system(size: Theme.ts(13), weight: .medium))
             }
             .padding(.horizontal, 14).frame(height: height)
             .foregroundStyle(Theme.text)
-            .background(Capsule().fill(hovering ? Color(white: 0.21) : Theme.raised))
+            .background(Capsule().fill(hovering ? (Theme.isDark ? Color(white: 0.21) : Theme.edge) : Theme.raised))
             .contentShape(Capsule())
         }
         .buttonStyle(PressScale())
@@ -124,7 +143,7 @@ struct BarIconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: systemImage)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: Theme.ts(14), weight: .medium))
                 .foregroundStyle(active ? activeTint : (hovering ? Theme.text : Theme.muted))
                 .frame(width: 32, height: 32)
                 .background(Circle().fill(hovering || active ? Theme.raised : Color.clear))
@@ -151,7 +170,7 @@ struct KeyCap: View {
     let key: String
     var body: some View {
         Text(key)
-            .font(.system(size: 11, weight: .semibold))
+            .font(.system(size: Theme.ts(11), weight: .semibold))
             .foregroundStyle(Theme.muted)
             .padding(.horizontal, 6).frame(height: 20)
             .background(RoundedRectangle(cornerRadius: 5).fill(Theme.raised))
@@ -168,12 +187,12 @@ struct Chip: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 5) {
-                if let systemImage { Image(systemName: systemImage).font(.system(size: 11, weight: .medium)) }
-                Text(title).font(.system(size: 12, weight: on ? .semibold : .regular))
+                if let systemImage { Image(systemName: systemImage).font(.system(size: Theme.ts(11), weight: .medium)) }
+                Text(title).font(.system(size: Theme.ts(12), weight: on ? .semibold : .regular))
             }
             .padding(.horizontal, 11).frame(height: 28)
-            .foregroundStyle(on ? Color.black : Theme.text)
-            .background(Capsule().fill(on ? Color.white : Theme.raised))
+            .foregroundStyle(on ? Theme.onInk : Theme.text)
+            .background(Capsule().fill(on ? Theme.ink : Theme.raised))
             .contentShape(Capsule())
         }
         .buttonStyle(PressScale())
@@ -187,10 +206,10 @@ struct CheckMark: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 5)
-                .fill(on || partial ? Color.white : Color.clear)
-                .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(on || partial ? .clear : Color(white: 0.35), lineWidth: 1.5))
-            if on { Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundStyle(.black) }
-            else if partial { Image(systemName: "minus").font(.system(size: 10, weight: .bold)).foregroundStyle(.black) }
+                .fill(on || partial ? Theme.ink : Color.clear)
+                .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(on || partial ? .clear : (Theme.isDark ? Color(white: 0.35) : Theme.faint), lineWidth: 1.5))
+            if on { Image(systemName: "checkmark").font(.system(size: Theme.ts(10), weight: .bold)).foregroundStyle(Theme.onInk) }
+            else if partial { Image(systemName: "minus").font(.system(size: Theme.ts(10), weight: .bold)).foregroundStyle(Theme.onInk) }
         }
         .frame(width: 18, height: 18)
     }
@@ -208,8 +227,8 @@ enum WindowChrome {
         window.titlebarAppearsTransparent = true
         window.styleMask.insert(.fullSizeContentView)
         window.toolbar = nil
-        window.backgroundColor = .black
-        window.appearance = NSAppearance(named: .darkAqua)
+        window.backgroundColor = Theme.nsGround
+        window.appearance = Theme.nsAppearance
         window.titlebarSeparatorStyle = .none
         for kind in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
             window.standardWindowButton(kind)?.isHidden = true
@@ -243,7 +262,7 @@ struct TrafficLights: View {
                 Circle().fill(window?.isKeyWindow == false && !hovering ? Color(white: 0.3) : color)
                 if hovering {
                     Image(systemName: symbol)
-                        .font(.system(size: 7, weight: .black))
+                        .font(.system(size: Theme.ts(7), weight: .black))
                         .foregroundStyle(Color.black.opacity(0.6))
                 }
             }

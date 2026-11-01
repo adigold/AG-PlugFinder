@@ -50,13 +50,13 @@ struct ColorMapPicker: View {
                 Button { pick(nil); done() } label: {
                     Circle().strokeBorder(Theme.faint, style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
                         .frame(width: 22, height: 22)
-                        .overlay(Image(systemName: "xmark").font(.system(size: 8, weight: .bold)).foregroundStyle(Theme.faint))
+                        .overlay(Image(systemName: "xmark").font(.system(size: Theme.ts(8), weight: .bold)).foregroundStyle(Theme.faint))
                 }
                 .buttonStyle(.plain).help("No color")
                 ForEach(Pills.colorNames, id: \.self) { c in
                     Button { pick(c); done() } label: {
                         Circle().fill(Pills.color(c) ?? .clear).frame(width: 22, height: 22)
-                            .overlay(Circle().strokeBorder(Color.white, lineWidth: selected == c ? 2 : 0))
+                            .overlay(Circle().strokeBorder(Theme.text, lineWidth: selected == c ? 2 : 0))
                     }
                     .buttonStyle(.plain).help(c.capitalized)
                 }
@@ -76,7 +76,7 @@ struct ColorMapPicker: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .overlay {
                     if let m = marker {
-                        Circle().strokeBorder(Color.white, lineWidth: 2)
+                        Circle().strokeBorder(Theme.text, lineWidth: 2)
                             .background(Circle().strokeBorder(Color.black.opacity(0.4), lineWidth: 4))
                             .frame(width: 16, height: 16)
                             .position(m)
@@ -97,15 +97,15 @@ struct ColorMapPicker: View {
             HStack(spacing: 8) {
                 Circle().fill(Pills.color(selected) ?? Theme.raised).frame(width: 14, height: 14)
                 Text(selected.map { $0.hasPrefix("#") ? $0.uppercased() : $0.capitalized } ?? "No color")
-                    .font(.system(size: 11)).foregroundStyle(Theme.faint).monospacedDigit()
+                    .font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).monospacedDigit()
                 Spacer()
-                Text("Click or drag on the map").font(.system(size: 11)).foregroundStyle(Theme.faint)
+                Text("Click or drag on the map").font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
             }
         }
         .padding(14)
         .frame(width: 300)
         .background(Theme.surface)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 }
 
@@ -211,13 +211,13 @@ struct PillRow: View {
         }
         return Button { showMore.toggle() } label: {
             HStack(spacing: 5) {
-                Text("More").font(.system(size: prefs.compact ? 11 : 12, weight: anyOn ? .semibold : .regular))
-                Text("\(overflow.count)").font(.system(size: prefs.compact ? 10 : 11)).opacity(0.55).monospacedDigit()
-                Image(systemName: "chevron.down").font(.system(size: 9, weight: .bold))
+                Text("More").font(.system(size: Theme.ts(prefs.compact ? 11 : 12), weight: anyOn ? .semibold : .regular))
+                Text("\(overflow.count)").font(.system(size: Theme.ts(prefs.compact ? 10 : 11))).opacity(0.55).monospacedDigit()
+                Image(systemName: "chevron.down").font(.system(size: Theme.ts(9), weight: .bold))
             }
             .padding(.horizontal, prefs.compact ? 9 : 11).frame(height: prefs.compact ? 24 : 28)
-            .foregroundStyle(anyOn ? Color.black : Theme.text)
-            .background(Capsule().fill(anyOn ? Color.white : Theme.raised))
+            .foregroundStyle(anyOn ? Theme.onInk : Theme.text)
+            .background(Capsule().fill(anyOn ? Theme.ink : Theme.raised))
             .contentShape(Capsule())
         }
         .buttonStyle(PressScale())
@@ -287,19 +287,19 @@ struct PillChip: View {
         Button(action: action) {
             HStack(spacing: 5) {
                 if collection {
-                    Image(systemName: "rectangle.stack").font(.system(size: compact ? 9 : 10, weight: .semibold))
+                    Image(systemName: "rectangle.stack").font(.system(size: Theme.ts(compact ? 9 : 10), weight: .semibold))
                         .opacity(on ? 1 : 0.7)
                 }
                 if let color { Circle().fill(color).frame(width: 6, height: 6) }
-                Text(title).font(.system(size: compact ? 11 : 12, weight: on ? .semibold : .regular)).lineLimit(1)
+                Text(title).font(.system(size: Theme.ts(compact ? 11 : 12), weight: on ? .semibold : .regular)).lineLimit(1)
                 if let count {
-                    Text("\(count)").font(.system(size: compact ? 10 : 11)).opacity(0.55).monospacedDigit()
+                    Text("\(count)").font(.system(size: Theme.ts(compact ? 10 : 11))).opacity(0.55).monospacedDigit()
                 }
             }
             .padding(.horizontal, compact ? 9 : 11).frame(height: compact ? 24 : 28)
-            .foregroundStyle(on ? Color.black : Theme.text)
-            .background(Capsule().fill(on ? Color.white : (collection ? Color.clear : Theme.raised)))
-            .overlay(Capsule().strokeBorder(Color.white.opacity(collection && !on ? 0.28 : 0), lineWidth: 1.2))
+            .foregroundStyle(on ? Theme.onInk : Theme.text)
+            .background(Capsule().fill(on ? Theme.ink : (collection ? Color.clear : Theme.raised)))
+            .overlay(Capsule().strokeBorder(Theme.text.opacity(collection && !on ? 0.28 : 0), lineWidth: 1.2))
             .contentShape(Capsule())
         }
         .buttonStyle(PressScale())
@@ -371,9 +371,9 @@ struct MorePills: View {
         let list = pills.filter { p in words.allSatisfy { p.title.lowercased().contains($0) } }
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").font(.system(size: 12)).foregroundStyle(Theme.faint)
+                Image(systemName: "magnifyingglass").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                 TextField("", text: $search, prompt: Text("Find a pill").foregroundStyle(Theme.faint))
-                    .textFieldStyle(.plain).font(.system(size: 13)).foregroundStyle(Theme.text)
+                    .textFieldStyle(.plain).font(.system(size: Theme.ts(13))).foregroundStyle(Theme.text)
             }
             .padding(.horizontal, 12).frame(height: 32)
             .background(Capsule().fill(Theme.raised))
@@ -384,16 +384,16 @@ struct MorePills: View {
                         Button { choose(p) } label: {
                             HStack(spacing: 9) {
                                 if p.kind == .collection {
-                                    Image(systemName: "rectangle.stack").font(.system(size: 10, weight: .semibold))
+                                    Image(systemName: "rectangle.stack").font(.system(size: Theme.ts(10), weight: .semibold))
                                         .foregroundStyle(Pills.color(p.color) ?? Theme.muted)
                                 } else {
                                     Circle().fill(Pills.color(p.color) ?? Theme.raised).frame(width: 7, height: 7)
                                 }
-                                Text(p.title).font(.system(size: 13, weight: on ? .semibold : .regular))
+                                Text(p.title).font(.system(size: Theme.ts(13), weight: on ? .semibold : .regular))
                                     .foregroundStyle(Theme.text)
                                 Spacer(minLength: 8)
-                                Text("\(p.count)").font(.system(size: 11)).foregroundStyle(Theme.faint).monospacedDigit()
-                                Image(systemName: "checkmark").font(.system(size: 10, weight: .bold))
+                                Text("\(p.count)").font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).monospacedDigit()
+                                Image(systemName: "checkmark").font(.system(size: Theme.ts(10), weight: .bold))
                                     .foregroundStyle(Theme.accent).opacity(on ? 1 : 0)
                             }
                             .padding(.horizontal, 10).frame(height: 30)
@@ -407,7 +407,7 @@ struct MorePills: View {
             }
             .frame(maxHeight: 320)
             HStack {
-                Text("⌘-click to pick several").font(.system(size: 11)).foregroundStyle(Theme.faint)
+                Text("⌘-click to pick several").font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
                 Spacer()
                 QuietPill(title: "Edit Pills…", height: 26) { PillsWindow.shared.show() }
             }
@@ -415,7 +415,7 @@ struct MorePills: View {
         .padding(14)
         .frame(width: 280)
         .background(Theme.surface)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 }
 
@@ -446,8 +446,8 @@ final class PillsWindow {
             w.titleVisibility = .hidden
             w.isMovableByWindowBackground = true
             w.isReleasedWhenClosed = false
-            w.backgroundColor = .black
-            w.appearance = NSAppearance(named: .darkAqua)
+            w.backgroundColor = Theme.nsGround
+            w.appearance = Theme.nsAppearance
             w.minSize = NSSize(width: 520, height: 480)
             let host = NSHostingView(rootView: PillsEditor(topPadding: 36))
             host.sizingOptions = []
@@ -493,9 +493,9 @@ struct PillsEditor: View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Pills").font(.system(size: 22, weight: .semibold)).foregroundStyle(Theme.text)
+                    Text("Pills").font(.system(size: Theme.ts(22), weight: .semibold)).foregroundStyle(Theme.text)
                     Text("Choose which pills show above your plugins, their order, names and colors. Synced to your other Macs.")
-                        .font(.system(size: 12)).foregroundStyle(Theme.faint)
+                        .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 options(prefs)
@@ -529,7 +529,7 @@ struct PillsEditor: View {
             .overlay(alignment: .top) { Rectangle().fill(Theme.rule).frame(height: 1) }
         }
         .background(Theme.ground)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
         .sheet(item: $groupSheet) { d in CombinedPillSheet(draft: d) { groupSheet = nil } }
         .onReceive(NotificationCenter.default.publisher(for: .editCombinedPill)) { n in
             if let id = n.userInfo?["group"] as? String, let g = library.pills.groups.first(where: { $0.id == id }) {
@@ -569,16 +569,16 @@ struct PillsEditor: View {
 
     private func option<C: View>(_ title: String, @ViewBuilder _ content: () -> C) -> some View {
         HStack(spacing: 6) {
-            Text(title).font(.system(size: 12)).foregroundStyle(Theme.faint).frame(width: 74, alignment: .leading)
+            Text(title).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint).frame(width: 74, alignment: .leading)
             content()
         }
     }
 
     private func header(_ t: String) -> some View {
         HStack {
-            Text(t).font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.muted)
+            Text(t).font(.system(size: Theme.ts(12), weight: .semibold)).foregroundStyle(Theme.muted)
             Spacer()
-            Text("Drag to set your own order").font(.system(size: 11)).foregroundStyle(Theme.faint)
+            Text("Drag to set your own order").font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
         }
         .padding(.vertical, 4)
     }
@@ -610,7 +610,7 @@ struct PillEditRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Image(systemName: "line.3.horizontal").font(.system(size: 11)).foregroundStyle(Theme.faint)
+            Image(systemName: "line.3.horizontal").font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
             Button { showColors.toggle() } label: {
                 Circle().fill(Pills.color(pill.color) ?? Color.clear)
                     .overlay(Circle().strokeBorder(pill.color == nil ? Theme.faint : .clear, style: StrokeStyle(lineWidth: 1, dash: [2, 2])))
@@ -623,17 +623,17 @@ struct PillEditRow: View {
             .help("Color")
             .popover(isPresented: $showColors, arrowEdge: .bottom) { palette }
             if pill.kind == .collection {
-                Image(systemName: "rectangle.stack").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.faint)
+                Image(systemName: "rectangle.stack").font(.system(size: Theme.ts(10), weight: .semibold)).foregroundStyle(Theme.faint)
             }
             VStack(alignment: .leading, spacing: 1) {
-                Text(pill.title).font(.system(size: 13, weight: .medium))
+                Text(pill.title).font(.system(size: Theme.ts(13), weight: .medium))
                     .foregroundStyle(pill.hidden ? Theme.faint : Theme.text)
                 if let sub {
-                    Text(sub).font(.system(size: 11)).foregroundStyle(Theme.faint).lineLimit(1)
+                    Text(sub).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).lineLimit(1)
                 }
             }
             Spacer(minLength: 8)
-            Text("\(pill.count)").font(.system(size: 11)).foregroundStyle(Theme.faint).monospacedDigit()
+            Text("\(pill.count)").font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).monospacedDigit()
             if pill.kind == .group {
                 icon("square.and.pencil", "Edit combined pill", false, editGroup)
             }
@@ -657,7 +657,7 @@ struct PillEditRow: View {
 
     private func icon(_ name: String, _ help: String, _ on: Bool, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: name).font(.system(size: 12, weight: .medium))
+            Image(systemName: name).font(.system(size: Theme.ts(12), weight: .medium))
                 .foregroundStyle(on ? Theme.accent : Theme.muted)
                 .frame(width: 26, height: 26)
                 .contentShape(Rectangle())
@@ -694,15 +694,15 @@ struct CombinedPillSheet: View {
             .filter { c in words.allSatisfy { c.lowercased().contains($0) } }
         VStack(alignment: .leading, spacing: 14) {
             Text(draft.groupID == nil ? "New combined pill" : "Edit combined pill")
-                .font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.text)
+                .font(.system(size: Theme.ts(17), weight: .semibold)).foregroundStyle(Theme.text)
             TextField("", text: $draft.name, prompt: Text("Name, for example Space").foregroundStyle(Theme.faint))
-                .textFieldStyle(.plain).font(.system(size: 14)).foregroundStyle(Theme.text)
+                .textFieldStyle(.plain).font(.system(size: Theme.ts(14))).foregroundStyle(Theme.text)
                 .padding(.horizontal, 12).frame(height: 34)
                 .background(RoundedRectangle(cornerRadius: 9).fill(Theme.raised))
             HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").font(.system(size: 11)).foregroundStyle(Theme.faint)
+                Image(systemName: "magnifyingglass").font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
                 TextField("", text: $search, prompt: Text("Find a category").foregroundStyle(Theme.faint))
-                    .textFieldStyle(.plain).font(.system(size: 12)).foregroundStyle(Theme.text)
+                    .textFieldStyle(.plain).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.text)
             }
             .padding(.horizontal, 10).frame(height: 28)
             .background(Capsule().fill(Theme.raised))
@@ -715,12 +715,12 @@ struct CombinedPillSheet: View {
                         } label: {
                             HStack(spacing: 10) {
                                 CheckMark(on: on)
-                                Text(c).font(.system(size: 13)).foregroundStyle(Theme.text)
+                                Text(c).font(.system(size: Theme.ts(13))).foregroundStyle(Theme.text)
                                 if let g = others[c] {
-                                    Text("in \(g)").font(.system(size: 11)).foregroundStyle(Theme.faint)
+                                    Text("in \(g)").font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
                                 }
                                 Spacer()
-                                Text("\(counts[c] ?? 0)").font(.system(size: 11)).foregroundStyle(Theme.faint).monospacedDigit()
+                                Text("\(counts[c] ?? 0)").font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).monospacedDigit()
                             }
                             .padding(.horizontal, 8).frame(height: 30)
                             .contentShape(Rectangle())
@@ -732,7 +732,7 @@ struct CombinedPillSheet: View {
             .frame(height: 280)
             HStack {
                 Text(draft.categories.isEmpty ? "Pick two or more" : "\(draft.categories.count) categories, \(draft.categories.reduce(0) { $0 + (counts[$1] ?? 0) }) plugins")
-                    .font(.system(size: 11)).foregroundStyle(Theme.faint)
+                    .font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
                 Spacer()
                 QuietPill(title: "Cancel", height: 30) { close() }
                 PrimaryPill(title: "Save", height: 30) {
@@ -748,6 +748,6 @@ struct CombinedPillSheet: View {
         .padding(20)
         .frame(width: 400)
         .background(Theme.surface)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 }

@@ -95,8 +95,8 @@ struct InfoSourcePicker: View {
                         Image(systemName: source == s ? "largecircle.fill.circle" : "circle")
                             .foregroundStyle(source == s ? Theme.accent : Theme.faint)
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(s.title).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text)
-                            Text(detail(s)).font(.system(size: 11)).foregroundStyle(Theme.muted)
+                            Text(s.title).font(.system(size: Theme.ts(13), weight: .semibold)).foregroundStyle(Theme.text)
+                            Text(detail(s)).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.muted)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         Spacer(minLength: 8)
@@ -140,15 +140,15 @@ struct InfoSourcePicker: View {
             case .downloading(let f):
                 HStack(spacing: 8) {
                     ProgressView(value: f).frame(width: 80).tint(Theme.accent)
-                    Text("\(Int(f * 100))%").font(.system(size: 11)).monospacedDigit().foregroundStyle(Theme.muted)
+                    Text("\(Int(f * 100))%").font(.system(size: Theme.ts(11))).monospacedDigit().foregroundStyle(Theme.muted)
                 }
             case .ready:
-                Button("Remove") { local.remove() }.font(.system(size: 11))
+                Button("Remove") { local.remove() }.font(.system(size: Theme.ts(11)))
             }
         }
         #endif
         if s == .builtIn, OnDeviceInfo.status == .ready {
-            Text("Ready").font(.system(size: 11)).foregroundStyle(.green)
+            Text("Ready").font(.system(size: Theme.ts(11))).foregroundStyle(.green)
         }
     }
 }

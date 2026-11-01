@@ -5,6 +5,8 @@ struct SettingsView: View {
         TabView {
             GeneralSettings()
                 .tabItem { Label("General", systemImage: "gearshape") }
+            AppearanceSettingsView()
+                .tabItem { Label("Appearance", systemImage: "paintpalette") }
             ShortcutSettings()
                 .tabItem { Label("Shortcuts", systemImage: "keyboard") }
             PluginListEditor()
@@ -17,7 +19,7 @@ struct SettingsView: View {
                 .tabItem { Label("Updates", systemImage: "arrow.down.circle") }
         }
         .frame(width: 780, height: 580)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 }
 

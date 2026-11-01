@@ -29,7 +29,7 @@ struct PluginListEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 4) {
-                Text("Group by").font(.system(size: 12)).foregroundStyle(Theme.faint)
+                Text("Group by").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                 ForEach(PluginStore.GroupKind.allCases) { k in
                     Chip(title: k.title, on: kind == k) { kind = k; selectedGroup = nil }
                 }
@@ -87,10 +87,10 @@ struct PluginListEditor: View {
                                         checkbox(visible)
                                         PluginThumbnail(plugin: p).frame(width: 46, height: 28)
                                         VStack(alignment: .leading, spacing: 1) {
-                                            Text(p.name).font(.system(size: 12, weight: .medium))
+                                            Text(p.name).font(.system(size: Theme.ts(12), weight: .medium))
                                             Text(p.isLogic ? "\(p.manufacturer) · \(p.displayCategory)"
                                                  : "\(p.manufacturer) · \(p.displayCategory) · \(p.formatName)")
-                                                .font(.system(size: 10)).foregroundStyle(Theme.faint)
+                                                .font(.system(size: Theme.ts(10))).foregroundStyle(Theme.faint)
                                         }
                                         Spacer()
                                     }
@@ -127,9 +127,9 @@ struct PluginListEditor: View {
                     CheckMark(on: state == true, partial: state == nil)
                 }.buttonStyle(.plain)
             }
-            Text(title).font(.system(size: 12)).lineLimit(1)
+            Text(title).font(.system(size: Theme.ts(12))).lineLimit(1)
             Spacer()
-            Text(count).font(.system(size: 11)).monospacedDigit().foregroundStyle(Theme.faint)
+            Text(count).font(.system(size: Theme.ts(11))).monospacedDigit().foregroundStyle(Theme.faint)
         }
         .padding(.horizontal, 8).padding(.vertical, 5)
         .background(RoundedRectangle(cornerRadius: 6).fill(selected ? Theme.tileSelected : Color.clear))

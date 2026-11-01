@@ -479,6 +479,53 @@ enum SelfTest {
             }
             print("SEARCH done"); fflush(stdout)
         }
+        // --selftest-themes <dir>: the library and the Appearance tab in every theme, then the
+        // largest text, as pictures (BL-130). Nothing is saved.
+        if let k = args.firstIndex(of: "--selftest-themes"), k + 1 < args.count {
+            let dir = URL(fileURLWithPath: args[k + 1])
+            Task {
+                let look = AppearanceSettings.shared
+                LibraryWindow.show()
+                try? await Task.sleep(for: .seconds(2))
+                guard let w = LibraryWindow.window else { print("THEMES no window"); return }
+                w.setFrame(NSRect(x: 60, y: 60, width: 1320, height: 820), display: true)
+                NotificationCenter.default.post(name: .demoSelect, object: "ChromaVerb")
+                let only = args.firstIndex(of: "--only").map { args[$0 + 1] }
+                for p in Palette.all where only == nil || only == p.id {
+                    look.paletteID = p.id
+                    try? await Task.sleep(for: .milliseconds(700))
+                    await capture(w, to: dir.appendingPathComponent("lib-\(p.id).png"), scale: 1)
+                    await shoot(AppearanceSettingsView(), size: NSSize(width: 780, height: 560), to: dir.appendingPathComponent("set-\(p.id).png"))
+                    print("THEMES \(p.id)"); fflush(stdout)
+                    if only != nil {
+                        await shoot(DialogCard(title: "Delete this collection?", message: "The plugins stay installed.", field: nil, multiline: false,
+                                               checkbox: "Don't ask again", choices: [Dialog.Choice(title: "Cancel", cancel: true),
+                                               Dialog.Choice(title: "Delete", primary: true)], state: Dialog.State()) { _ in },
+                                    size: NSSize(width: 400, height: 190), to: dir.appendingPathComponent("dialog-\(p.id).png"))
+                        await shoot(PillsEditor(topPadding: 20), size: NSSize(width: 760, height: 560), to: dir.appendingPathComponent("pills-\(p.id).png"))
+                        for type in [NSEvent.EventType.keyDown, .keyUp] {
+                            if let e = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: w.windowNumber,
+                                                        context: nil, characters: "\u{F703}", charactersIgnoringModifiers: "\u{F703}", isARepeat: false, keyCode: 124) { NSApp.postEvent(e, atStart: false) }
+                        }
+                        try? await Task.sleep(for: .milliseconds(500))
+                        for type in [NSEvent.EventType.keyDown, .keyUp] {
+                            if let e = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: w.windowNumber,
+                                                        context: nil, characters: " ", charactersIgnoringModifiers: " ", isARepeat: false, keyCode: 49) { NSApp.postEvent(e, atStart: false) }
+                        }
+                        try? await Task.sleep(for: .milliseconds(900))
+                        await capture(w, to: dir.appendingPathComponent("preview-\(p.id).png"), scale: 1)
+                    }
+                }
+                look.paletteID = "classic"; look.textScale = 1.3
+                try? await Task.sleep(for: .milliseconds(700))
+                await capture(w, to: dir.appendingPathComponent("lib-classic-130.png"), scale: 1)
+                look.paletteID = "clean-light"
+                try? await Task.sleep(for: .milliseconds(700))
+                await capture(w, to: dir.appendingPathComponent("lib-light-130.png"), scale: 1)
+                look.textScale = 1; look.paletteID = "classic"
+                print("THEMES done"); fflush(stdout)
+            }
+        }
         // --selftest-makerurl: where Maker's Website goes for a few plugins (BL-129).
         if args.contains("--selftest-makerurl") {
             Task {

@@ -71,8 +71,8 @@ struct ShortcutRecorder: View {
         HStack(spacing: 6) {
             Button { isRecording ? stop() : start() } label: {
                 Text(isRecording ? "Press keys…" : (shortcuts.combo(action)?.display ?? "Record Shortcut"))
-                    .font(.system(size: 12, weight: .medium)).monospacedDigit()
-                    .foregroundStyle(isRecording ? Color.black : (shortcuts.combo(action) == nil ? Theme.faint : Theme.text))
+                    .font(.system(size: Theme.ts(12), weight: .medium)).monospacedDigit()
+                    .foregroundStyle(isRecording ? Theme.onAccent : (shortcuts.combo(action) == nil ? Theme.faint : Theme.text))
                     .padding(.horizontal, 12).frame(minWidth: 130).frame(height: 26)
                     .background(RoundedRectangle(cornerRadius: 7)
                         .fill(isRecording ? Theme.accent : (hovering ? Theme.raised : Theme.surface)))

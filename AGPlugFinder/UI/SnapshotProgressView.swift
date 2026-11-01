@@ -13,8 +13,8 @@ final class SnapshotProgressWindow {
                          backing: .buffered, defer: false)
         w.title = "Plugin Screenshots"
         w.isReleasedWhenClosed = false
-        w.backgroundColor = .black
-        w.appearance = NSAppearance(named: .darkAqua)
+        w.backgroundColor = Theme.nsGround
+        w.appearance = Theme.nsAppearance
         w.minSize = NSSize(width: 520, height: 420)
         w.contentView = NSHostingView(rootView: SnapshotProgressView())
         w.center()
@@ -46,7 +46,7 @@ struct SnapshotProgressView: View {
         .padding(22)
         .frame(minWidth: 520, minHeight: 420)
         .background(Theme.ground)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 
     // MARK: Header: big bar, numbers, time
@@ -54,10 +54,10 @@ struct SnapshotProgressView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
-                Text(title).font(.system(size: 18, weight: .bold))
+                Text(title).font(.system(size: Theme.ts(18), weight: .bold))
                 Spacer()
                 Text("\(queue.done) of \(queue.total)")
-                    .font(.system(size: 15, weight: .semibold)).monospacedDigit()
+                    .font(.system(size: Theme.ts(15), weight: .semibold)).monospacedDigit()
             }
             ProgressView(value: Double(queue.done), total: Double(max(1, queue.total)))
                 .progressViewStyle(.linear)
@@ -68,7 +68,7 @@ struct SnapshotProgressView: View {
                 Spacer()
                 Text(timeText).monospacedDigit()
             }
-            .font(.system(size: 12)).foregroundStyle(Theme.faint)
+            .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
         }
     }
 
@@ -101,7 +101,7 @@ struct SnapshotProgressView: View {
         let shownID = queue.currentID ?? queue.items.last(where: { $0.status == .done || $0.status == .generic })?.id
         return VStack(alignment: .leading, spacing: 6) {
             Text(queue.isRunning ? "Now" : "Last captured")
-                .font(.system(size: 12)).foregroundStyle(Theme.faint)
+                .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
             ZStack {
                 RoundedRectangle(cornerRadius: 8).fill(Color.black.opacity(0.78))
                 if let id = shownID, let p = store.plugin(id), store.image(for: id) != nil {
@@ -112,7 +112,7 @@ struct SnapshotProgressView: View {
                         TimelineView(.periodic(from: .now, by: 1)) { ctx in
                             let s = queue.currentStarted.map { Int(ctx.date.timeIntervalSince($0)) } ?? 0
                             Text(s < 3 ? "Opening the plugin…" : "Opening the plugin… \(s)s")
-                                .font(.system(size: 11)).foregroundStyle(Theme.faint).monospacedDigit()
+                                .font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).monospacedDigit()
                         }
 
                     }
@@ -120,8 +120,8 @@ struct SnapshotProgressView: View {
             }
             .frame(width: 260, height: 150)
             if let id = shownID, let item = queue.items.first(where: { $0.id == id }) {
-                Text(item.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
-                Text(item.maker).font(.system(size: 11)).foregroundStyle(Theme.faint).lineLimit(1)
+                Text(item.name).font(.system(size: Theme.ts(13), weight: .semibold)).lineLimit(1)
+                Text(item.maker).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).lineLimit(1)
             }
         }
     }
@@ -136,7 +136,7 @@ struct SnapshotProgressView: View {
             countRow("clock", .secondary, "Waiting",
                      queue.items.filter { $0.status == .waiting }.count)
             Text("Each plugin opens for a moment in the bottom left corner of your screen while it is captured. Logic's own plugins only run inside Logic, so they keep their category card.")
-                .font(.system(size: 11)).foregroundStyle(Theme.faint)
+                .font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -145,9 +145,9 @@ struct SnapshotProgressView: View {
     private func countRow(_ icon: String, _ color: Color, _ label: String, _ n: Int) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon).foregroundStyle(color).frame(width: 16)
-            Text(label).font(.system(size: 12))
+            Text(label).font(.system(size: Theme.ts(12)))
             Spacer()
-            Text("\(n)").font(.system(size: 12, weight: .semibold)).monospacedDigit()
+            Text("\(n)").font(.system(size: Theme.ts(12), weight: .semibold)).monospacedDigit()
         }
     }
 
@@ -174,15 +174,15 @@ struct SnapshotProgressView: View {
         HStack(spacing: 10) {
             statusIcon(item.status).frame(width: 18)
             VStack(alignment: .leading, spacing: 1) {
-                Text(item.name).font(.system(size: 12, weight: item.status == .working ? .semibold : .regular))
+                Text(item.name).font(.system(size: Theme.ts(12), weight: item.status == .working ? .semibold : .regular))
                 if case .failed(let why) = item.status {
-                    Text(why).font(.system(size: 10)).foregroundStyle(.red).lineLimit(2)
+                    Text(why).font(.system(size: Theme.ts(10))).foregroundStyle(.red).lineLimit(2)
                 }
             }
             Spacer()
-            Text(item.maker).font(.system(size: 11)).foregroundStyle(Theme.faint).lineLimit(1)
+            Text(item.maker).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).lineLimit(1)
             Text(item.seconds.map { String(format: "%.1fs", $0) } ?? "")
-                .font(.system(size: 11)).monospacedDigit().foregroundStyle(Theme.faint)
+                .font(.system(size: Theme.ts(11))).monospacedDigit().foregroundStyle(Theme.faint)
                 .frame(width: 44, alignment: .trailing)
         }
         .padding(.horizontal, 10).padding(.vertical, 6)

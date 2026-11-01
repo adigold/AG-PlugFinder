@@ -33,7 +33,7 @@ struct LibraryView: View {
         .animation(.easeOut(duration: 0.15), value: PluginStore.shared.confirmingUnfavorite)
         .background(Theme.ground)
         .ignoresSafeArea(.container, edges: .top)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
         .background(WindowAccessor { w in
             guard window !== w else { return }
             window = w
@@ -98,7 +98,7 @@ struct LibraryView: View {
                     .overlay(alignment: .topTrailing) {
                         if !view.showInfoPane {
                             Button { toggleInfo() } label: {
-                                Image(systemName: "sidebar.right").font(.system(size: 13, weight: .medium))
+                                Image(systemName: "sidebar.right").font(.system(size: Theme.ts(13), weight: .medium))
                                     .foregroundStyle(Theme.text)
                                     .frame(width: 34, height: 34)
                                     .background(Circle().fill(Theme.raised))
@@ -130,7 +130,7 @@ struct LibraryView: View {
             if !view.showInfoPane, let message = model.message {
                 HStack(spacing: 10) {
                     Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Theme.warning)
-                    Text(message).font(.system(size: 12)).foregroundStyle(Theme.text)
+                    Text(message).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.text)
                     Spacer()
                     if model.showAccessibilityButton {
                         QuietPill(title: "Allow in System Settings", height: 26) { AXAccess.openSettings() }
@@ -159,9 +159,9 @@ struct LibraryView: View {
             TrafficLights(window: window)
             HStack(spacing: 9) {
                 BrandMark(size: 17)
-                Text("AG PlugFinder").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
+                Text("AG PlugFinder").font(.system(size: Theme.ts(15), weight: .semibold)).foregroundStyle(Theme.text)
                 Text("\(store.plugins.filter(store.isVisible).count) plugins found")
-                    .font(.system(size: 10, weight: .medium)).monospacedDigit()
+                    .font(.system(size: Theme.ts(10), weight: .medium)).monospacedDigit()
                     .foregroundStyle(Theme.faint)
                     .padding(.horizontal, 7).frame(height: 18)
                     .background(Capsule().fill(Theme.surface))
@@ -222,7 +222,7 @@ struct LibraryView: View {
                 }
                 Spacer()
             }
-            .font(.system(size: 12))
+            .font(.system(size: Theme.ts(12)))
             .padding(.horizontal, 18).frame(height: 36)
             .background(Theme.surface)
         }
@@ -266,7 +266,7 @@ struct LibraryView: View {
             PluginGrid(model: model, compact: true) { insert() }
                 .frame(height: Self.miniRowsHeight)
             if let message = model.message {
-                Text(message).font(.system(size: 11)).foregroundStyle(Theme.warning).lineLimit(2)
+                Text(message).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.warning).lineLimit(2)
                     .padding(.horizontal, 14).padding(.bottom, 10)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -475,7 +475,7 @@ struct LibraryActions: View {
         .padding(8)
         .frame(width: 300)
         .background(Theme.surface)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 
     private var licenseDetail: String {
@@ -512,11 +512,11 @@ struct ActionRow: View {
     var body: some View {
         Button(action: run) {
             HStack(spacing: 12) {
-                Image(systemName: icon).font(.system(size: 13, weight: .medium))
+                Image(systemName: icon).font(.system(size: Theme.ts(13), weight: .medium))
                     .foregroundStyle(Theme.muted).frame(width: 18)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.text)
-                    if let detail { Text(detail).font(.system(size: 11)).foregroundStyle(Theme.faint) }
+                    Text(title).font(.system(size: Theme.ts(13), weight: .medium)).foregroundStyle(Theme.text)
+                    if let detail { Text(detail).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint) }
                 }
                 Spacer(minLength: 0)
             }

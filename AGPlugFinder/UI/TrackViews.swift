@@ -83,8 +83,8 @@ struct TrackPanel: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("This track").font(.system(size: 12)).foregroundStyle(Theme.faint)
-                    Text(state.track ?? "No track").font(.system(size: 16, weight: .semibold))
+                    Text("This track").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
+                    Text(state.track ?? "No track").font(.system(size: Theme.ts(16), weight: .semibold))
                         .foregroundStyle(Theme.text).lineLimit(1)
                 }
                 Spacer()
@@ -95,10 +95,10 @@ struct TrackPanel: View {
                 Text(LogicInserter.shared.logicApp == nil
                      ? "Logic Pro isn't open."
                      : "Select a track in Logic with the Inspector showing, then refresh.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.muted)
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
                     .fixedSize(horizontal: false, vertical: true)
             } else if state.plugins.isEmpty {
-                Text("No plugins on this track yet.").font(.system(size: 12)).foregroundStyle(Theme.muted)
+                Text("No plugins on this track yet.").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
             } else {
                 VStack(spacing: 4) {
                     ForEach(state.plugins) { p in
@@ -146,7 +146,7 @@ struct TrackPanel: View {
                 }
             }
         }
-        .padding(16).frame(width: 380).background(Theme.surface).preferredColorScheme(.dark)
+        .padding(16).frame(width: 380).background(Theme.surface).preferredColorScheme(Theme.scheme)
         .onAppear { state.refresh() }
     }
 
@@ -161,9 +161,9 @@ struct TrackPanel: View {
     private func row(_ p: StripPlugin) -> some View {
         HStack(spacing: 10) {
             Image(systemName: p.kind == .audioFX ? "line.3.horizontal" : icon(p.kind))
-                .font(.system(size: 11)).foregroundStyle(Theme.faint).frame(width: 16)
+                .font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).frame(width: 16)
                 .help(p.kind == .audioFX ? "Drag to change the order in Logic" : "")
-            Text(p.name).font(.system(size: 13, weight: .medium))
+            Text(p.name).font(.system(size: Theme.ts(13), weight: .medium))
                 .foregroundStyle(p.isOn == false ? Theme.faint : Theme.text).lineLimit(1)
                 .strikethrough(p.isOn == false, color: Theme.faint)
             Spacer(minLength: 6)
@@ -185,7 +185,7 @@ struct TrackPanel: View {
 
     private func small(_ icon: String, _ help: String, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: icon).font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.muted)
+            Image(systemName: icon).font(.system(size: Theme.ts(10), weight: .semibold)).foregroundStyle(Theme.muted)
                 .frame(width: 24, height: 24).background(Circle().fill(Theme.surface))
         }
         .buttonStyle(.plain).help(help)
@@ -251,7 +251,7 @@ struct OnOffSwitch: View {
         Button(action: action) {
             ZStack(alignment: on ? .trailing : .leading) {
                 Capsule().fill(on ? Theme.accent : Theme.surface).frame(width: 30, height: 18)
-                Circle().fill(on ? Color.black : Theme.faint).frame(width: 14, height: 14).padding(2)
+                Circle().fill(on ? Theme.onAccent : Theme.faint).frame(width: 14, height: 14).padding(2)
             }
             .animation(.easeOut(duration: 0.15), value: on)
         }
@@ -267,7 +267,7 @@ struct ReplaceBanner: View {
             HStack(spacing: 10) {
                 Image(systemName: "arrow.left.arrow.right").foregroundStyle(Theme.accent)
                 Text("Choose a plugin to take the place of \(t.name), then press Return")
-                    .font(.system(size: 12, weight: .medium)).foregroundStyle(Theme.text)
+                    .font(.system(size: Theme.ts(12), weight: .medium)).foregroundStyle(Theme.text)
                 Spacer()
                 QuietPill(title: "Cancel", height: 26) { model.replaceTarget = nil }
             }
@@ -286,7 +286,7 @@ struct PointerBanner: View {
                 Image(systemName: "cursorarrow.rays").foregroundStyle(Theme.accent)
                 Text(t.occupant.map { "Choose a plugin to take the place of \($0), then press Return" }
                      ?? "Choose \(t.kind == .instrument ? "an instrument" : t.kind == .midiFX ? "a MIDI effect" : "an effect") for the outlined slot, then press Return")
-                    .font(.system(size: 12, weight: .medium)).foregroundStyle(Theme.text)
+                    .font(.system(size: Theme.ts(12), weight: .medium)).foregroundStyle(Theme.text)
                 Spacer()
             }
             .padding(.horizontal, 18).frame(height: 36)
@@ -313,8 +313,8 @@ final class TracksWindow {
             w.titleVisibility = .hidden
             w.isMovableByWindowBackground = true
             w.isReleasedWhenClosed = false
-            w.backgroundColor = .black
-            w.appearance = NSAppearance(named: .darkAqua)
+            w.backgroundColor = Theme.nsGround
+            w.appearance = Theme.nsAppearance
             w.level = .floating
             w.center()
             window = w
@@ -346,11 +346,11 @@ struct TracksView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text(title).font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.text)
+            Text(title).font(.system(size: Theme.ts(20), weight: .bold)).foregroundStyle(Theme.text)
             if let tracks {
                 let shown = finding ? tracks.filter(uses) : tracks
                 Text(subtitle(shown.count, of: tracks.count))
-                    .font(.system(size: 12)).foregroundStyle(Theme.muted)
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
                 ScrollView {
                     VStack(spacing: 4) { ForEach(shown) { t in row(t) } }
                 }
@@ -358,11 +358,11 @@ struct TracksView: View {
             } else {
                 HStack(spacing: 10) {
                     ProgressView().controlSize(.small)
-                    Text("Reading the project's tracks…").font(.system(size: 13)).foregroundStyle(Theme.muted)
+                    Text("Reading the project's tracks…").font(.system(size: Theme.ts(13))).foregroundStyle(Theme.muted)
                 }
                 Spacer()
             }
-            if let status { Text(status).font(.system(size: 12)).foregroundStyle(Theme.warning) }
+            if let status { Text(status).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.warning) }
             HStack {
                 QuietPill(title: "Read Again", systemImage: "arrow.clockwise") { Task { await load() } }
                     .disabled(busy)
@@ -377,7 +377,7 @@ struct TracksView: View {
         .padding(.horizontal, 24).padding(.top, 38).padding(.bottom, 20)
         .frame(minWidth: 400, minHeight: 420)
         .background(Theme.ground)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
         .task { await load() }
     }
 
@@ -396,9 +396,9 @@ struct TracksView: View {
                 CheckMark(on: chosen.contains(t.id))
             }
             VStack(alignment: .leading, spacing: 2) {
-                Text(t.name).font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.text)
+                Text(t.name).font(.system(size: Theme.ts(13), weight: .medium)).foregroundStyle(Theme.text)
                 Text(t.plugins.joined(separator: " → ").ifEmpty("No plugins"))
-                    .font(.system(size: 11)).foregroundStyle(Theme.faint).lineLimit(1)
+                    .font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).lineLimit(1)
             }
             Spacer()
             if finding {

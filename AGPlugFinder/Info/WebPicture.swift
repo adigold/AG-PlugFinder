@@ -332,8 +332,8 @@ final class WebPictureWindow {
             w.titleVisibility = .hidden
             w.isMovableByWindowBackground = true
             w.isReleasedWhenClosed = false
-            w.backgroundColor = .black
-            w.appearance = NSAppearance(named: .darkAqua)
+            w.backgroundColor = Theme.nsGround
+            w.appearance = Theme.nsAppearance
             w.contentView = NSHostingView(rootView: WebPictureView(state: state) { [weak self] in self?.window?.close() })
             w.center()
             window = w
@@ -387,20 +387,20 @@ struct WebPictureView: View {
         VStack(alignment: .leading, spacing: 14) {
             if let p = state.current {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Choose a picture for \(p.name)").font(.system(size: 18, weight: .bold)).foregroundStyle(Theme.text)
+                    Text("Choose a picture for \(p.name)").font(.system(size: Theme.ts(18), weight: .bold)).foregroundStyle(Theme.text)
                     Text(p.manufacturer + (state.queue.isEmpty ? "" : " · \(state.queue.count) more after this"))
-                        .font(.system(size: 12)).foregroundStyle(Theme.muted)
+                        .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
                 }
                 .padding(.top, 18)
                 if state.searching && state.pictures.isEmpty {
                     VStack(spacing: 10) {
                         ProgressView().controlSize(.regular)
-                        Text("Looking on the web…").font(.system(size: 12)).foregroundStyle(Theme.muted)
+                        Text("Looking on the web…").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if state.pictures.isEmpty {
                     Text("No pictures of \(p.name) were found on the web.")
-                        .font(.system(size: 13)).foregroundStyle(Theme.muted)
+                        .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.muted)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
@@ -426,7 +426,7 @@ struct WebPictureView: View {
                         if state.searching { ProgressView().controlSize(.small) }
                         Text(state.searching ? "More pictures are coming. Click the one that shows the plugin."
                              : "Click the picture that shows the plugin.")
-                            .font(.system(size: 12)).foregroundStyle(Theme.faint)
+                            .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                     }
                 }
                 HStack(spacing: 8) {
@@ -451,7 +451,7 @@ struct WebPictureView: View {
             return dropped(providers, p)
         }
         .background(Theme.ground)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 
     private func google(_ p: Plugin) {

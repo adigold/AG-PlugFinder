@@ -14,12 +14,12 @@ struct SearchField: View {
     var body: some View {
         HStack(spacing: 9) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: large ? 15 : 13, weight: .medium))
+                .font(.system(size: Theme.ts(large ? 15 : 13), weight: .medium))
                 .foregroundStyle(Theme.faint)
             TextField("", text: $model.query,
                       prompt: Text(large ? "Search plugins, makers or categories" : "Search plugins").foregroundStyle(Theme.faint))
                 .textFieldStyle(.plain)
-                .font(.system(size: large ? 17 : 14))
+                .font(.system(size: Theme.ts(large ? 17 : 14)))
                 .foregroundStyle(Theme.text)
                 .focused($focused)
             if !model.query.isEmpty {
@@ -133,11 +133,11 @@ struct ViewOptions: View {
         .padding(20)
         .frame(width: 300, alignment: .leading)
         .background(Theme.surface)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 
     private func label(_ t: String) -> some View {
-        Text(t).font(.system(size: 12)).foregroundStyle(Theme.faint)
+        Text(t).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
     }
 
     private func section<C: View>(_ title: String, @ViewBuilder _ content: () -> C) -> some View {
@@ -151,7 +151,7 @@ struct ViewOptions: View {
         Button { value.wrappedValue.toggle() } label: {
             HStack(spacing: 10) {
                 CheckMark(on: value.wrappedValue)
-                Text(title).font(.system(size: 13)).foregroundStyle(Theme.text)
+                Text(title).font(.system(size: Theme.ts(13))).foregroundStyle(Theme.text)
                 Spacer(minLength: 0)
             }
             .contentShape(Rectangle())
@@ -207,10 +207,10 @@ struct PluginThumbnail: View {
             } else {
                 VStack(spacing: 6) {
                     Text(initials)
-                        .font(.system(size: 22, weight: .semibold))
+                        .font(.system(size: Theme.ts(22), weight: .semibold))
                         .foregroundStyle(Theme.muted)
                     if !placeholderText.isEmpty {
-                        Text(placeholderText).font(.system(size: 11)).foregroundStyle(Theme.faint)
+                        Text(placeholderText).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
                     }
                 }
             }
@@ -242,10 +242,10 @@ struct LogicCard: View {
             let side = min(geo.size.width, geo.size.height)
             VStack(spacing: side * 0.08) {
                 Image(systemName: Self.symbol(for: plugin.category))
-                    .font(.system(size: side * 0.24, weight: .light))
+                    .font(.system(size: Theme.ts(side * 0.24), weight: .light))
                     .foregroundStyle(Theme.muted)
                 Text(plugin.name)
-                    .font(.system(size: max(10, side * 0.095), weight: .medium))
+                    .font(.system(size: Theme.ts(max(10, side * 0.095)), weight: .medium))
                     .foregroundStyle(Theme.faint)
                     .lineLimit(1).minimumScaleFactor(0.6)
                     .padding(.horizontal, 8)
@@ -308,7 +308,7 @@ struct PluginTile: View {
                         if view.showName {
                             HStack(spacing: 5) {
                                 Text(PluginVariants.title(plugin))
-                                    .font(.system(size: 14, weight: .semibold))
+                                    .font(.system(size: Theme.ts(14), weight: .semibold))
                                     .foregroundStyle(Theme.text)
                                     .lineLimit(1)
                                 MonoStereoMark(plugin: plugin)
@@ -316,7 +316,7 @@ struct PluginTile: View {
                         }
                         if view.showDetails {
                             Text("\(plugin.manufacturer) · \(plugin.displayCategory)")
-                                .font(.system(size: 12))
+                                .font(.system(size: Theme.ts(12)))
                                 .foregroundStyle(Theme.faint)
                                 .lineLimit(1)
                         }
@@ -360,21 +360,21 @@ struct PluginRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
                     Text(PluginVariants.title(plugin))
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: Theme.ts(14), weight: .semibold))
                         .foregroundStyle(Theme.text)
                         .lineLimit(1)
                     MonoStereoMark(plugin: plugin)
                     if store.favorites.contains(plugin.id) {
-                        Image(systemName: "star.fill").font(.system(size: 9)).foregroundStyle(Theme.accent)
+                        Image(systemName: "star.fill").font(.system(size: Theme.ts(9))).foregroundStyle(Theme.accent)
                     }
                 }
                 if view.showDetails || compact {
                     Text(plugin.isLogic ? "\(plugin.manufacturer) · \(plugin.displayCategory)"
                          : "\(plugin.manufacturer) · \(plugin.displayCategory) · \(plugin.formatName)")
-                        .font(.system(size: 12)).foregroundStyle(Theme.faint).lineLimit(1)
+                        .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint).lineLimit(1)
                 }
                 if !compact, let best = plugin.details?.bestFeature, !best.isEmpty {
-                    Text(best).font(.system(size: 12)).foregroundStyle(Theme.muted).lineLimit(1)
+                    Text(best).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).lineLimit(1)
                 }
             }
             Spacer(minLength: 0)
@@ -502,9 +502,9 @@ struct PluginGrid: View {
     private var emptyState: some View {
         VStack(spacing: 10) {
             Image(systemName: view.favoritesOnly ? "star" : "magnifyingglass")
-                .font(.system(size: 26, weight: .light))
+                .font(.system(size: Theme.ts(26), weight: .light))
                 .foregroundStyle(Theme.faint)
-            Text(emptyText).font(.system(size: 14)).foregroundStyle(Theme.muted)
+            Text(emptyText).font(.system(size: Theme.ts(14))).foregroundStyle(Theme.muted)
                 .multilineTextAlignment(.center)
         }
         .padding(30)
@@ -534,7 +534,7 @@ struct PluginGrid: View {
                             .strokeBorder(Theme.accent, lineWidth: 2)
                             .overlay(alignment: .topLeading) {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 16)).foregroundStyle(Color.black, Theme.accent)
+                                    .font(.system(size: Theme.ts(16))).foregroundStyle(Theme.onAccent, Theme.accent)
                                     .padding(8)
                             }
                             .allowsHitTesting(false)
@@ -573,7 +573,7 @@ struct PluginGrid: View {
                 .draggable(PluginDrag.prefix + plugin.id) {
                     HStack(spacing: 8) {
                         PluginThumbnail(plugin: plugin, radius: 6).frame(width: 54, height: 36)
-                        Text(plugin.name).font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.text)
+                        Text(plugin.name).font(.system(size: Theme.ts(12), weight: .semibold)).foregroundStyle(Theme.text)
                     }
                     .padding(8)
                     .background(RoundedRectangle(cornerRadius: 10).fill(Theme.raised))
@@ -635,10 +635,10 @@ struct PluginDetailView: View {
             if let message = model.message {
                 HStack(alignment: .top, spacing: 10) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 12)).foregroundStyle(Theme.warning)
+                        .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.warning)
                         .padding(.top, 1)
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(message).font(.system(size: 12)).foregroundStyle(Theme.text)
+                        Text(message).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.text)
                             .fixedSize(horizontal: false, vertical: true)
                         if model.showAccessibilityButton {
                             QuietPill(title: "Allow in System Settings", height: 26) { AXAccess.openSettings() }
@@ -646,7 +646,7 @@ struct PluginDetailView: View {
                     }
                     Spacer(minLength: 0)
                     Button { model.message = nil } label: {
-                        Image(systemName: "xmark").font(.system(size: 10, weight: .semibold))
+                        Image(systemName: "xmark").font(.system(size: Theme.ts(10), weight: .semibold))
                             .foregroundStyle(Theme.faint)
                     }
                     .buttonStyle(.plain)
@@ -667,14 +667,14 @@ struct PluginDetailView: View {
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(PluginVariants.title(plugin))
-                .font(.system(size: 20, weight: .semibold))
+                .font(.system(size: Theme.ts(20), weight: .semibold))
                 .foregroundStyle(Theme.text)
                 .lineLimit(2)
             MonoStereoVersions(plugin: plugin, model: model)
             Text("\(plugin.manufacturer) · \(plugin.displayCategory) · \(plugin.typeGroup)")
-                .font(.system(size: 13)).foregroundStyle(Theme.faint)
+                .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint)
             if let kind = plugin.details?.kind, !kind.isEmpty {
-                Text(kind).font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.muted)
+                Text(kind).font(.system(size: Theme.ts(14), weight: .medium)).foregroundStyle(Theme.muted)
                     .padding(.top, 2)
             }
         }
@@ -686,10 +686,10 @@ struct PluginDetailView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 6) {
                         Circle().fill(Theme.accent).frame(width: 6, height: 6)
-                        Text("Best feature").font(.system(size: 12)).foregroundStyle(Theme.faint)
+                        Text("Best feature").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                     }
                     Text(d.bestFeature)
-                        .font(.system(size: 15, weight: .medium))
+                        .font(.system(size: Theme.ts(15), weight: .medium))
                         .foregroundStyle(Theme.text)
                         .lineSpacing(2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -699,16 +699,16 @@ struct PluginDetailView: View {
                 .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.surface))
             }
             Text(d.summary)
-                .font(.system(size: 13)).foregroundStyle(Theme.muted)
+                .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.muted)
                 .lineSpacing(3).fixedSize(horizontal: false, vertical: true)
             if !d.highlights.isEmpty {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(d.highlights, id: \.self) { h in
                         HStack(alignment: .top, spacing: 10) {
                             Image(systemName: "checkmark")
-                                .font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.faint)
+                                .font(.system(size: Theme.ts(10), weight: .bold)).foregroundStyle(Theme.faint)
                                 .padding(.top, 3)
-                            Text(h).font(.system(size: 13)).foregroundStyle(Theme.text)
+                            Text(h).font(.system(size: Theme.ts(13))).foregroundStyle(Theme.text)
                                 .fixedSize(horizontal: false, vertical: true)
                             Spacer(minLength: 0)
                         }
@@ -722,12 +722,12 @@ struct PluginDetailView: View {
 
     @ViewBuilder private var noInfo: some View {
         if let err = fetcher.failures[plugin.id] {
-            Text("Info lookup failed: \(err)").font(.system(size: 12)).foregroundStyle(Theme.negative)
+            Text("Info lookup failed: \(err)").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.negative)
         } else {
             HStack(spacing: 10) {
-                Image(systemName: "sparkles").font(.system(size: 13)).foregroundStyle(Theme.faint)
+                Image(systemName: "sparkles").font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint)
                 Text("No description yet. Right-click the plugin and choose Look Up Info.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.faint)
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(14)
@@ -755,7 +755,7 @@ struct PluginDetailView: View {
                 Text(v).foregroundStyle(Theme.muted).multilineTextAlignment(.trailing)
                     .monospacedDigit().textSelection(.enabled)
             }
-            .font(.system(size: 12))
+            .font(.system(size: Theme.ts(12)))
             .padding(.vertical, 9)
         }
     }
@@ -771,9 +771,9 @@ struct SlotChooser: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(model.selected?.slotKind == .instrument ? "Replace the instrument?" : "Replace which insert?")
-                .font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.text)
+                .font(.system(size: Theme.ts(16), weight: .semibold)).foregroundStyle(Theme.text)
             if let message = model.message {
-                Text(message).font(.system(size: 12)).foregroundStyle(Theme.muted)
+                Text(message).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
                     .fixedSize(horizontal: false, vertical: true)
             }
             VStack(spacing: 4) {
@@ -786,7 +786,7 @@ struct SlotChooser: View {
                             Spacer()
                             if slot.id == model.slotSelection { KeyCap(key: "↩") }
                         }
-                        .font(.system(size: 13))
+                        .font(.system(size: Theme.ts(13)))
                         .padding(.horizontal, 12).frame(height: 36)
                         .background(RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .fill(slot.id == model.slotSelection ? Theme.raised : Theme.surface))
@@ -799,7 +799,7 @@ struct SlotChooser: View {
                 KeyCap(key: "↩"); Text("replace").foregroundStyle(Theme.faint)
                 KeyCap(key: "esc"); Text("cancel").foregroundStyle(Theme.faint)
             }
-            .font(.system(size: 11))
+            .font(.system(size: Theme.ts(11)))
         }
         .padding(20)
         .frame(width: 360)
@@ -911,7 +911,7 @@ struct ZoomableThumbnail: View {
             .overlay(alignment: .bottomTrailing) {
                 if hasImage {
                     Image(systemName: "plus.magnifyingglass")
-                        .font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text)
+                        .font(.system(size: Theme.ts(13), weight: .semibold)).foregroundStyle(Theme.text)
                         .frame(width: 32, height: 32)
                         .background(Circle().fill(Color.black.opacity(0.65)))
                         .padding(10)
@@ -948,15 +948,15 @@ enum ImageZoom {
         w.titleVisibility = .hidden
         w.isMovableByWindowBackground = true
         w.isReleasedWhenClosed = false
-        w.backgroundColor = .black
-        w.appearance = NSAppearance(named: .darkAqua)
+        w.backgroundColor = Theme.nsGround
+        w.appearance = Theme.nsAppearance
         w.level = .floating
 
         let scroll = NSScrollView()
         scroll.allowsMagnification = true
         scroll.minMagnification = 0.25
         scroll.maxMagnification = 4
-        scroll.backgroundColor = .black
+        scroll.backgroundColor = Theme.nsGround
         scroll.hasVerticalScroller = true
         scroll.hasHorizontalScroller = true
         scroll.autohidesScrollers = true
@@ -967,7 +967,7 @@ enum ImageZoom {
         let container = NSView()
         let title = NSTextField(labelWithString: "\(plugin.name)  ·  \(plugin.manufacturer)")
         title.font = .systemFont(ofSize: 13, weight: .semibold)
-        title.textColor = .white
+        title.textColor = Theme.nsText
         for v in [scroll, title] { v.translatesAutoresizingMaskIntoConstraints = false; container.addSubview(v) }
         NSLayoutConstraint.activate([
             title.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
@@ -1118,7 +1118,7 @@ struct FavoriteStar: View {
         let on = store.favorites.contains(plugin.id)
         Button { store.favoriteTapped(plugin.id) } label: {
             Image(systemName: on ? "star.fill" : "star")
-                .font(.system(size: 11, weight: .semibold))
+                .font(.system(size: Theme.ts(11), weight: .semibold))
                 .foregroundStyle(on ? Theme.accent : (hovering ? Theme.text : Color.white.opacity(cardHovered ? 0.55 : 0.32)))
                 .frame(width: 24, height: 24)
                 .background(Circle().fill(Color.black.opacity(on || hovering || cardHovered ? 0.7 : 0.45)))
@@ -1146,11 +1146,11 @@ struct UnfavoriteConfirm: View {
                     if let plugin {
                         PluginThumbnail(plugin: plugin, radius: 10).frame(width: 150, height: 94)
                     }
-                    Image(systemName: "star.slash").font(.system(size: 20)).foregroundStyle(Theme.accent)
+                    Image(systemName: "star.slash").font(.system(size: Theme.ts(20))).foregroundStyle(Theme.accent)
                     VStack(spacing: 4) {
-                        Text("Remove from Favorites?").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
+                        Text("Remove from Favorites?").font(.system(size: Theme.ts(15), weight: .semibold)).foregroundStyle(Theme.text)
                         Text("\(plugin?.name ?? "This plugin") won't show in Favorites anymore. You can add it back with the star.")
-                            .font(.system(size: 12)).foregroundStyle(Theme.muted)
+                            .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
                             .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                     }
                     HStack(spacing: 8) {
@@ -1266,7 +1266,7 @@ struct PickedBar: View {
     var body: some View {
         if model.picked.count > 1 {
             HStack(spacing: 8) {
-                Text("\(model.picked.count) selected").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.text)
+                Text("\(model.picked.count) selected").font(.system(size: Theme.ts(12), weight: .semibold)).foregroundStyle(Theme.text)
                     .padding(.horizontal, 6)
                 PrimaryPill(title: "Add All to Logic", systemImage: "plus", height: 28) { PickedActions.addAll(model) }
                     .help("Adds the \(model.picked.count) plugins to the selected track, one after another, in the order shown")
@@ -1400,8 +1400,8 @@ struct PictureActions: View {
     private func small(_ title: String, _ icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 4) {
-                Image(systemName: icon).font(.system(size: 10, weight: .medium))
-                Text(title).font(.system(size: 11))
+                Image(systemName: icon).font(.system(size: Theme.ts(10), weight: .medium))
+                Text(title).font(.system(size: Theme.ts(11)))
             }
             .padding(.horizontal, 9).frame(height: 24)
             .foregroundStyle(Theme.muted)
@@ -1420,7 +1420,7 @@ struct MonoStereoMark: View {
     let plugin: Plugin
     var body: some View {
         if PluginVariants.enabled, PluginVariants.versions(of: plugin).count > 1 {
-            Text("M/S").font(.system(size: 9, weight: .bold)).foregroundStyle(Theme.muted)
+            Text("M/S").font(.system(size: Theme.ts(9), weight: .bold)).foregroundStyle(Theme.muted)
                 .padding(.horizontal, 5).frame(height: 15)
                 .background(Capsule().strokeBorder(Theme.faint.opacity(0.6), lineWidth: 1))
                 .help("Mono and stereo versions together. Logic gets the one that fits the track.")
@@ -1437,10 +1437,10 @@ struct MonoStereoVersions: View {
         let versions = PluginVariants.versions(of: plugin)
         if PluginVariants.enabled, versions.count > 1 {
             HStack(spacing: 6) {
-                Text("Fits the track:").font(.system(size: 12)).foregroundStyle(Theme.faint)
+                Text("Fits the track:").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                 ForEach(versions, id: \.id) { v in
                     Button { model.insertSelected(version: v) } label: {
-                        Text(PluginVariants.roleTitle(v)).font(.system(size: 11, weight: .medium))
+                        Text(PluginVariants.roleTitle(v)).font(.system(size: Theme.ts(11), weight: .medium))
                             .padding(.horizontal, 9).frame(height: 22)
                             .foregroundStyle(Theme.text)
                             .background(Capsule().fill(Theme.raised))

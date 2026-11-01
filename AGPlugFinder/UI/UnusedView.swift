@@ -62,7 +62,7 @@ struct UnusedView: View {
                 LazyVStack(spacing: 0) {
                     if items.isEmpty {
                         Text(showHidden ? "No hidden plugins." : "Nothing here. You use every plugin you have.")
-                            .font(.system(size: 13)).foregroundStyle(Theme.faint).padding(20)
+                            .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint).padding(20)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     ForEach(items) { p in row(p) }
@@ -75,9 +75,9 @@ struct UnusedView: View {
 
     private func tile(_ title: String, _ value: String, _ sub: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.system(size: 11)).foregroundStyle(Theme.faint)
-            Text(value).font(.system(size: 17, weight: .bold)).foregroundStyle(Theme.text).lineLimit(1).minimumScaleFactor(0.7)
-            Text(sub).font(.system(size: 11)).foregroundStyle(Theme.muted).lineLimit(2)
+            Text(title).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
+            Text(value).font(.system(size: Theme.ts(17), weight: .bold)).foregroundStyle(Theme.text).lineLimit(1).minimumScaleFactor(0.7)
+            Text(sub).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.muted).lineLimit(2)
         }
         .padding(12)
         .frame(maxWidth: .infinity, minHeight: 96, maxHeight: 96, alignment: .topLeading)
@@ -86,7 +86,7 @@ struct UnusedView: View {
 
     private var bulkBar: some View {
         HStack(spacing: 8) {
-            Text("\(checked.count) selected").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.text)
+            Text("\(checked.count) selected").font(.system(size: Theme.ts(12), weight: .semibold)).foregroundStyle(Theme.text)
             Spacer()
             if showHidden {
                 QuietPill(title: "Show in Library", systemImage: "eye", height: 28) { setVisible(checked, true) }
@@ -109,13 +109,13 @@ struct UnusedView: View {
                 .buttonStyle(.plain)
             PluginThumbnail(plugin: p, radius: 6).frame(width: 54, height: 36)
             VStack(alignment: .leading, spacing: 2) {
-                Text(p.name).font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.text).lineLimit(1)
-                Text(sub.joined(separator: " · ")).font(.system(size: 11)).foregroundStyle(Theme.faint).lineLimit(1)
+                Text(p.name).font(.system(size: Theme.ts(13), weight: .medium)).foregroundStyle(Theme.text).lineLimit(1)
+                Text(sub.joined(separator: " · ")).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).lineLimit(1)
             }
             Spacer()
-            if let v = paid(p) { Text(lic.money(v)).font(.system(size: 12)).foregroundStyle(Theme.muted).monospacedDigit() }
+            if let v = paid(p) { Text(lic.money(v)).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).monospacedDigit() }
             Text(sizes[p.id].map { ByteCountFormatter.string(fromByteCount: $0, countStyle: .file) } ?? "…")
-                .font(.system(size: 12)).foregroundStyle(Theme.muted).monospacedDigit().frame(width: 70, alignment: .trailing)
+                .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).monospacedDigit().frame(width: 70, alignment: .trailing)
             BarIconButton(systemImage: showHidden ? "eye" : "eye.slash", help: showHidden ? "Show in the library again" : "Hide from the library") {
                 setVisible([p.id], showHidden)
             }

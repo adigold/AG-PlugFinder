@@ -4,7 +4,7 @@ import SwiftUI
 // MARK: - Small fields
 
 private func fieldLabel(_ text: String) -> some View {
-    Text(text).font(.system(size: 11)).foregroundStyle(Theme.faint)
+    Text(text).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
 }
 
 /// A one-line text field in the app's style.
@@ -16,7 +16,7 @@ struct LicenseTextField: View {
     var body: some View {
         TextField(placeholder, text: $text)
             .textFieldStyle(.plain)
-            .font(.system(size: 13))
+            .font(.system(size: Theme.ts(13)))
             .padding(.horizontal, 10).frame(height: 30)
             .frame(width: width)
             .frame(maxWidth: width == nil ? .infinity : nil)
@@ -33,9 +33,9 @@ struct MoneyField: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            Text(lic.symbol).font(.system(size: 13)).foregroundStyle(Theme.faint)
+            Text(lic.symbol).font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint)
             TextField(placeholder, text: $text)
-                .textFieldStyle(.plain).font(.system(size: 13)).monospacedDigit()
+                .textFieldStyle(.plain).font(.system(size: Theme.ts(13))).monospacedDigit()
                 .onChange(of: text) { _, t in
                     let clean = t.replacingOccurrences(of: ",", with: ".").filter { "0123456789.".contains($0) }
                     value = clean.isEmpty ? nil : Double(clean)
@@ -63,7 +63,7 @@ struct OptionalDate: View {
                 }
             if date != nil {
                 Button { date = nil } label: {
-                    Image(systemName: "xmark.circle.fill").font(.system(size: 13)).foregroundStyle(Theme.faint)
+                    Image(systemName: "xmark.circle.fill").font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint)
                 }
                 .buttonStyle(.plain).help("Clear the date")
             }
@@ -83,7 +83,7 @@ struct CalendarPicker: View {
         VStack(spacing: 12) {
             HStack {
                 Text(month.formatted(.dateTime.month(.wide).year().locale(Locale(identifier: "en_US"))))
-                    .font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
+                    .font(.system(size: Theme.ts(15), weight: .semibold)).foregroundStyle(Theme.text)
                 Spacer()
                 BarIconButton(systemImage: "chevron.left", help: "Previous month") { step(-1) }
                 BarIconButton(systemImage: "chevron.right", help: "Next month") { step(1) }
@@ -91,7 +91,7 @@ struct CalendarPicker: View {
             let names = weekdayNames
             HStack(spacing: 0) {
                 ForEach(names.indices, id: \.self) { i in
-                    Text(names[i]).font(.system(size: 11, weight: .medium)).foregroundStyle(Theme.faint).frame(maxWidth: .infinity)
+                    Text(names[i]).font(.system(size: Theme.ts(11), weight: .medium)).foregroundStyle(Theme.faint).frame(maxWidth: .infinity)
                 }
             }
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 4) {
@@ -106,7 +106,7 @@ struct CalendarPicker: View {
         .padding(14)
         .frame(width: 300)
         .background(Theme.surface)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
         .onAppear { month = firstOfMonth(date) }
     }
 
@@ -136,10 +136,10 @@ struct CalendarPicker: View {
             let today = cal.isDateInToday(d)
             Button { date = d; done() } label: {
                 Text("\(cal.component(.day, from: d))")
-                    .font(.system(size: 13, weight: chosen ? .bold : .regular)).monospacedDigit()
-                    .foregroundStyle(chosen ? Color.black : Theme.text)
+                    .font(.system(size: Theme.ts(13), weight: chosen ? .bold : .regular)).monospacedDigit()
+                    .foregroundStyle(chosen ? Theme.onInk : Theme.text)
                     .frame(maxWidth: .infinity).frame(height: 32)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(chosen ? Color.white : Theme.raised.opacity(0.55)))
+                    .background(RoundedRectangle(cornerRadius: 8).fill(chosen ? Theme.ink : Theme.raised.opacity(0.55)))
                     .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.accent, lineWidth: today && !chosen ? 1.5 : 0))
                     .contentShape(Rectangle())
             }
@@ -172,7 +172,7 @@ struct LicenseKeyField: View {
                 if shown { TextField("Serial or license key", text: $key) }
                 else { SecureField("Serial or license key", text: $key) }
             }
-            .textFieldStyle(.plain).font(.system(size: 13, design: .monospaced))
+            .textFieldStyle(.plain).font(.system(size: Theme.ts(13), design: .monospaced))
             .padding(.horizontal, 10).frame(height: 30)
             .background(RoundedRectangle(cornerRadius: 8).fill(Theme.raised))
             .onChange(of: key) { _, v in if loaded { LicenseKeys.save(v, for: id) } }
@@ -207,10 +207,10 @@ struct LicenseSection: View {
         VStack(alignment: .leading, spacing: 10) {
             if showsTitle {
                 HStack {
-                    Text("License").font(.system(size: 12)).foregroundStyle(Theme.faint)
+                    Text("License").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                     Spacer()
                     Button("All licenses") { LicensesWindow.shared.show() }
-                        .buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(Theme.muted)
+                        .buttonStyle(.plain).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.muted)
                 }
             }
             FlowRow(spacing: 6) {
@@ -296,8 +296,8 @@ struct LicenseSection: View {
             if let p = lic.plan(l.planID) {
                 Button { PlanWindow.show(p.id) } label: {
                     HStack(spacing: 6) {
-                        Text(PlanSummary.line(p)).font(.system(size: 12)).foregroundStyle(Theme.muted)
-                        Text("Edit").font(.system(size: 12, weight: .medium)).foregroundStyle(Theme.text)
+                        Text(PlanSummary.line(p)).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
+                        Text("Edit").font(.system(size: Theme.ts(12), weight: .medium)).foregroundStyle(Theme.text)
                     }
                 }
                 .buttonStyle(.plain)
@@ -336,8 +336,8 @@ enum PlanWindow {
             w.titleVisibility = .hidden
             w.isMovableByWindowBackground = true
             w.isReleasedWhenClosed = false
-            w.backgroundColor = .black
-            w.appearance = NSAppearance(named: .darkAqua)
+            w.backgroundColor = Theme.nsGround
+            w.appearance = Theme.nsAppearance
             w.contentView = NSHostingView(rootView: PlanEditor(id: id) { windows[id]?.close() })
             w.center()
             windows[id] = w
@@ -364,9 +364,9 @@ struct PlanEditor: View {
         let p = plan.wrappedValue
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text(p.isSubscription ? "Subscription" : "Bundle").font(.system(size: 12)).foregroundStyle(Theme.faint)
+                Text(p.isSubscription ? "Subscription" : "Bundle").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                 TextField("Name", text: plan.name)
-                    .textFieldStyle(.plain).font(.system(size: 22, weight: .bold)).foregroundStyle(Theme.text)
+                    .textFieldStyle(.plain).font(.system(size: Theme.ts(22), weight: .bold)).foregroundStyle(Theme.text)
                 HStack(spacing: 6) {
                     Chip(title: "Subscription", on: p.isSubscription) { plan.wrappedValue.kind = .subscription; relabel(.subscription) }
                     Chip(title: "Bundle", on: !p.isSubscription) { plan.wrappedValue.kind = .bundle; relabel(.bundle) }
@@ -393,7 +393,7 @@ struct PlanEditor: View {
                             lic.deletePlan(id); PlanWindow.close(id)
                         }
                     }
-                        .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Theme.negative)
+                        .buttonStyle(.plain).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.negative)
                     Spacer()
                     PrimaryPill(title: "Done") { close() }
                 }
@@ -402,7 +402,7 @@ struct PlanEditor: View {
         }
         .frame(minWidth: 480, minHeight: 480)
         .background(Theme.ground)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 
     /// Plugins follow their plan's kind.
@@ -443,7 +443,7 @@ struct PlanEditor: View {
             HStack(spacing: 10) {
                 OnOffSwitch(on: p.active) { plan.wrappedValue.active.toggle() }
                 Text(p.active ? "Active, renews by itself" : "Cancelled, no reminders and not counted")
-                    .font(.system(size: 12)).foregroundStyle(Theme.muted)
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
             }
         }
     }
@@ -465,11 +465,11 @@ struct PlanEditor: View {
                 VStack(spacing: 0) {
                     ForEach(list) { pl in
                         HStack {
-                            Text(pl.name).font(.system(size: 12)).foregroundStyle(Theme.text)
-                            Text(pl.manufacturer).font(.system(size: 11)).foregroundStyle(Theme.faint)
+                            Text(pl.name).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.text)
+                            Text(pl.manufacturer).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
                             Spacer()
                             Button { var l = lic.license(pl.id); l.planID = nil; lic.set(l, for: pl.id) } label: {
-                                Image(systemName: "xmark").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.faint)
+                                Image(systemName: "xmark").font(.system(size: Theme.ts(10), weight: .semibold)).foregroundStyle(Theme.faint)
                             }
                             .buttonStyle(.plain).help("Take it out")
                         }
@@ -497,8 +497,8 @@ final class LicensesWindow {
             w.titleVisibility = .hidden
             w.isMovableByWindowBackground = true
             w.isReleasedWhenClosed = false
-            w.backgroundColor = .black
-            w.appearance = NSAppearance(named: .darkAqua)
+            w.backgroundColor = Theme.nsGround
+            w.appearance = Theme.nsAppearance
             w.minSize = NSSize(width: 640, height: 480)
             w.contentView = NSHostingView(rootView: LicensesView())
             w.center()
@@ -523,13 +523,13 @@ enum PluginLicenseWindow {
         w.titleVisibility = .hidden
         w.isMovableByWindowBackground = true
         w.isReleasedWhenClosed = false
-        w.backgroundColor = .black
-        w.appearance = NSAppearance(named: .darkAqua)
+        w.backgroundColor = Theme.nsGround
+        w.appearance = Theme.nsAppearance
         w.contentView = NSHostingView(rootView:
             VStack(alignment: .leading, spacing: 14) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(plugin.name).font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.text)
-                    Text(plugin.manufacturer).font(.system(size: 12)).foregroundStyle(Theme.faint)
+                    Text(plugin.name).font(.system(size: Theme.ts(20), weight: .bold)).foregroundStyle(Theme.text)
+                    Text(plugin.manufacturer).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                 }
                 LicenseSection(plugin: plugin, showsTitle: false)
                 Spacer(minLength: 0)
@@ -537,7 +537,7 @@ enum PluginLicenseWindow {
             .padding(.horizontal, 26).padding(.top, 40).padding(.bottom, 22)
             .frame(minWidth: 460, minHeight: 420, alignment: .topLeading)
             .background(Theme.ground)
-            .preferredColorScheme(.dark))
+            .preferredColorScheme(Theme.scheme))
         w.center()
         window = w
         w.makeKeyAndOrderFront(nil)
@@ -569,17 +569,17 @@ struct LicensesView: View {
         }
         .frame(minWidth: 640, minHeight: 480)
         .background(Theme.ground)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("My Purchases").font(.system(size: 22, weight: .bold)).foregroundStyle(Theme.text)
+                Text("My Purchases").font(.system(size: Theme.ts(22), weight: .bold)).foregroundStyle(Theme.text)
                 Text(UserLibrary.shared.syncEnabled && Licenses.cloudFile != nil
                      ? "Synced with your other Macs through iCloud Drive. License keys stay in this Mac's Keychain."
                      : "Kept on this Mac only. License keys are stored in your Keychain.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.faint)
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
             }
             Spacer()
             CurrencyButton()
@@ -604,9 +604,9 @@ struct LicensesView: View {
 
     private func stat(_ title: String, _ value: String, _ sub: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.system(size: 11)).foregroundStyle(Theme.faint)
-            Text(value).font(.system(size: 17, weight: .bold)).foregroundStyle(Theme.text).lineLimit(1).minimumScaleFactor(0.7)
-            Text(sub).font(.system(size: 11)).foregroundStyle(Theme.muted).lineLimit(2)
+            Text(title).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
+            Text(value).font(.system(size: Theme.ts(17), weight: .bold)).foregroundStyle(Theme.text).lineLimit(1).minimumScaleFactor(0.7)
+            Text(sub).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.muted).lineLimit(2)
         }
         .padding(14)
         .frame(maxWidth: .infinity, minHeight: 92, alignment: .topLeading)
@@ -621,12 +621,12 @@ struct LicensesView: View {
                 VStack(spacing: 0) {
                     ForEach(list) { u in
                         HStack {
-                            Image(systemName: "bell").font(.system(size: 11)).foregroundStyle(Theme.accent)
-                            Text(u.title).font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.text)
-                            Text(u.detail).font(.system(size: 12)).foregroundStyle(Theme.muted)
+                            Image(systemName: "bell").font(.system(size: Theme.ts(11))).foregroundStyle(Theme.accent)
+                            Text(u.title).font(.system(size: Theme.ts(13), weight: .medium)).foregroundStyle(Theme.text)
+                            Text(u.detail).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
                             Spacer()
-                            Text(u.date.formatted(date: .abbreviated, time: .omitted)).font(.system(size: 12)).foregroundStyle(Theme.text)
-                            Text(days(u.date)).font(.system(size: 11)).foregroundStyle(Theme.faint).frame(width: 70, alignment: .trailing)
+                            Text(u.date.formatted(date: .abbreviated, time: .omitted)).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.text)
+                            Text(days(u.date)).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).frame(width: 70, alignment: .trailing)
                         }
                         .padding(.horizontal, 14).frame(height: 34)
                     }
@@ -642,7 +642,7 @@ struct LicensesView: View {
     }
 
     private func sectionTitle(_ t: String) -> some View {
-        Text(t).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text)
+        Text(t).font(.system(size: Theme.ts(13), weight: .semibold)).foregroundStyle(Theme.text)
     }
 
     private var plansSection: some View {
@@ -667,7 +667,7 @@ struct LicensesView: View {
             }
             if lic.plans.isEmpty {
                 Text("Add a subscription such as Waves Creative Access, or a bundle you bought, then select its plugins in the library and choose License.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.faint)
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                     .padding(14).frame(maxWidth: .infinity, alignment: .leading)
                     .background(RoundedRectangle(cornerRadius: Theme.radiusInner).fill(Theme.surface))
             } else {
@@ -676,13 +676,13 @@ struct LicensesView: View {
                         Button { PlanWindow.show(p.id) } label: {
                             HStack {
                                 Image(systemName: p.isSubscription ? "arrow.triangle.2.circlepath" : "shippingbox")
-                                    .font(.system(size: 12)).foregroundStyle(p.active || !p.isSubscription ? Theme.muted : Theme.faint)
+                                    .font(.system(size: Theme.ts(12))).foregroundStyle(p.active || !p.isSubscription ? Theme.muted : Theme.faint)
                                     .frame(width: 18)
-                                Text(p.name).font(.system(size: 13, weight: .medium))
+                                Text(p.name).font(.system(size: Theme.ts(13), weight: .medium))
                                     .foregroundStyle(p.active || !p.isSubscription ? Theme.text : Theme.faint)
                                 Spacer()
-                                Text(PlanSummary.line(p)).font(.system(size: 12)).foregroundStyle(Theme.muted)
-                                Image(systemName: "chevron.right").font(.system(size: 10)).foregroundStyle(Theme.faint)
+                                Text(PlanSummary.line(p)).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted)
+                                Image(systemName: "chevron.right").font(.system(size: Theme.ts(10))).foregroundStyle(Theme.faint)
                             }
                             .padding(.horizontal, 14).frame(height: 38)
                             .contentShape(Rectangle())
@@ -726,7 +726,7 @@ struct LicensesView: View {
             if list.isEmpty {
                 Text(filter == .all ? "Nothing entered yet. Open a plugin's info and fill in its License, or select many in the library and choose License."
                                     : "No plugins here.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.faint)
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                     .padding(14).frame(maxWidth: .infinity, alignment: .leading)
                     .background(RoundedRectangle(cornerRadius: Theme.radiusInner).fill(Theme.surface))
             } else {
@@ -748,12 +748,12 @@ struct LicensesView: View {
         return Button { PluginLicenseWindow.show(p) } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(p.name).font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.text).lineLimit(1)
-                    Text(p.manufacturer).font(.system(size: 11)).foregroundStyle(Theme.faint).lineLimit(1)
+                    Text(p.name).font(.system(size: Theme.ts(13), weight: .medium)).foregroundStyle(Theme.text).lineLimit(1)
+                    Text(p.manufacturer).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).lineLimit(1)
                 }
                 Spacer()
-                Text(right.joined(separator: " · ")).font(.system(size: 12)).foregroundStyle(Theme.muted).lineLimit(1)
-                Text(l?.status?.title ?? "Not entered").font(.system(size: 11, weight: .medium))
+                Text(right.joined(separator: " · ")).font(.system(size: Theme.ts(12))).foregroundStyle(Theme.muted).lineLimit(1)
+                Text(l?.status?.title ?? "Not entered").font(.system(size: Theme.ts(11), weight: .medium))
                     .foregroundStyle(l?.status == nil ? Theme.faint : Theme.text)
                     .padding(.horizontal, 8).frame(height: 20)
                     .background(Capsule().fill(Theme.raised))
@@ -823,14 +823,14 @@ struct CurrencyList: View {
                     ForEach(list, id: \.self) { c in
                         Button { lic.currency = c; done() } label: {
                             HStack(spacing: 10) {
-                                Text(c).font(.system(size: 12, weight: .semibold)).monospaced().frame(width: 36, alignment: .leading)
-                                Text(Licenses.currencyName(c)).font(.system(size: 13)).lineLimit(1)
+                                Text(c).font(.system(size: Theme.ts(12), weight: .semibold)).monospaced().frame(width: 36, alignment: .leading)
+                                Text(Licenses.currencyName(c)).font(.system(size: Theme.ts(13))).lineLimit(1)
                                 Spacer()
-                                if lic.currency == c { Image(systemName: "checkmark").font(.system(size: 11, weight: .bold)) }
+                                if lic.currency == c { Image(systemName: "checkmark").font(.system(size: Theme.ts(11), weight: .bold)) }
                             }
-                            .foregroundStyle(lic.currency == c ? Color.black : Theme.text)
+                            .foregroundStyle(lic.currency == c ? Theme.onInk : Theme.text)
                             .padding(.horizontal, 10).frame(height: 30)
-                            .background(RoundedRectangle(cornerRadius: 7).fill(lic.currency == c ? Color.white : Color.clear))
+                            .background(RoundedRectangle(cornerRadius: 7).fill(lic.currency == c ? Theme.ink : Color.clear))
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
@@ -841,7 +841,7 @@ struct CurrencyList: View {
         .padding(10)
         .frame(width: 280, height: 360)
         .background(Theme.surface)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 }
 
@@ -865,11 +865,11 @@ struct PluginChooser: View {
                     ForEach(list) { p in
                         Button { pick(p) } label: {
                             HStack {
-                                Text(p.name).font(.system(size: 13)).foregroundStyle(Theme.text).lineLimit(1)
-                                Text(p.manufacturer).font(.system(size: 11)).foregroundStyle(Theme.faint).lineLimit(1)
+                                Text(p.name).font(.system(size: Theme.ts(13))).foregroundStyle(Theme.text).lineLimit(1)
+                                Text(p.manufacturer).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint).lineLimit(1)
                                 Spacer()
                                 if let s = Licenses.shared.licenses[p.id]?.status {
-                                    Text(s.title).font(.system(size: 10, weight: .medium)).foregroundStyle(Theme.muted)
+                                    Text(s.title).font(.system(size: Theme.ts(10), weight: .medium)).foregroundStyle(Theme.muted)
                                 }
                             }
                             .padding(.horizontal, 10).frame(height: 30)
@@ -883,6 +883,6 @@ struct PluginChooser: View {
         .padding(10)
         .frame(width: 320, height: 380)
         .background(Theme.surface)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 }

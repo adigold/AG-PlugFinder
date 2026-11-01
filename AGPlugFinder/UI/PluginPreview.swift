@@ -66,7 +66,7 @@ struct PluginPreview: View {
                 let results = model.results
                 if results.count > 1 {
                     Text("\(model.selection + 1) of \(results.count)")
-                        .font(.system(size: 11, weight: .medium)).monospacedDigit()
+                        .font(.system(size: Theme.ts(11), weight: .medium)).monospacedDigit()
                         .foregroundStyle(Theme.faint)
                 }
             }
@@ -78,22 +78,22 @@ struct PluginPreview: View {
 
     private func hint(_ key: String, _ what: String) -> some View {
         HStack(spacing: 6) {
-            Text(key).font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.muted)
+            Text(key).font(.system(size: Theme.ts(10), weight: .semibold)).foregroundStyle(Theme.muted)
                 .padding(.horizontal, 6).frame(height: 18)
                 .background(RoundedRectangle(cornerRadius: 5).fill(Theme.raised))
-            Text(what).font(.system(size: 11)).foregroundStyle(Theme.faint)
+            Text(what).font(.system(size: Theme.ts(11))).foregroundStyle(Theme.faint)
         }
     }
 
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(PluginVariants.title(plugin))
-                .font(.system(size: 26, weight: .semibold)).foregroundStyle(Theme.text)
+                .font(.system(size: Theme.ts(26), weight: .semibold)).foregroundStyle(Theme.text)
                 .lineLimit(3).fixedSize(horizontal: false, vertical: true)
             Text("\(plugin.manufacturer) · \(plugin.displayCategory) · \(plugin.typeGroup)")
-                .font(.system(size: 13)).foregroundStyle(Theme.faint)
+                .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint)
             if let kind = plugin.details?.kind, !kind.isEmpty {
-                Text(kind).font(.system(size: 15, weight: .medium)).foregroundStyle(Theme.muted)
+                Text(kind).font(.system(size: Theme.ts(15), weight: .medium)).foregroundStyle(Theme.muted)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -105,10 +105,10 @@ struct PluginPreview: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 6) {
                         Circle().fill(Theme.accent).frame(width: 6, height: 6)
-                        Text("Best feature").font(.system(size: 12)).foregroundStyle(Theme.faint)
+                        Text("Best feature").font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                     }
                     Text(d.bestFeature)
-                        .font(.system(size: 17, weight: .medium)).foregroundStyle(Theme.text)
+                        .font(.system(size: Theme.ts(17), weight: .medium)).foregroundStyle(Theme.text)
                         .lineSpacing(3).fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(18)
@@ -117,7 +117,7 @@ struct PluginPreview: View {
             }
             if !d.summary.isEmpty {
                 Text(d.summary)
-                    .font(.system(size: 15)).foregroundStyle(Theme.muted)
+                    .font(.system(size: Theme.ts(15))).foregroundStyle(Theme.muted)
                     .lineSpacing(4).fixedSize(horizontal: false, vertical: true)
             }
             if !d.highlights.isEmpty {
@@ -125,9 +125,9 @@ struct PluginPreview: View {
                     ForEach(d.highlights, id: \.self) { h in
                         HStack(alignment: .top, spacing: 10) {
                             Image(systemName: "checkmark")
-                                .font(.system(size: 11, weight: .bold)).foregroundStyle(Theme.accent)
+                                .font(.system(size: Theme.ts(11), weight: .bold)).foregroundStyle(Theme.accent)
                                 .padding(.top, 3)
-                            Text(h).font(.system(size: 14)).foregroundStyle(Theme.text)
+                            Text(h).font(.system(size: Theme.ts(14))).foregroundStyle(Theme.text)
                                 .fixedSize(horizontal: false, vertical: true)
                             Spacer(minLength: 0)
                         }
@@ -156,16 +156,16 @@ struct PluginPreview: View {
                 Spacer(minLength: 12)
                 Text(v).foregroundStyle(Theme.muted).multilineTextAlignment(.trailing).monospacedDigit()
             }
-            .font(.system(size: 12))
+            .font(.system(size: Theme.ts(12)))
             .padding(.vertical, 9)
         }
     }
 
     private var noInfo: some View {
         HStack(spacing: 10) {
-            Image(systemName: "sparkles").font(.system(size: 13)).foregroundStyle(Theme.faint)
+            Image(systemName: "sparkles").font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint)
             Text("No description yet. Right-click the plugin and choose Look Up Info.")
-                .font(.system(size: 13)).foregroundStyle(Theme.faint)
+                .font(.system(size: Theme.ts(13))).foregroundStyle(Theme.faint)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(16)

@@ -106,7 +106,7 @@ private struct ToastView: View {
                 Image(systemName: warning ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
                     .foregroundStyle(warning ? Theme.warning : Theme.accent)
             }
-            Text(text).font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.text)
+            Text(text).font(.system(size: Theme.ts(13), weight: .medium)).foregroundStyle(Theme.text)
                 .lineLimit(2).frame(maxWidth: 420, alignment: .leading)
         }
         .padding(.horizontal, 18).padding(.vertical, 12)

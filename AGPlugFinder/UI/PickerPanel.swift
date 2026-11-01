@@ -28,8 +28,8 @@ final class PickerPanelController {
         p.isReleasedWhenClosed = false
         p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         p.minSize = NSSize(width: 760, height: 480)
-        p.backgroundColor = .black
-        p.appearance = NSAppearance(named: .darkAqua)
+        p.backgroundColor = Theme.nsGround
+        p.appearance = Theme.nsAppearance
         for b in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
             p.standardWindowButton(b)?.isHidden = true
         }

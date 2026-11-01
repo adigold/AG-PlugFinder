@@ -93,8 +93,8 @@ final class WhatsNewWindow {
             w.titleVisibility = .hidden
             w.isMovableByWindowBackground = true
             w.isReleasedWhenClosed = false
-            w.backgroundColor = .black
-            w.appearance = NSAppearance(named: .darkAqua)
+            w.backgroundColor = Theme.nsGround
+            w.appearance = Theme.nsAppearance
             w.minSize = NSSize(width: 560, height: 480)
             w.center()
             window = w
@@ -133,7 +133,7 @@ struct WhatsNewView: View {
         }
         .frame(minWidth: 560, minHeight: 480)
         .background(Theme.ground)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(Theme.scheme)
     }
 
     private var header: some View {
@@ -142,12 +142,12 @@ struct WhatsNewView: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 10) {
                     Text(justUpdated ? "You're updated." : (waiting ? "A new update is available." : "What's new"))
-                        .font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.muted)
+                        .font(.system(size: Theme.ts(13), weight: .medium)).foregroundStyle(Theme.muted)
                     NewBadge()
                 }
                 Text("AG PlugFinder \(version)")
-                    .font(.system(size: 30, weight: .bold)).foregroundStyle(Theme.text)
-                Text(summary).font(.system(size: 14)).foregroundStyle(Theme.muted)
+                    .font(.system(size: Theme.ts(30), weight: .bold)).foregroundStyle(Theme.text)
+                Text(summary).font(.system(size: Theme.ts(14))).foregroundStyle(Theme.muted)
             }
         }
     }
@@ -166,7 +166,7 @@ struct WhatsNewView: View {
         let list = items.filter { $0.kind == kind }
         if !list.isEmpty {
             VStack(alignment: .leading, spacing: 14) {
-                Text(title).font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.text)
+                Text(title).font(.system(size: Theme.ts(17), weight: .semibold)).foregroundStyle(Theme.text)
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 300), spacing: 12, alignment: .top)],
                           alignment: .leading, spacing: 12) {
                     ForEach(list) { card($0) }
@@ -178,15 +178,15 @@ struct WhatsNewView: View {
     private func card(_ n: ReleaseNote) -> some View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: n.icon)
-                .font(.system(size: 18, weight: .medium))
+                .font(.system(size: Theme.ts(18), weight: .medium))
                 .foregroundStyle(n.kind == .new ? Theme.accent : Theme.muted)
                 .frame(width: 26, height: 26, alignment: .center)
                 .padding(.top, 1)
             VStack(alignment: .leading, spacing: 5) {
-                Text(n.title).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.text)
+                Text(n.title).font(.system(size: Theme.ts(14), weight: .semibold)).foregroundStyle(Theme.text)
                     .fixedSize(horizontal: false, vertical: true)
                 if !n.detail.isEmpty {
-                    Text(n.detail).font(.system(size: 12.5)).foregroundStyle(Theme.muted)
+                    Text(n.detail).font(.system(size: Theme.ts(12.5))).foregroundStyle(Theme.muted)
                         .lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -201,7 +201,7 @@ struct WhatsNewView: View {
         HStack(spacing: 10) {
             if waiting {
                 Text("AG PlugFinder closes and opens again by itself.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.faint)
+                    .font(.system(size: Theme.ts(12))).foregroundStyle(Theme.faint)
                 Spacer()
                 QuietPill(title: "Later", height: 34) { close() }
                 PrimaryPill(title: "Install and Restart", height: 36) { close(); updater.install() }
@@ -223,8 +223,8 @@ struct WhatsNewView: View {
 struct NewBadge: View {
     var body: some View {
         Text("New")
-            .font(.system(size: 11, weight: .bold))
-            .foregroundStyle(Color.black)
+            .font(.system(size: Theme.ts(11), weight: .bold))
+            .foregroundStyle(Theme.onAccent)
             .padding(.horizontal, 8).frame(height: 18)
             .background(Capsule().fill(Theme.accent))
     }
