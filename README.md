@@ -100,6 +100,12 @@ You know the plugin you want. You can picture its window. But Logic's plugin men
 - **By installer.** See which installer put each plugin there, with the other files it left in your Library folders.
 - **Nothing is deleted.** Removing moves the files into a dated folder on your Desktop, so you can always put them back.
 
+## Ableton Live
+
+- **Works in Live too.** Adds plugins and Ableton's own devices to the selected track in Live.
+- **Follows the program you are using.** Logic's plugins while you work in Logic, Ableton's devices while you work in Live, and nothing to switch.
+- **One setting in Live.** In Live's Settings, Link, Tempo & MIDI, choose AGPlugFinder as a Control Surface.
+
 ## Sync
 
 Favorites, collections, chains, notes, number keys, hidden plugins, pills, purchases and subscriptions, your theme and text size, and your view choices sync with your other Macs through iCloud Drive, and you see the sync happen when you turn it on. Choose in Settings which of them each Mac shares. License keys stay on each Mac.
@@ -156,6 +162,12 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.37**
+
+- **New:** Ableton Live. AG PlugFinder now adds plugins and Ableton's own devices to the selected track in Live. It follows the program you are using: Logic's plugins while you work in Logic, Ableton's devices while you work in Live. Turn it on once in Live's Settings, Link, Tempo & MIDI, by choosing AGPlugFinder as a Control Surface.
+- **New:** A thin footer with the version and Check for Update, and the tools sit together in the top-right corner.
+- **Fixed:** The Plugin Manager scan no longer seems stuck after matching installers. The last step shows its own progress and runs much faster.
+
 **0.9.36**
 
 - **New:** Choose what syncs. In Settings, each part of your library has its own switch, so every Mac can keep some things to itself.
@@ -170,6 +182,9 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **Faster:** The Plugin Manager stays quick with thousands of plugins. Ticking, searching and scrolling react at once.
 - **New:** Select All and Deselect All buttons in the Plugin Manager.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.34)</summary>
+
 **0.9.34**
 
 - **New:** Sideview view. A tall panel at the side of your screen with every category as a row of plugin pictures. The view button in the top bar switches between Full Window, Sideview and Mini.
@@ -177,9 +192,6 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **Improved:** The Plugin Manager shows each file as it scans, and scans faster.
 - **Improved:** Plugins you remove in the Plugin Manager leave the library right away.
 - **Improved:** The Effects category is gone. Its plugins moved to Specialized or Utility.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.33)</summary>
 
 **0.9.33**
 
