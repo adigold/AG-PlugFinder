@@ -164,6 +164,12 @@ AG PlugFinder lives in the menu bar and can start when you log in. Its menu open
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.44**
+
+- **Improved:** The menu bar menu is in order, with icons, your shortcut shown on the right, a Window Style menu for full window, Sideview or mini window, and a Help menu for feedback.
+- **New:** The mini window has a favorites star beside the pin, to show only your favorites.
+- **Improved:** A small "Long press" tip under the Zoom button shows how to pick S, M or L, and goes away once you have chosen a size.
+
 **0.9.43**
 
 - **Improved:** Zoom is rebuilt. The selected plugin now sits in front of every other card and its picture really gets bigger, and the card moves to the middle of the list as you go with the arrow keys.
@@ -175,12 +181,12 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **New:** Zoom. Turn it on under the picture size slider and the plugin you select shows bigger, following you as you move with the arrow keys.
 - **Improved:** The LoFi category now gathers every lo-fi effect, from Abbey Road Vinyl and SketchCassette to Super VHS and Bad Tape.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.41)</summary>
+
 **0.9.41**
 
 - **New:** LoFi category. RC-20 Retro Color, Retro Fi, Lofi Space, Tape MELLO-FI, UFX-LOFI and other lo-fi effects have their own pill.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.40)</summary>
 
 **0.9.40**
 
