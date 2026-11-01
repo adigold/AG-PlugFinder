@@ -156,6 +156,13 @@ AG PlugFinder lives in the menu bar and can start when you log in.
 
 Everything each version brought, newest first. The same notes appear in the app's What's New window.
 
+**0.9.35**
+
+- **Improved:** Sidecar is now called Sideview.
+- **Improved:** The Plugin Manager scan shows how many plugin files and installers are left, with a progress bar.
+- **Faster:** The Plugin Manager stays quick with thousands of plugins. Ticking, searching and scrolling react at once.
+- **New:** Select All and Deselect All buttons in the Plugin Manager.
+
 **0.9.34**
 
 - **New:** Sideview view. A tall panel at the side of your screen with every category as a row of plugin pictures. The view button in the top bar switches between Full Window, Sideview and Mini.
@@ -171,15 +178,15 @@ Everything each version brought, newest first. The same notes appear in the app'
 - **Fixed:** Save as chain tells you when a track has only an instrument and no effects to save.
 - **Fixed:** An open chain in the Chains list is no longer cut off.
 
+<details>
+<summary><b>Earlier versions</b> (0.5.0 to 0.9.32)</summary>
+
 **0.9.32**
 
 - **New:** Plugin Manager, in Settings. Every plugin on your Mac in every format: Audio Units, VST, VST3, AAX and CLAP.
 - **New:** Find duplicates. The Plugin Manager shows plugins installed twice, older versions beside newer ones, and formats Logic doesn't load. Nothing is ticked for you.
 - **New:** See plugins by installer, including the other files each installer left in your Library folders.
 - **New:** Removing a plugin moves it into a folder on your Desktop instead of deleting it, so you can always put it back.
-
-<details>
-<summary><b>Earlier versions</b> (0.5.0 to 0.9.31)</summary>
 
 **0.9.31**
 
